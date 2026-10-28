@@ -14,7 +14,6 @@ import com.example.lambda_bbb_events.ui.components.HorizontalCardSection
 import com.example.lambda_bbb_events.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.ui.components.SearchBar
-import java.nio.file.WatchEvent
 
 @Composable
 fun HomeScreen(navController: NavController) {
