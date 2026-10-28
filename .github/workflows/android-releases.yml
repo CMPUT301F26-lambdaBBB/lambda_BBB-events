@@ -29,7 +29,7 @@ jobs:
       - run: chmod +x code/gradlew
 
       - name: Tests
-        run: ./code/gradlew test
+        run: ./code/gradlew -p code test
 
       - name: Build Release APK
         run: ./code/gradlew assembleRelease
