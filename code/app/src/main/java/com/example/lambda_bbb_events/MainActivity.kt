@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Lambda_BBBeventsTheme {
-
+                LambdaEventsApp()
             }
         }
     }
