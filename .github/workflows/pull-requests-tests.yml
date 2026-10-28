@@ -21,19 +21,19 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: chmod +x gradlew
+      - run: chmod +x code/gradlew
 
       - name: Tests
-        run: ./gradlew test
+        run: ./code/gradlew test
 
       - name: Build
-        run: ./gradlew assembleDebug
+        run: ./code/gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: code/app/build/outputs/apk/debug/*.apk
 
   ui-tests:
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: chmod +x gradlew
+      - run: chmod +x code/gradlew
 
       - uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -57,4 +57,4 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
-          script: ./gradlew connectedAndroidTest
+          script: ./code/gradlew connectedAndroidTest
