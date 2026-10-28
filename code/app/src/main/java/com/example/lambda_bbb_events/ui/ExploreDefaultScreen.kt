@@ -26,7 +26,7 @@ import com.example.lambda_bbb_events.ui.components.SearchBar
 import com.example.lambda_bbb_events.ui.components.VerticalCampsiteCard
 
 @Composable
-fun ExploreScreen(navController: NavController) {
+fun ExploreDefaultScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController)
