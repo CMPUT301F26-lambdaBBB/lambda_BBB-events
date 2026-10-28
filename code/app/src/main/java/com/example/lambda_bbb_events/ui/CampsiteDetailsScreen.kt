@@ -5,25 +5,20 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.RatingStars
 import com.example.lambda_bbb_events.ui.components.RatingSummary
 import com.example.lambda_bbb_events.ui.components.ScreenTitle
 
@@ -72,7 +66,10 @@ fun CampsiteDetailsScreen(navController: NavController) {
                         contentDescription = "Location",
                         modifier = Modifier.size(28.dp)
                     )
-                    Text("some address here lallalalalal street oh my goodness ABC DEF")
+                    Text(
+                        text = "some address here lallalalalal street oh my goodness ABC DEF",
+                        fontSize = 15.sp
+                    )
                 }
 
                 Row(
@@ -91,9 +88,12 @@ fun CampsiteDetailsScreen(navController: NavController) {
                         Text(
                             text = "Max Occupancy",
                             color = Color.Gray,
-                            fontSize = 12.sp
+                            fontSize = 11.sp
                         )
-                        Text("25 people")
+                        Text(
+                            text = "25 people",
+                            fontSize = 15.sp
+                        )
                     }
 
                 }

@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,7 +46,7 @@ fun ScreenTitle(
         )
         if (showNotifications) {
             IconButton(
-                onClick = { navController.navigate("home") }, // change this to notification screen once implemented
+                onClick = { navController.navigate("notifications") }, // change this to notification screen once implemented
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")

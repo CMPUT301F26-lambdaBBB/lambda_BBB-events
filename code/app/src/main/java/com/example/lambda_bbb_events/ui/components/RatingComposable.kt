@@ -14,6 +14,7 @@ fun RatingStars(
     modifier: Modifier = Modifier
 ) {
     // to yuta: change this later to display actually star icons instead of whatever this is
+    // we'll most likely have a rating class, so this function might be the RatingView
     Text(
         text = "★★★★☆",
         modifier = modifier,
