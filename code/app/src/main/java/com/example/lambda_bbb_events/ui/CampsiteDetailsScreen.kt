@@ -39,7 +39,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ScreenTitle("Yuta Land", navController, showBack = true)
+                ScreenTitle("Test Campsite", navController, showBack = true)
 
                 // Image carousel placeholder
                 Box(

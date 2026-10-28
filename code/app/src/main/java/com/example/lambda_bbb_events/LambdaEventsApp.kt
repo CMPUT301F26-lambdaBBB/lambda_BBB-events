@@ -11,12 +11,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.ui.ActiveBookingsScreen
 import com.example.lambda_bbb_events.ui.CampsiteDetailsScreen
+import com.example.lambda_bbb_events.ui.CreateScreen
 import com.example.lambda_bbb_events.ui.ExploreMapScreen
 import com.example.lambda_bbb_events.ui.ExploreDefaultScreen
 import com.example.lambda_bbb_events.ui.HomeScreen
 import com.example.lambda_bbb_events.ui.LotteryBookingsScreen
 import com.example.lambda_bbb_events.ui.NotificationsScreen
 import com.example.lambda_bbb_events.ui.PastBookingsScreen
+import com.example.lambda_bbb_events.ui.ProfileScreen
 
 @Composable
 fun LambdaEventsApp() {
@@ -36,6 +38,8 @@ fun LambdaEventsApp() {
             composable("exploreDefault") { ExploreDefaultScreen(navController) }
             composable("exploreMap") { ExploreMapScreen(navController) }
             composable("notifications") { NotificationsScreen(navController) }
+            composable("create") { CreateScreen(navController) }
+            composable("profile") { ProfileScreen(navController) }
         }
     }
 }
