@@ -47,7 +47,7 @@ fun ScreenTitle(
         )
         if (showNotifications) {
             IconButton(
-                onClick = { navController.navigate("home") }, // change this to notification screen once implemented
+                onClick = { navController.navigate("notifications") }, // change this to notification screen once implemented
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")

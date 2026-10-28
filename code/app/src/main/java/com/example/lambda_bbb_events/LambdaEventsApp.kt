@@ -9,8 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.ui.CampsiteDetailsScreen
-import com.example.lambda_bbb_events.ui.ExploreScreen
+import com.example.lambda_bbb_events.ui.ExploreDefaultScreen
+import com.example.lambda_bbb_events.ui.ExploreMapScreen
 import com.example.lambda_bbb_events.ui.HomeScreen
+import com.example.lambda_bbb_events.ui.NotificationsScreen
 
 @Composable
 fun LambdaEventsApp() {
@@ -23,8 +25,10 @@ fun LambdaEventsApp() {
             modifier = Modifier.padding(innerPadding).padding(all = 32.dp)
         ) {
             composable("home") { HomeScreen(navController) }
-            composable("explore") { ExploreScreen(navController) }
+            composable("exploreDefault") { ExploreDefaultScreen(navController) }
+            composable("exploreMap") { ExploreMapScreen(navController) }
             composable("campsiteDetails") { CampsiteDetailsScreen(navController) }
+            composable("notifications") { NotificationsScreen(navController) }
         }
     }
 }

@@ -72,7 +72,10 @@ fun CampsiteDetailsScreen(navController: NavController) {
                         contentDescription = "Location",
                         modifier = Modifier.size(28.dp)
                     )
-                    Text("some address here lallalalalal street oh my goodness ABC DEF")
+                    Text(
+                        text = "some address here lallalalalal street oh my goodness ABC DEF",
+                        fontSize = 15.sp
+                    )
                 }
 
                 Row(
@@ -91,9 +94,12 @@ fun CampsiteDetailsScreen(navController: NavController) {
                         Text(
                             text = "Max Occupancy",
                             color = Color.Gray,
-                            fontSize = 12.sp
+                            fontSize = 11.sp
                         )
-                        Text("25 people")
+                        Text(
+                            text = "25 people",
+                            fontSize = 15.sp
+                        )
                     }
 
                 }
