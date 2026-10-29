@@ -33,7 +33,7 @@ fun BookingsTypeBar(navController: NavController) {
                 .weight(1f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (currentRoute == "active_bookings") Purple80
+                    if (currentRoute == "active_bookings") _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple80
                     else Color.Transparent
                 )
                 .clickable{
@@ -53,7 +53,7 @@ fun BookingsTypeBar(navController: NavController) {
                 .weight(1f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (currentRoute == "past_bookings") Purple80
+                    if (currentRoute == "past_bookings") _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple80
                     else Color.Transparent
                 )
                 .clickable{
@@ -73,7 +73,7 @@ fun BookingsTypeBar(navController: NavController) {
                 .weight(1f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (currentRoute == "lottery_bookings") Purple80
+                    if (currentRoute == "lottery_bookings") _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple80
                     else Color.Transparent
                 )
                 .clickable{

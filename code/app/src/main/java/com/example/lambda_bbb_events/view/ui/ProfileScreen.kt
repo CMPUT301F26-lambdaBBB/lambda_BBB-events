@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,22 +20,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.BottomNavigationBar
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.ui.components.SearchBar
-import com.example.lambda_bbb_events.ui.components.VerticalCampsiteCard
+import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.SearchBar
+import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
 @Composable
 fun ProfileScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController)
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+                navController
+            )
         }
     ){ innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            ScreenTitle(title = "Profile", navController = navController)
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+                title = "Profile",
+                navController = navController
+            )
         }
     }
 }

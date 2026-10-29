@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui.components
+package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun VerticalCardSection(
+fun HorizontalCardSection(
     title: String,
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier,
@@ -48,12 +48,11 @@ fun VerticalCardSection(
                 }
             )
         }
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(10) {
-                VerticalCampsiteCard()
+            items(itemCount) {
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.HorizontalCampsiteCard()
             }
         }
     }

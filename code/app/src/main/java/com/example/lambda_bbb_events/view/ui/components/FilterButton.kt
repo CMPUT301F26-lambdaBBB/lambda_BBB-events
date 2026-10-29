@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui.components
+package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons

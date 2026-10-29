@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,9 +20,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.NotificationRow
-import com.example.lambda_bbb_events.ui.components.NotificationSectionHeader
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.NotificationRow
+import com.example.lambda_bbb_events.view.ui.components.NotificationSectionHeader
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlin.repeat
 
 @Composable
@@ -48,7 +48,7 @@ fun NotificationsScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        ScreenTitle(
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
             title = "Notification",
             navController = navController,
             showNotifications = false,
@@ -61,9 +61,11 @@ fun NotificationsScreen(navController: NavController) {
             fontSize = 16.sp
         )
 
-        NotificationSectionHeader("People")
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.NotificationSectionHeader(
+            "People"
+        )
         repeat(people.size) { i ->
-            NotificationRow(
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.NotificationRow(
                 people[i][0] as String,
                 people[i][1] as String,
                 onClick = {},
@@ -80,9 +82,11 @@ fun NotificationsScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        NotificationSectionHeader("Categories")
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.NotificationSectionHeader(
+            "Categories"
+        )
         repeat(categories.size) { i ->
-            NotificationRow(
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.NotificationRow(
                 categories[i][0] as String,
                 categories[i][1] as String,
                 onClick = {},

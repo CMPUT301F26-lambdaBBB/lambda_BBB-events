@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,23 +20,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.BottomNavigationBar
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.ui.components.SearchBar
-import com.example.lambda_bbb_events.ui.components.VerticalCampsiteCard
+import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.SearchBar
+import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
 @Composable
 fun ExploreDefaultScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController)
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+                navController
+            )
         }
     ){ innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            ScreenTitle(title = "Explore", navController = navController)
-            SearchBar("Search Campsites", "Search campsites...")
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+                title = "Explore",
+                navController = navController
+            )
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SearchBar(
+                "Search Campsites",
+                "Search campsites..."
+            )
             AssistChip(
                 onClick = { /* open filters */ },
                 label = { Text("Filters", fontWeight = FontWeight.Bold) },
@@ -54,7 +62,7 @@ fun ExploreDefaultScreen(navController: NavController) {
             ) {
                 items(10) {
                     // idk if u guys want to make the search bar scroll up with the cards
-                    VerticalCampsiteCard()
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard()
                 }
             }
         }

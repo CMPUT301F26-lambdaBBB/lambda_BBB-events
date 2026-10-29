@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,19 +15,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.FilterButton
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.ui.components.SearchBar
-import com.example.lambda_bbb_events.ui.components.VerticalCardSection
+import com.example.lambda_bbb_events.view.ui.components.FilterButton
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.SearchBar
+import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
 
 @Composable
 fun ExploreMapScreen(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        ScreenTitle(title = "Explore", navController = navController)
-        SearchBar("Search Campsites", "Search campsites...")
-        FilterButton()
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+            title = "Explore",
+            navController = navController
+        )
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SearchBar(
+            "Search Campsites",
+            "Search campsites..."
+        )
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.FilterButton()
 
         // google maps placeholder
         Box(
@@ -45,6 +51,8 @@ fun ExploreMapScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        VerticalCardSection("Nearby Campsites", onSeeAll = {})
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCardSection(
+            "Nearby Campsites",
+            onSeeAll = {})
     }
 }

@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui.theme
+package com.example.lambda_bbb_events.view.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

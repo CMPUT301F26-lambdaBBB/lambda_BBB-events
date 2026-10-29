@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui.components
+package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
@@ -29,7 +29,7 @@ fun RatingSummary(
     reviewCount: Int
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        RatingStars(rating = rating)
+        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.RatingStars(rating = rating)
         Text("  $rating ($reviewCount reviews)")
     }
 }

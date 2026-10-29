@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,8 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.RatingSummary
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
 fun CampsiteDetailsScreen(navController: NavController) {
@@ -39,7 +39,11 @@ fun CampsiteDetailsScreen(navController: NavController) {
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ScreenTitle("Test Campsite", navController, showBack = true)
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+                    "Test Campsite",
+                    navController,
+                    showBack = true
+                )
 
                 // Image carousel placeholder
                 Box(
@@ -55,7 +59,10 @@ fun CampsiteDetailsScreen(navController: NavController) {
                     Text("some images here")
                 }
 
-                RatingSummary(4.0f, 15)
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.RatingSummary(
+                    4.0f,
+                    15
+                )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -100,21 +107,41 @@ fun CampsiteDetailsScreen(navController: NavController) {
 
                 HorizontalDivider()
 
-                SectionTitle("Tags")
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Tags")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // replace the hardcoded colors
-                    DisplayTag("has internet", Color(0xfff5f5f5), Color(0xffe5e5e5))
-                    DisplayTag("campfire pit", Color(0xfff5f5f5), Color(0xffe5e5e5))
-                    DisplayTag("lake access", Color(0xfff5f5f5), Color(0xffe5e5e5))
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                        "has internet",
+                        Color(0xfff5f5f5),
+                        Color(0xffe5e5e5)
+                    )
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                        "campfire pit",
+                        Color(0xfff5f5f5),
+                        Color(0xffe5e5e5)
+                    )
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                        "lake access",
+                        Color(0xfff5f5f5),
+                        Color(0xffe5e5e5)
+                    )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DisplayTag("stargazing", Color(0xfff5f5f5), Color(0xffe5e5e5))
-                    DisplayTag("dog friendly", Color(0xfff5f5f5), Color(0xffe5e5e5))
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                        "stargazing",
+                        Color(0xfff5f5f5),
+                        Color(0xffe5e5e5)
+                    )
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                        "dog friendly",
+                        Color(0xfff5f5f5),
+                        Color(0xffe5e5e5)
+                    )
                 }
 
                 HorizontalDivider()
 
-                SectionTitle("Campsite QR Code")
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Campsite QR Code")
                 // QR code placeholder
                 Box(
                     modifier = Modifier
@@ -131,13 +158,13 @@ fun CampsiteDetailsScreen(navController: NavController) {
 
                 HorizontalDivider()
 
-                SectionTitle("Description")
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Description")
                 Text("The Yuta Man Site stands as the ultimate, undisputed sanctuary for Yuta...")
 
                 HorizontalDivider()
 
                 // google maps placeholder
-                SectionTitle("Map Location")
+                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Map Location")
                 Box(
                     modifier = Modifier
                         .height(320.dp)

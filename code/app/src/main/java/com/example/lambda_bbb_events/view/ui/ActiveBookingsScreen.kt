@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui
+package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,26 +12,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.ui.components.BottomNavigationBar
-import com.example.lambda_bbb_events.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.ui.components.SubTitle
-import com.example.lambda_bbb_events.ui.components.VerticalCampsiteCard
+import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.SubTitle
+import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
 @Composable
-fun PastBookingsScreen(navController: NavController) {
+fun ActiveBookingsScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController)
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+                navController
+            )
         }
     ){ innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            ScreenTitle(title = "My Reservations", navController = navController)
-            BookingsTypeBar(navController)
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+                title = "My Reservations",
+                navController = navController
+            )
+            _root_ide_package_.com.example.lambda_bbb_events.ui.theme.BookingsTypeBar(navController)
             Spacer(modifier = Modifier.height(25.dp))
-            SubTitle(title = "Past Reservations")
+            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SubTitle(title = "Active Reservations")
             Spacer(modifier = Modifier.height(25.dp))
 
             LazyColumn(
@@ -39,7 +44,7 @@ fun PastBookingsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(10) {
-                    VerticalCampsiteCard()
+                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard()
                 }
             }
         }
