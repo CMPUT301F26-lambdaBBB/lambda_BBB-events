@@ -29,16 +29,16 @@ jobs:
       - run: chmod +x code/gradlew
 
       - name: Tests
-        run: ./code/gradlew test
+        run: ./code/gradlew -p code test
 
       - name: Build Release APK
-        run: ./code/gradlew assembleRelease
+        run: ./code/gradlew -p code assembleRelease
 
       - name: Directory Info
         run: ls
 
       - name: Generate Dokka Docs
-        run: ./code/gradlew dokkaHtml
+        run: ./code/gradlew -p code dokkaHtml
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
