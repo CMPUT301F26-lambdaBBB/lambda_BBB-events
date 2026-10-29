@@ -38,7 +38,7 @@ fun BottomNavigationBar(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp)),
-            containerColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple80
+            containerColor = Purple80
         ){
             // Navigation to Home
             NavigationBarItem(
@@ -58,15 +58,16 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Home")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+                    indicatorColor = PurpleGrey80
                 )
             )
 
             // Navigation to Explore
             NavigationBarItem(
-                selected = currentRoute == "explore",
+                selected = currentRoute == "explore_map"
+                        || currentRoute == "explore_default",
                 onClick = {
-                    navController.navigate("explore") {
+                    navController.navigate("explore_map") {
                         launchSingleTop = true
                     }
                 },
@@ -80,7 +81,7 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Explore")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+                    indicatorColor = PurpleGrey80
                 )
             )
 
@@ -104,7 +105,7 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Bookings")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+                    indicatorColor = PurpleGrey80
                 )
             )
 
@@ -126,7 +127,7 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Create")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+                    indicatorColor = PurpleGrey80
                 )
             )
 
@@ -148,7 +149,7 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Profile")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+                    indicatorColor = PurpleGrey80
                 )
             )
         }

@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme {
+            Lambda_BBBeventsTheme {
                 LambdaEventsApp()
             }
         }

@@ -29,7 +29,7 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 fun ExploreDefaultScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+            BottomNavigationBar(
                 navController
             )
         }
@@ -37,11 +37,11 @@ fun ExploreDefaultScreen(navController: NavController) {
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+            ScreenTitle(
                 title = "Explore",
                 navController = navController
             )
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SearchBar(
+            SearchBar(
                 "Search Campsites",
                 "Search campsites..."
             )
@@ -62,7 +62,7 @@ fun ExploreDefaultScreen(navController: NavController) {
             ) {
                 items(10) {
                     // idk if u guys want to make the search bar scroll up with the cards
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard()
+                    VerticalCampsiteCard()
                 }
             }
         }

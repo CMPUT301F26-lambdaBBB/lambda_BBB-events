@@ -29,7 +29,7 @@ fun RatingSummary(
     reviewCount: Int
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.RatingStars(rating = rating)
+        RatingStars(rating = rating)
         Text("  $rating ($reviewCount reviews)")
     }
 }
