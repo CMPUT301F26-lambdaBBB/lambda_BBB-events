@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.ui.components
+package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.lambda_bbb_events.ui.theme.PurpleGrey80
-import com.example.lambda_bbb_events.ui.theme.Purple80
+import com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
+import com.example.lambda_bbb_events.view.ui.theme.Purple80
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
@@ -64,9 +64,10 @@ fun BottomNavigationBar(navController: NavController) {
 
             // Navigation to Explore
             NavigationBarItem(
-                selected = currentRoute == "explore",
+                selected = currentRoute == "explore_map"
+                        || currentRoute == "explore_default",
                 onClick = {
-                    navController.navigate("explore") {
+                    navController.navigate("explore_map") {
                         launchSingleTop = true
                     }
                 },

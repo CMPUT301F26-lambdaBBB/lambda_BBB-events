@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.lambda_bbb_events.view.ui.theme.Purple80
 
 @Composable
 fun BookingsTypeBar(navController: NavController) {
