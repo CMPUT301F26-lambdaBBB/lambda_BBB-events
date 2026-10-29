@@ -24,10 +24,10 @@ jobs:
       - run: chmod +x code/gradlew
 
       - name: Tests
-        run: ./code/gradlew test
+        run: ./code/gradlew -p code test
 
       - name: Build
-        run: ./code/gradlew assembleDebug
+        run: ./code/gradlew -p code assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -51,10 +51,19 @@ jobs:
 
       - run: chmod +x code/gradlew
 
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | \
+          sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           target: google_apis
           arch: x86_64
-          profile: pixel_6
-          script: ./code/gradlew connectedAndroidTest
+          profile: pixel
+          disable-animations: true
+          script: ./code/gradlew -p code connectedAndroidTest
