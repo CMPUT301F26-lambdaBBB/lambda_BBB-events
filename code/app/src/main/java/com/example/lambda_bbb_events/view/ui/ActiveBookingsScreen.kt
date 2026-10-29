@@ -22,21 +22,21 @@ import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 fun ActiveBookingsScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+            BottomNavigationBar(
                 navController
             )
         }
-    ){ innerPadding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+            ScreenTitle(
                 title = "My Reservations",
                 navController = navController
             )
-            _root_ide_package_.com.example.lambda_bbb_events.ui.theme.BookingsTypeBar(navController)
+            BookingsTypeBar(navController)
             Spacer(modifier = Modifier.height(25.dp))
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SubTitle(title = "Active Reservations")
+            SubTitle(title = "Active Reservations")
             Spacer(modifier = Modifier.height(25.dp))
 
             LazyColumn(
@@ -44,7 +44,7 @@ fun ActiveBookingsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(10) {
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard()
+                    VerticalCampsiteCard()
                 }
             }
         }

@@ -19,29 +19,29 @@ import com.example.lambda_bbb_events.view.ui.components.SearchBar
 fun HomeScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+            BottomNavigationBar(
                 navController
             )
         }
-    ){ innerPadding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+            ScreenTitle(
                 title = "Home",
                 navController = navController
             )
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.SearchBar(
+            SearchBar(
                 "Search Campsites",
                 "Search campsites..."
             )
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.HorizontalCardSection(
+            HorizontalCardSection(
                 "Recently Viewed",
                 onSeeAll = { /* do something */ })
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.HorizontalCardSection(
+            HorizontalCardSection(
                 "Featured Campsites",
                 onSeeAll = { /* do something */ })
         }

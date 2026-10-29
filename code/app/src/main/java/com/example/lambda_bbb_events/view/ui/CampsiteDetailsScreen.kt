@@ -39,7 +39,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+                ScreenTitle(
                     "Test Campsite",
                     navController,
                     showBack = true
@@ -59,7 +59,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
                     Text("some images here")
                 }
 
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.RatingSummary(
+                RatingSummary(
                     4.0f,
                     15
                 )
@@ -107,32 +107,32 @@ fun CampsiteDetailsScreen(navController: NavController) {
 
                 HorizontalDivider()
 
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Tags")
+                SectionTitle("Tags")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // replace the hardcoded colors
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                    DisplayTag(
                         "has internet",
                         Color(0xfff5f5f5),
                         Color(0xffe5e5e5)
                     )
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                    DisplayTag(
                         "campfire pit",
                         Color(0xfff5f5f5),
                         Color(0xffe5e5e5)
                     )
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                    DisplayTag(
                         "lake access",
                         Color(0xfff5f5f5),
                         Color(0xffe5e5e5)
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                    DisplayTag(
                         "stargazing",
                         Color(0xfff5f5f5),
                         Color(0xffe5e5e5)
                     )
-                    _root_ide_package_.com.example.lambda_bbb_events.view.ui.DisplayTag(
+                    DisplayTag(
                         "dog friendly",
                         Color(0xfff5f5f5),
                         Color(0xffe5e5e5)
@@ -141,7 +141,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
 
                 HorizontalDivider()
 
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Campsite QR Code")
+                SectionTitle("Campsite QR Code")
                 // QR code placeholder
                 Box(
                     modifier = Modifier
@@ -158,13 +158,13 @@ fun CampsiteDetailsScreen(navController: NavController) {
 
                 HorizontalDivider()
 
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Description")
+                SectionTitle("Description")
                 Text("The Yuta Man Site stands as the ultimate, undisputed sanctuary for Yuta...")
 
                 HorizontalDivider()
 
                 // google maps placeholder
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.SectionTitle("Map Location")
+                SectionTitle("Map Location")
                 Box(
                     modifier = Modifier
                         .height(320.dp)

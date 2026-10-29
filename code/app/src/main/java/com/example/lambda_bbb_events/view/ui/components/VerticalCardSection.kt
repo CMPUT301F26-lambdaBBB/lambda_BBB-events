@@ -53,7 +53,7 @@ fun VerticalCardSection(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(10) {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard()
+                VerticalCampsiteCard()
             }
         }
     }

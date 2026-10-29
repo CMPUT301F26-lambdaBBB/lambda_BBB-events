@@ -28,58 +28,20 @@ fun LambdaEventsApp() {
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(innerPadding).padding(all = 32.dp)
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(start = 32.dp, end = 32.dp)
         ) {
-            composable("home") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.HomeScreen(
-                    navController
-                )
-            }
-            composable("active_bookings") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen(
-                    navController
-                )
-            }
-            composable("past_bookings") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.PastBookingsScreen(
-                    navController
-                )
-            }
-            composable("lottery_bookings") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen(
-                    navController
-                )
-            }
-            composable("campsite_details") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen(
-                    navController
-                )
-            }
-            composable("exploreDefault") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen(
-                    navController
-                )
-            }
-            composable("exploreMap") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.ExploreMapScreen(
-                    navController
-                )
-            }
-            composable("notifications") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.NotificationsScreen(
-                    navController
-                )
-            }
-            composable("create") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.CreateScreen(
-                    navController
-                )
-            }
-            composable("profile") {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.ProfileScreen(
-                    navController
-                )
-            }
+            composable("home") { HomeScreen(navController) }
+            composable("active_bookings") { ActiveBookingsScreen(navController) }
+            composable("past_bookings") { PastBookingsScreen(navController) }
+            composable("lottery_bookings") { LotteryBookingsScreen(navController) }
+            composable("campsite_details") { CampsiteDetailsScreen(navController) }
+            composable("explore_default") { ExploreDefaultScreen(navController) }
+            composable("explore_map") { ExploreMapScreen(navController) }
+            composable("notifications") { NotificationsScreen(navController) }
+            composable("create") { CreateScreen(navController) }
+            composable("profile") { ProfileScreen(navController) }
         }
     }
 }

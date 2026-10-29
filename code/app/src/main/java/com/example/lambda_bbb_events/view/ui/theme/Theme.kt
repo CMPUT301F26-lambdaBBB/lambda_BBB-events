@@ -12,15 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple80,
-    secondary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80,
-    tertiary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Pink80
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Purple40,
-    secondary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.PurpleGrey40,
-    tertiary = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Pink40
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -46,13 +46,13 @@ fun Lambda_BBBeventsTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.DarkColorScheme
-        else -> _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.LightColorScheme
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = _root_ide_package_.com.example.lambda_bbb_events.view.ui.theme.Typography,
+        typography = Typography,
         content = content
     )
 }

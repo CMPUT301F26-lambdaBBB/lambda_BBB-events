@@ -29,7 +29,7 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 fun CreateScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar(
+            BottomNavigationBar(
                 navController
             )
         }
@@ -37,7 +37,7 @@ fun CreateScreen(navController: NavController) {
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.ScreenTitle(
+            ScreenTitle(
                 title = "Create",
                 navController = navController
             )

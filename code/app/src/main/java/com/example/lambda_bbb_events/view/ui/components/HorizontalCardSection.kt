@@ -52,7 +52,7 @@ fun HorizontalCardSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(itemCount) {
-                _root_ide_package_.com.example.lambda_bbb_events.view.ui.components.HorizontalCampsiteCard()
+                HorizontalCampsiteCard()
             }
         }
     }
