@@ -66,4 +66,4 @@ jobs:
           arch: x86_64
           profile: pixel
           disable-animations: true
-          script: ./gradlew -p code connectedAndroidTest
+          script: ./code/gradlew -p code connectedAndroidTest
