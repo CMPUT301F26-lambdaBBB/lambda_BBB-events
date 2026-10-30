@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.model
 
+import com.google.firebase.firestore.Exclude
 import java.time.LocalDate
 
 /**
@@ -18,6 +19,7 @@ data class AvailabilitySchedule (
      *
      * @return A set of available dates.
      */
+    @Exclude
     fun getAvailableLocalDates(): Set<LocalDate> {
         val result = mutableSetOf<LocalDate>()
 
@@ -34,6 +36,7 @@ data class AvailabilitySchedule (
      *
      * @return A set of booked dates.
      */
+    @Exclude
     fun getBookedLocalDates(): Set<LocalDate> {
         val result = mutableSetOf<LocalDate>()
 
@@ -51,6 +54,7 @@ data class AvailabilitySchedule (
      * @return `true` if every specified date is available and not booked,
      * `false` otherwise.
      */
+    @Exclude
     fun isAvailable(dates: Collection<LocalDate>): Boolean {
         val available = getAvailableLocalDates()
         val booked = getBookedLocalDates()
@@ -70,6 +74,7 @@ data class AvailabilitySchedule (
      *
      * @return sorted list of dates which are available and not booked, in sorted order.
      */
+    @Exclude
     fun freeDates(): List<LocalDate> {
         val available = getAvailableLocalDates()
         val booked = getBookedLocalDates()
