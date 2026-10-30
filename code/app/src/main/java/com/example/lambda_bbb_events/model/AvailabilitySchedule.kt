@@ -1,17 +1,52 @@
 package com.example.lambda_bbb_events.model
 
+import com.google.firebase.firestore.Exclude
 import java.time.LocalDate
 
 /**
  * Represents the availability schedule for a set of dates.
  *
- * @property availableDates Dates that are available for booking.
+ * @property availableDates Dates that are set to be available for booking by the owner.
  * @property bookedDates Dates that have already been booked.
  */
 data class AvailabilitySchedule (
-    var availableDates: Set<LocalDate> = emptySet(),
-    var bookedDates: Set<LocalDate> = emptySet()
+    var availableDates: List<String> = emptyList(),
+    var bookedDates: List<String> = emptyList()
 ) {
+    /**
+     * Gets the set of available dates of type [LocalDate]. Dates are converted
+     * from ISO date strings (compatible with firestore) to [LocalDate].
+     *
+     * @return A set of available dates.
+     */
+    @Exclude
+    fun getAvailableLocalDates(): Set<LocalDate> {
+        val result = mutableSetOf<LocalDate>()
+
+        for (date in availableDates) {
+            result.add(LocalDate.parse(date))
+        }
+
+        return result
+    }
+
+    /**
+     * Gets the set of booked dates of type [LocalDate]. Dates are converted
+     * from ISO date strings (compatible with firestore) to [LocalDate].
+     *
+     * @return A set of booked dates.
+     */
+    @Exclude
+    fun getBookedLocalDates(): Set<LocalDate> {
+        val result = mutableSetOf<LocalDate>()
+
+        for (date in bookedDates) {
+            result.add(LocalDate.parse(date))
+        }
+
+        return result
+    }
+
     /**
      * Checks whether the list of dates are available and not booked.
      *
@@ -20,14 +55,15 @@ data class AvailabilitySchedule (
      * `false` otherwise.
      */
     fun isAvailable(dates: Collection<LocalDate>): Boolean {
-        for (date in dates) {
-            val isInAvailableDates = date in availableDates
-            val isAlreadyBooked = date in bookedDates
+        val available = getAvailableLocalDates()
+        val booked = getBookedLocalDates()
 
-            if (!isInAvailableDates || isAlreadyBooked) {
+        for (date in dates) {
+            if (!available.contains(date) || booked.contains(date)) {
                 return false
             }
         }
+
         return true
     }
 
@@ -38,15 +74,18 @@ data class AvailabilitySchedule (
      * @return sorted list of dates which are available and not booked, in sorted order.
      */
     fun freeDates(): List<LocalDate> {
-        val freeDates = mutableListOf<LocalDate>()
+        val available = getAvailableLocalDates()
+        val booked = getBookedLocalDates()
 
-        for (date in availableDates) {
-            if (date !in bookedDates) {
-                freeDates.add(date)
+        val result = mutableListOf<LocalDate>()
+
+        for (date in available) {
+            if (!booked.contains(date)) {
+                result.add(date)
             }
         }
 
-        return freeDates.sorted()
+        return result.sorted()
     }
 
     /**
@@ -55,15 +94,22 @@ data class AvailabilitySchedule (
      * @param dates The dates to mark as booked.
      */
     fun markAsBooked(dates: Collection<LocalDate>) {
-        val updatedBookedDates = bookedDates.toMutableSet()
+        val available = getAvailableLocalDates()
+        val booked = getBookedLocalDates().toMutableSet()
 
         for (date in dates) {
-            if (date in availableDates) {
-                updatedBookedDates.add(date)
+            if (available.contains(date)) {
+                booked.add(date)
             }
         }
 
-        bookedDates = updatedBookedDates
+        val result = mutableListOf<String>()
+
+        for (date in booked) {
+            result.add(date.toString())
+        }
+
+        bookedDates = result
     }
 
     /**
@@ -72,13 +118,16 @@ data class AvailabilitySchedule (
      * @param dates The dates to remove from booked dates.
      */
     fun cancelBookings(dates: Collection<LocalDate>) {
-        val updatedBookedDates = bookedDates.toMutableSet()
+        val booked = getBookedLocalDates()
+        val result = mutableListOf<String>()
 
-        for (date in dates) {
-            updatedBookedDates.remove(date)
+        for (date in booked) {
+            if (!dates.contains(date)) {
+                result.add(date.toString())
+            }
         }
 
-        bookedDates = updatedBookedDates
+        bookedDates = result
     }
 
     /**
@@ -87,11 +136,19 @@ data class AvailabilitySchedule (
      * @param dates The dates to add.
      */
     fun addAvailableDates(dates: Collection<LocalDate>) {
-        val updatedAvailableDates = availableDates.toMutableSet()
+        val available = getAvailableLocalDates().toMutableSet()
 
-        updatedAvailableDates.addAll(dates)
+        for (date in dates) {
+            available.add(date)
+        }
 
-        availableDates = updatedAvailableDates
+        val result = mutableListOf<String>()
+
+        for (date in available) {
+            result.add(date.toString())
+        }
+
+        availableDates = result
     }
 
     /**
@@ -100,10 +157,15 @@ data class AvailabilitySchedule (
      * @param dates The dates to remove.
      */
     fun removeAvailableDates(dates: Collection<LocalDate>) {
-        val updatedAvailableDates = availableDates.toMutableSet()
+        val available = getAvailableLocalDates()
+        val result = mutableListOf<String>()
 
-        updatedAvailableDates.removeAll(dates.toSet())
+        for (date in available) {
+            if (!dates.contains(date)) {
+                result.add(date.toString())
+            }
+        }
 
-        availableDates = updatedAvailableDates
+        availableDates = result
     }
 }
