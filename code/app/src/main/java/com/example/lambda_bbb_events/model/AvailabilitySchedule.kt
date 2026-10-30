@@ -10,8 +10,8 @@ import java.time.LocalDate
  * @property bookedDates Dates that have already been booked.
  */
 data class AvailabilitySchedule (
-    private var availableDates: List<String> = emptyList(),
-    private var bookedDates: List<String> = emptyList()
+    var availableDates: List<String> = emptyList(),
+    var bookedDates: List<String> = emptyList()
 ) {
     /**
      * Gets the set of available dates of type [LocalDate]. Dates are converted
@@ -54,7 +54,6 @@ data class AvailabilitySchedule (
      * @return `true` if every specified date is available and not booked,
      * `false` otherwise.
      */
-    @Exclude
     fun isAvailable(dates: Collection<LocalDate>): Boolean {
         val available = getAvailableLocalDates()
         val booked = getBookedLocalDates()
@@ -74,7 +73,6 @@ data class AvailabilitySchedule (
      *
      * @return sorted list of dates which are available and not booked, in sorted order.
      */
-    @Exclude
     fun freeDates(): List<LocalDate> {
         val available = getAvailableLocalDates()
         val booked = getBookedLocalDates()
