@@ -20,14 +20,14 @@ package com.example.lambda_bbb_events.model
  * @property availability The campsite's availability schedule.
  */
 data class Campsite(
-    val campsiteId: String,
-    val ownerId: String, // CampsiteOwner deviceId
-    val campsiteName: String,
-    val description: String,
-    val address: String,
-    val latitude: Double,
-    val longitude: Double,
-    val maxOccupancy: Int,
+    val campsiteId: String = "",
+    val ownerId: String = "", // CampsiteOwner deviceId
+    val campsiteName: String = "",
+    val description: String = "",
+    val address: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val maxOccupancy: Int = 1,
     val rulesPolicies: String = "",
     val amenities: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
