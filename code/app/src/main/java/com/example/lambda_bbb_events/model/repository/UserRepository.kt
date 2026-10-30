@@ -61,4 +61,31 @@ class UserRepository {
     fun updateUser(updatedUser: User) {
         usersRef.document(updatedUser.deviceId).set(updatedUser)
     }
+
+    /**
+     * Gets a [User] object from the database given its deviceId.
+     *
+     * @param deviceId The `deviceId` to search for.
+     * @return The [User] object with the specified deviceId if it exists. `null` otherwise.
+     */
+    fun getUser(deviceId: String): User? {
+        // there's probably a faster way to do this but i dont understand all the stuff i read in google
+        // someone pls rewrite this, this is temporary
+        for (user in _users) {
+            if (user.deviceId == deviceId) {
+                return user
+            }
+        }
+        return null
+    }
+
+    /**
+     * Changes the user's notification setting to on or off.
+     *
+     * @param deviceId The `deviceId` to search for.
+     * @param allow `true` to set notifications on, `false` otherwise.
+     */
+    fun setAllowNotifications(deviceId: String, allow: Boolean) {
+        usersRef.document(deviceId).update("notificationsEnabled", allow)
+    }
 }
