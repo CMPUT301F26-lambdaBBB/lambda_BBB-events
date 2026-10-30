@@ -43,12 +43,12 @@ jobs:
              echo "=== DOKKA FILES ==="
              find code/build -type d | sort
              echo "=== HTML DIR ==="
-             ls -la code/build/dokka/html || true
+             ls -la code/app/build/dokka/html || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: code/build/dokka/html
+          path: code/app/build/dokka/html
 
       - name: Create Release
         id: release
