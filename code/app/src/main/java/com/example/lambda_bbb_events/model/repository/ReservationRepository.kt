@@ -2,6 +2,7 @@ package com.example.lambda_bbb_events.model.repository
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Reservation
+import com.example.lambda_bbb_events.model.User
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -60,5 +61,56 @@ class ReservationRepository {
      */
     fun updateReservation(updatedReservation: Reservation) {
         reservationsRef.document(updatedReservation.reservationId).set(updatedReservation)
+    }
+
+    /**
+     * Gets a [Reservation] object from the database given its reservationId.
+     *
+     * @param reservationId The `reservationId` to search for.
+     * @return The [Reservation] object with the specified reservationId if it exists. `null` otherwise.
+     */
+    fun getReservation(reservationId: String): Reservation? {
+        // there's probably a faster way to do this but i dont understand all the stuff i read in google
+        // someone pls rewrite this, this is temporary
+        for (reservation in _reservations) {
+            if (reservation.reservationId == reservationId) {
+                return reservation
+            }
+        }
+        return null
+    }
+
+    /**
+     * Gets all the [Reservation] objects for a specific Campsite given its `campsiteId`.
+     *
+     * @param campsiteId The `campsiteId` to search for.
+     * @return The list of [Reservation] associated with the `campsiteId`. An empty list
+     * is returned if no reservation matches the `campsiteId`.
+     */
+    fun getReservationsForCampsite(campsiteId: String): List<Reservation>{
+        val result: MutableList<Reservation> = mutableListOf()
+        for (reservation in _reservations) {
+            if (reservation.campsiteId == campsiteId) {
+                result.add(reservation)
+            }
+        }
+        return result
+    }
+
+    /**
+     * Gets all the [Reservation] objects for a specific Entrant given its `entrantId`.
+     *
+     * @param entrantId The `entrantId` to search for.
+     * @return The list of [Reservation] associated with the `entrantId`. An empty list
+     * is returned if no reservation matches the `entrantId`.
+     */
+    fun getReservationsForEntrant(entrantId: String): List<Reservation>{
+        val result: MutableList<Reservation> = mutableListOf()
+        for (reservation in _reservations) {
+            if (reservation.entrantId == entrantId) {
+                result.add(reservation)
+            }
+        }
+        return result
     }
 }
