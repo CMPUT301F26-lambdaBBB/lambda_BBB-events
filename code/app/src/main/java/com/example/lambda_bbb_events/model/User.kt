@@ -11,7 +11,7 @@ package com.example.lambda_bbb_events.model
  * @property notificationsEnabled Whether the user wants to receive notifications.
  */
 abstract class User (
-    private val deviceId: String,
+    val deviceId: String,
     var name: String,
     private var email: String,
     private var phone: String,
