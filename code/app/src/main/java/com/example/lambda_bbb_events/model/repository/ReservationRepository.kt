@@ -2,7 +2,6 @@ package com.example.lambda_bbb_events.model.repository
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Reservation
-import com.example.lambda_bbb_events.model.User
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 

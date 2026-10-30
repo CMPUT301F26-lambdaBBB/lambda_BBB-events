@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -99,5 +100,15 @@ class WaitlistEntryRepository {
         }
 
         return result
+    }
+
+    /**
+     * Changes the status of a waitlist entry.
+     *
+     * @param waitlistEntry The [WaitlistEntry] to update.
+     * @param newStatus The new [WaitlistStatus] of the entry.
+     */
+    fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
+        entriesRef.document(waitlistEntry.entryId).update("status", newStatus)
     }
 }
