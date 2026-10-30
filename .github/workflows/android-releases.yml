@@ -38,7 +38,8 @@ jobs:
         run: ls
 
       - name: Generate Dokka Docs
-        run: ./code/gradlew -p code dokkaHtml
+        run: | 
+             ./code/gradlew -p code dokkaHtml
              echo "=== DOKKA FILES ==="
              find code/build -type d | sort
              echo "=== HTML DIR ==="
