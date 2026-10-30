@@ -27,12 +27,13 @@ enum class ReservationStatus {
  * `false` otherwise.
  */
 data class Reservation(
-    val reservationId: String,
-    val campsiteId: String,
-    val entrantId: String, // entrant deviceId
-    val startDate: LocalDate,
-    val endDate: LocalDate,
-    val guests: Int,
+    val reservationId: String = "",
+    val campsiteId: String = "",
+    val entrantId: String = "", // entrant deviceId
+    val ownerId: String = "",
+    val startDate: String = "",
+    val endDate: String = "",
+    val guests: Int = 1,
     val status: ReservationStatus = ReservationStatus.PENDING,
     val ruleConfirmed: Boolean = false, // entrant accepted campsite rules and policies
 ) {
