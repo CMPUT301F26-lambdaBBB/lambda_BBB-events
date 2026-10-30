@@ -1,5 +1,11 @@
 package com.example.lambda_bbb_events.model
 
+enum class UserRole {
+    ENTRANT,
+    OWNER,
+    ADMIN
+}
+
 /**
  * Represents every user that uses the app.
  *
@@ -7,16 +13,17 @@ package com.example.lambda_bbb_events.model
  * @property name The user's real name, may be visible to other users.
  * @property email The user's email address, not visible to others.
  * @property phone The user's phone number, not visible to others.
- * @property profilePicture Optional profile picture, visible to other users. Defaults to null (empty).
+ * @property profilePictureImageId The user's profile picture imageId.
  * @property notificationsEnabled Whether the user wants to receive notifications.
  */
-abstract class User (
-    val deviceId: String,
-    var name: String,
-    private var email: String,
-    private var phone: String,
-    var profilePicture: Image? = null, // allow user to have default or no profile picture, or set like a default image so we dont need a null here
-    private var notificationsEnabled: Boolean = true
+open class User (
+    val deviceId: String = "",
+    var name: String = "",
+    var email: String = "",
+    var phone: String = "",
+    var profilePictureImageId: String = "", // allow user to have default or no profile picture, or set like a default image for a certain image
+    var role: UserRole = UserRole.ENTRANT,
+    var notificationsEnabled: Boolean = true
 ) {
     /**
      * Updates the user's profile details.
@@ -27,7 +34,7 @@ abstract class User (
      * @param name New display name
      * @param email New email address
      * @param phone New phone number
-     * @param picture New profile picture
+     * @param imageId New profile picture
      * @throws IllegalArgumentException if at least one of [name], [email],
      * or [phone] is blank.
      */
@@ -35,7 +42,7 @@ abstract class User (
         name: String = this.name,
         email: String = this.email,
         phone: String = this.phone,
-        picture: Image? = this.profilePicture
+        imageId: String = this.profilePictureImageId
     ) {
         require(name.isNotBlank()) { "Name must not be empty" }
         require(email.isNotBlank()) { "Email must not be empty" }
@@ -44,7 +51,7 @@ abstract class User (
         this.name = name
         this.email = email
         this.phone = phone
-        this.profilePicture = picture
+        this.profilePictureImageId = imageId
     }
 
     /**
