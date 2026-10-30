@@ -82,10 +82,10 @@ class UserRepository {
     /**
      * Changes the user's notification setting to on or off.
      *
-     * @param deviceId The `deviceId` to search for.
+     * @param user The user to search for.
      * @param allow `true` to set notifications on, `false` otherwise.
      */
-    fun setAllowNotifications(deviceId: String, allow: Boolean) {
-        usersRef.document(deviceId).update("notificationsEnabled", allow)
+    fun setAllowNotifications(user: User, allow: Boolean) {
+        usersRef.document(user.deviceId).update("notificationsEnabled", allow)
     }
 }

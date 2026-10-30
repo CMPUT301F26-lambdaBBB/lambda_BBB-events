@@ -25,11 +25,11 @@ enum class WaitlistStatus {
  * @throws IllegalArgumentException triggered if [numberOfGuests] is less than 1.
  */
 data class WaitlistEntry (
-    val entryId: String,
-    val entrantId: String,
-    val lotteryId: String,
-    val joinedAt: Date,
-    val numberOfGuests: Int,
+    val entryId: String = "",
+    val entrantId: String = "",
+    val lotteryId: String = "",
+    val joinedAt: Date = Date(), // default is current date and time
+    val numberOfGuests: Int = 1,
     var status: WaitlistStatus = WaitlistStatus.IN_WAITLIST
 ) {
     init {
