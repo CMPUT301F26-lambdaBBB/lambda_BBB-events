@@ -38,12 +38,7 @@ jobs:
         run: ls
 
       - name: Generate Dokka Docs
-        run: | 
-             ./code/gradlew -p code dokkaGenerate
-             echo "=== DOKKA FILES ==="
-             find code/build -type d | sort
-             echo "=== HTML DIR ==="
-             ls -la code/app/build/dokka/html || true
+        run: ./code/gradlew -p code dokkaGenerate
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
