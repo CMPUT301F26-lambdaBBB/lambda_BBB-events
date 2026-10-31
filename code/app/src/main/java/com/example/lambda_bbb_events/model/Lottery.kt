@@ -30,25 +30,25 @@ enum class LotteryStatus {
  * [numberOfWinners] is less than 1, or [numberOfWinners] is over the [waitlistCapacity].
  */
 data class Lottery (
-    val lotteryId: String,
-    val campsiteIds: List<String>,
-    val ownerId: String,
-    val registrationStart: Date,
-    val registrationEnd: Date,
-    val bookingStart: Date,
-    val bookingEnd: Date,
-    val numberOfWinners: Int,
-    val waitlistCapacity: Int,
+    val lotteryId: String = "",
+    val campsiteIds: List<String> = emptyList(),
+    val ownerId: String = "",
+    val registrationStart: Date = Date(),
+    val registrationEnd: Date = Date(),
+    val bookingStart: Date = Date(),
+    val bookingEnd: Date = Date(),
+    val numberOfWinners: Int = 1,
+    val waitlistCapacity: Int = 1,
     val entryIds: List<String> = emptyList(),
     val status: LotteryStatus = LotteryStatus.OPEN
 ) {
-    init {
-        require(campsiteIds.isNotEmpty()) { "A lottery needs at least one campsite" }
-        require(numberOfWinners >= 1) { "numberOfWinners must be at least 1" }
-        require(numberOfWinners <= waitlistCapacity) {
-            "numberOfWinners cannot be over the waitlistCapacity"
-        }
-    }
+//    init {
+//        require(campsiteIds.isNotEmpty()) { "A lottery needs at least one campsite" }
+//        require(numberOfWinners >= 1) { "numberOfWinners must be at least 1" }
+//        require(numberOfWinners <= waitlistCapacity) {
+//            "numberOfWinners cannot be over the waitlistCapacity"
+//        }
+//    }
 
     /**
      * Checks if the waitlist is full.

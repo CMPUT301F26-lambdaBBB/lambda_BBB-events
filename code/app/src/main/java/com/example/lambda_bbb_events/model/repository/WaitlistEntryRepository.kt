@@ -110,6 +110,6 @@ class WaitlistEntryRepository {
      * @param newStatus The new [WaitlistStatus] of the entry.
      */
     fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
-        entriesRef.document(waitlistEntry.entryId).update("status", newStatus)
+        entriesRef.document(waitlistEntry.entryId).update("status", newStatus.name)
     }
 }
