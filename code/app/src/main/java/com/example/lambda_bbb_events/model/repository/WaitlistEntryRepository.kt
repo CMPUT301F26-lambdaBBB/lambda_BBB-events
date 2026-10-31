@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -87,14 +88,14 @@ class WaitlistEntryRepository {
     /**
      * Gets all [WaitlistEntry] of a specific entrant.
      *
-     * @param entrantId The entrant device ID.
+     * @param entrant The entrant to get entries for.
      * @return The list of entries made by the entrant.
      */
-    fun getEntriesForEntrant(entrantId: String): List<WaitlistEntry> {
+    fun getEntriesForEntrant(entrant: Entrant): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
         for (entry in _waitlistEntries) {
-            if (entry.entrantId == entrantId) {
+            if (entry.entrantId == entrant.deviceId) {
                 result.add(entry)
             }
         }
