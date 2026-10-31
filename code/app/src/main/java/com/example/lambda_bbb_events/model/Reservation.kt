@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.model
 
+import com.google.firebase.firestore.Exclude
 import java.time.LocalDate
 
 /**
@@ -37,6 +38,7 @@ data class Reservation(
     val status: ReservationStatus = ReservationStatus.PENDING,
     val ruleConfirmed: Boolean = false, // entrant accepted campsite rules and policies
 ) {
+    @Exclude
     fun isActive(): Boolean {
         return status == ReservationStatus.PENDING || status == ReservationStatus.CONFIRMED
     }

@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.model
 
+import com.google.firebase.firestore.Exclude
 import java.util.Date
 
 /**
@@ -55,6 +56,7 @@ data class Lottery (
      *
      * @return `true` if the waitlist is full, `false` otherwise.
      */
+    @Exclude
     fun isFull(): Boolean {
         return entryIds.size >= waitlistCapacity
     }
