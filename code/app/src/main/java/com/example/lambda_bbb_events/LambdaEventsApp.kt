@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events
 
+import android.companion.DeviceId
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -9,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.CreateScreen
@@ -21,13 +24,23 @@ import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
 
 @Composable
-fun LambdaEventsApp() {
+fun LambdaEventsApp(
+    userRepository: UserRepository,
+    deviceId: String
+) {
     val navController = rememberNavController()
+
+    val user = userRepository.getUser(deviceId)
+    val startScreen = if (user == null) { // not in database, first time
+        "signup"
+    } else {
+        "home"
+    }
 
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = startScreen,
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(start = 32.dp, end = 32.dp)
