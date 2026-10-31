@@ -2,6 +2,9 @@ package com.example.lambda_bbb_events.model.repository
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -62,5 +65,38 @@ class CampsiteRepository {
         // assumes the old and updated campsite uses same ID bcs this function overwrites
         // the campsite with the same campsiteId
         campsitesRef.document(updatedCampsite.campsiteId).set(updatedCampsite)
+    }
+
+    /**
+     * Gets a [Campsite] object from the database given its campsiteId.
+     *
+     * @param campsiteId The `campsiteId` to search for.
+     * @return The [Campsite] object with the specified campsiteId if it exists. `null` otherwise.
+     */
+    fun get(campsiteId: String): Campsite? {
+        for (campsite in _campsites) {
+            if (campsite.campsiteId == campsiteId) {
+                return campsite
+            }
+        }
+        return null
+    }
+
+    /**
+     * Gets all [Campsite] of a specific [CampsiteOwner].
+     *
+     * @param owner The [CampsiteOwner] device ID.
+     * @return The list of [Campsite] made by the owner.
+     */
+    fun getCampsitesByOwner(owner: CampsiteOwner): List<Campsite> {
+        val result = mutableListOf<Campsite>()
+
+        for (campsite in _campsites) {
+            if (campsite.ownerId == owner.deviceId) {
+                result.add(campsite)
+            }
+        }
+
+        return result
     }
 }
