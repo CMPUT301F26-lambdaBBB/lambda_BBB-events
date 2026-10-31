@@ -2,6 +2,9 @@ package com.example.lambda_bbb_events.model.repository
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.roles.Admin
+import com.example.lambda_bbb_events.model.roles.CampsiteOwner
+import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -23,7 +26,15 @@ class UserRepository {
             _users.clear()
 
             snapshot?.documents?.forEach { document ->
-                val user = document.toObject(User::class.java)
+                val role = document.getString("role")
+
+                val user = when (role) {
+                    "ENTRANT" -> document.toObject(Entrant::class.java)
+                    "OWNER" -> document.toObject(CampsiteOwner::class.java)
+                    "ADMIN" -> document.toObject(Admin::class.java)
+                    else -> null
+                }
+
                 if (user != null) {
                     _users.add(user)
                 }
