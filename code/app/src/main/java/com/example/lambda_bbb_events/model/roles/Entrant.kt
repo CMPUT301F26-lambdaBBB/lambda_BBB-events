@@ -17,10 +17,10 @@ import com.example.lambda_bbb_events.model.UserRole
  * @property reservationIds IDs of this entrant's reservations.
  */
 class Entrant (
-    deviceId: String,
-    name: String,
-    email: String,
-    phone: String,
+    deviceId: String = "",
+    name: String = "",
+    email: String = "",
+    phone: String = "",
     profilePictureImageId: String = "",
     notificationsEnabled: Boolean = true,
     val waitlistEntryIds: List<String> = emptyList(),

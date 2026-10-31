@@ -15,10 +15,10 @@ import com.example.lambda_bbb_events.model.UserRole
  * @property notificationsEnabled Whether the user wants to receive notifications.
  */
 class Admin(
-    deviceId: String,
-    name: String,
-    email: String,
-    phone: String,
+    deviceId: String = "",
+    name: String = "",
+    email: String = "",
+    phone: String = "",
     profilePictureImageId: String = "",
     notificationsEnabled: Boolean = true,
 ) : User(deviceId, name, email, phone, profilePictureImageId, UserRole.ADMIN, notificationsEnabled)

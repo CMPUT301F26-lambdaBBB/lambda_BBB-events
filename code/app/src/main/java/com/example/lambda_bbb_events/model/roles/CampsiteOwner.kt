@@ -17,10 +17,10 @@ import com.example.lambda_bbb_events.model.UserRole
  * @property lotteryIds IDs of lotteries this owner has created.
  */
 class CampsiteOwner(
-    deviceId: String,
-    name: String,
-    email: String,
-    phone: String,
+    deviceId: String = "",
+    name: String = "",
+    email: String = "",
+    phone: String = "",
     profilePictureImageId: String = "",
     notificationsEnabled: Boolean = true,
     val ownedCampsiteIds: List<String> = emptyList(),
