@@ -103,7 +103,7 @@ fun EditProfileScreen(
 
         Button(
             onClick = {
-                val successful = userController.createEntrant(name.trim(), email.trim(), phone.trim())
+                val successful = userController.updateEntrant(name.trim(), email.trim(), phone.trim())
                 if (successful) {
                     navController.navigate("profile")
                 } else {

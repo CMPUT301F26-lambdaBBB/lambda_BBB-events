@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
                 } // citation: from https://www.youtube.com/watch?v=W5yYiZ45u9I
                 val userController = remember { UserController(userRepository, deviceId) }
-                LambdaEventsApp(userRepository, userController, deviceId)
+                LambdaEventsApp(userRepository, userController)
             }
         }
     }

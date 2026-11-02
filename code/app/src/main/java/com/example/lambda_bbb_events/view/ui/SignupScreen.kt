@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
@@ -69,40 +70,22 @@ fun SignupScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        Text(
-            text = "Name",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        FormTextField(
+        FormTextFieldWithTitle(
+            title = "Name",
             value = name,
             onValueChange = { name = it },
             placeholder = "Yuta",
         )
 
-        Text(
-            text = "Email",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        FormTextField(
+        FormTextFieldWithTitle(
+            title = "Email",
             value = email,
             onValueChange = { email = it },
             placeholder = "yuta@hotmail.com",
         )
 
-        Text(
-            text = "Phone Number",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        FormTextField(
+        FormTextFieldWithTitle(
+            title = "Phone Number",
             value = phone,
             onValueChange = { phone = it },
             placeholder = "+1",
@@ -131,34 +114,4 @@ fun SignupScreen(
             Text("Unable to create account. Please review your information.")
         }
     }
-}
-
-@Composable
-fun FormTextField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            // to yuta: change these so colors are not hard coded; add colors in ui.theme.Color
-
-            // this is background color of search bar
-            focusedContainerColor = Color(0xFFF2F2F2),
-            unfocusedContainerColor = Color(0xFFF2F2F2),
-
-            // this is border color of search bar
-            unfocusedBorderColor = Color.LightGray,
-            focusedBorderColor = Color.Gray,
-
-            // this is your cursor color, the thing that's blinking when u type
-            cursorColor = Color.Gray,
-
-            // this is color of the label at the top of the search bar when typing, u can remove if no likey
-            focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray,
-        )
-    )
 }

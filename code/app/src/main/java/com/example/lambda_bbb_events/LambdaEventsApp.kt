@@ -21,6 +21,7 @@ import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.CreateScreen
+import com.example.lambda_bbb_events.view.ui.EditProfileScreen
 import com.example.lambda_bbb_events.view.ui.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen
 import com.example.lambda_bbb_events.view.ui.HomeScreen
@@ -34,16 +35,13 @@ import com.example.lambda_bbb_events.view.ui.SignupScreen
 fun LambdaEventsApp(
     userRepository: UserRepository,
     userController: UserController,
-    deviceId: String
 ) {
     val navController = rememberNavController()
-
-    var user: User?
     var startScreen by remember { mutableStateOf("signup") }
     LaunchedEffect(userRepository.usersFullyLoaded) {
         if (userRepository.usersFullyLoaded) {
 
-            val user = userRepository.getUser(deviceId)
+            val user = userRepository.getUser(userController.deviceId)
 
             if (user == null) {
                 startScreen = "signup"
@@ -71,7 +69,12 @@ fun LambdaEventsApp(
             composable("explore_map") { ExploreMapScreen(navController) }
             composable("notifications") { NotificationsScreen(navController) }
             composable("create") { CreateScreen(navController) }
-            composable("profile") { ProfileScreen(navController) }
+            composable("profile") {
+                ProfileScreen(navController, userController)
+            }
+            composable("edit_profile") {
+                EditProfileScreen(navController, userController)
+            }
         }
     }
 }
