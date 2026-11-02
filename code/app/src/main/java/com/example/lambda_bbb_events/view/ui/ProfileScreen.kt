@@ -1,32 +1,61 @@
 package com.example.lambda_bbb_events.view.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterAlt
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ProfileRow
+import com.example.lambda_bbb_events.view.ui.components.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.SearchBar
-import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, userController: UserController) {
+    val user: User? = userController.currentUser
+
+    if (user == null) {
+        // no profile: go to signup
+        LaunchedEffect(Unit) {
+            navController.navigate("signup") {
+                popUpTo(0) // clears the stack
+            }
+        }
+        return
+    }
+
+    val preferences = listOf(
+        listOf("Settings", Icons.Outlined.Settings),
+        listOf("Edit Profile", Icons.Outlined.Edit)
+    )
+
+    val account = listOf(
+        listOf("Logout", Icons.AutoMirrored.Outlined.ExitToApp)
+    )
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -35,12 +64,79 @@ fun ProfileScreen(navController: NavController) {
         }
     ){ innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             ScreenTitle(
                 title = "Profile",
-                navController = navController
+                navController = navController,
+                showNotifications = false,
+                showBack = false
             )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(165.dp)
+                )
+
+                Text(
+                    text = user.name,
+                    modifier = Modifier.padding(start = 4.dp),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Text(
+                    text = user.email,
+                    modifier = Modifier.padding(start = 4.dp),
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
+
+            ProfileSectionHeader("Preferences")
+            repeat(preferences.size) { i ->
+                ProfileRow(
+                    preferences[i][0] as String,
+                    onClick = {},
+                    leadingIcon = {
+                        Icon(
+                            preferences[i][1] as ImageVector,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            ProfileSectionHeader("Account")
+            repeat(account.size) { i ->
+                ProfileRow(
+                    account[i][0] as String,
+                    onClick = {},
+                    leadingIcon = {
+                        Icon(
+                            account[i][1] as ImageVector,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp),
+                            tint = Color.Red // this red looks ugly, should change it @yuta
+                        )
+                    }
+                )
+            }
+
         }
     }
 }
