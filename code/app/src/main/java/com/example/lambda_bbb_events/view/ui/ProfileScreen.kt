@@ -47,15 +47,6 @@ fun ProfileScreen(navController: NavController, userController: UserController) 
         return
     }
 
-    val preferences = listOf(
-        listOf("Settings", Icons.Outlined.Settings),
-        listOf("Edit Profile", Icons.Outlined.Edit)
-    )
-
-    val account = listOf(
-        listOf("Logout", Icons.AutoMirrored.Outlined.ExitToApp)
-    )
-
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -105,38 +96,44 @@ fun ProfileScreen(navController: NavController, userController: UserController) 
             HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
 
             ProfileSectionHeader("Preferences")
-            repeat(preferences.size) { i ->
-                ProfileRow(
-                    preferences[i][0] as String,
-                    onClick = {},
-                    leadingIcon = {
-                        Icon(
-                            preferences[i][1] as ImageVector,
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                )
-            }
+            ProfileRow(
+                title = "Settings",
+                onClick = {},
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            )
+            ProfileRow(
+                title = "Edit Profile",
+                onClick = { navController.navigate("edit_profile") },
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            )
 
             Spacer(modifier = Modifier.height(25.dp))
 
             ProfileSectionHeader("Account")
-            repeat(account.size) { i ->
-                ProfileRow(
-                    account[i][0] as String,
-                    onClick = {},
-                    leadingIcon = {
-                        Icon(
-                            account[i][1] as ImageVector,
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp),
-                            tint = Color.Red // this red looks ugly, should change it @yuta
-                        )
-                    }
-                )
-            }
-
+            ProfileRow(
+                title = "Logout",
+                onClick = {},
+                leadingIcon = {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp),
+                        tint = Color.Red // this red looks ugly, should change it @yuta
+                    )
+                }
+            )
         }
     }
 }
