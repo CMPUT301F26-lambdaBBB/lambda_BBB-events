@@ -1,6 +1,9 @@
 package com.example.lambda_bbb_events.model.repository
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.roles.Admin
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
@@ -17,6 +20,7 @@ class UserRepository {
 
     private val _users = mutableStateListOf<User>()
 
+    var usersFullyLoaded by mutableStateOf(false)
     init {
         usersRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -39,6 +43,7 @@ class UserRepository {
                     _users.add(user)
                 }
             }
+            usersFullyLoaded = true
         }
     }
 
