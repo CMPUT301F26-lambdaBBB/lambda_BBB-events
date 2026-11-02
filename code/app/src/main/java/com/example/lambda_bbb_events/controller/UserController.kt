@@ -23,7 +23,7 @@ class UserController(
      * `phone` is blank.
      */
     fun createEntrant(name: String, email: String, phone: String): Boolean {
-        if (currentUser == null || !isValidProfile(name, email, phone)) return false
+        if (currentUser != null || !isValidProfile(name, email, phone)) return false
 
         userRepository.addUser(
             Entrant(

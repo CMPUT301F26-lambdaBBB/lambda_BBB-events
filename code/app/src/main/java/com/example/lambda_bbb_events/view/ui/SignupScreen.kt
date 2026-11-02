@@ -96,9 +96,7 @@ fun SignupScreen(
         Button(
             onClick = {
                 val successful = userController.createEntrant(name.trim(), email.trim(), phone.trim())
-                if (successful) {
-                    navController.navigate("home")
-                } else {
+                if (!successful) {
                     showCreationError = true
                 }
             },
