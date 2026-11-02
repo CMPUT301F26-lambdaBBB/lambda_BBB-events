@@ -45,7 +45,15 @@ fun LambdaEventsApp(
         }
     } else if (userController.currentUser == null) {
         // no profile so show sign up
-        SignupScreen(rememberNavController(), userController)
+        Scaffold { innerPadding ->
+            Box(
+                Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 32.dp)
+            ) {
+                SignupScreen(rememberNavController(), userController)
+            }
+        }
     } else {
         MainApp(userController)
     }
