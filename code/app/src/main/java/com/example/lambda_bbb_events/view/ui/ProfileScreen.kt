@@ -35,25 +35,15 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
 fun ProfileScreen(navController: NavController, userController: UserController) {
-    val user: User? = userController.currentUser
-
-    if (user == null) {
-        // no profile: go to signup
-        LaunchedEffect(Unit) {
-            navController.navigate("signup") {
-                popUpTo(0) // clears the stack
-            }
-        }
-        return
-    }
-
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
                 navController
             )
         }
-    ){ innerPadding ->
+    ) { innerPadding ->
+        val user: User = userController.user
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

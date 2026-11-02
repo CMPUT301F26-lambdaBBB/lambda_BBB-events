@@ -1,8 +1,10 @@
 package com.example.lambda_bbb_events
 
 import android.companion.DeviceId
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -36,28 +39,28 @@ fun LambdaEventsApp(
     userRepository: UserRepository,
     userController: UserController,
 ) {
-    val navController = rememberNavController()
-    var startScreen by remember { mutableStateOf("signup") }
-    LaunchedEffect(userRepository.usersFullyLoaded) {
-        if (userRepository.usersFullyLoaded) {
-
-            val user = userRepository.getUser(userController.deviceId)
-
-            if (user == null) {
-                startScreen = "signup"
-            } else {
-                startScreen = "home"
-            }
+    if (!userRepository.usersFullyLoaded) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
+    } else if (userController.currentUser == null) {
+        // no profile so show sign up
+        SignupScreen(rememberNavController(), userController)
+    } else {
+        MainApp(userController)
     }
+}
 
+@Composable
+private fun MainApp(userController: UserController) {
+    val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = startScreen,
+            startDestination = "home",
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(start = 32.dp, end = 32.dp)
+                .padding(horizontal = 32.dp)
         ) {
             composable("signup") { SignupScreen(navController, userController) }
             composable("home") { HomeScreen(navController) }

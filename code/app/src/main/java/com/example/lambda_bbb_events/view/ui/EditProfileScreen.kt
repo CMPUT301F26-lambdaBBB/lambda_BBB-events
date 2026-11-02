@@ -43,17 +43,7 @@ fun EditProfileScreen(
     navController: NavController,
     userController: UserController
 ) {
-    val user: User? = userController.currentUser
-
-    if (user == null) {
-        // no profile: go to signup
-        LaunchedEffect(Unit) {
-            navController.navigate("signup") {
-                popUpTo(0) // clears the stack
-            }
-        }
-        return
-    }
+    val user: User = userController.user
 
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
