@@ -30,6 +30,7 @@ fun RatingSummary(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         RatingStars(rating = rating)
-        Text("  $rating ($reviewCount reviews)")
+        Text("  $rating")
+        Text("  ($reviewCount)", color = Color.Gray)
     }
 }
