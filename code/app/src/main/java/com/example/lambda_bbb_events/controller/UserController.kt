@@ -4,6 +4,13 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.roles.Entrant
 
+/**
+ * Controller for user-related operations.
+ *
+ * @property userRepository The repository for users.
+ * @property deviceId The device ID of the user.
+ *
+ */
 class UserController(
     val userRepository: UserRepository,
     val deviceId: String
@@ -72,6 +79,6 @@ class UserController(
      * @return `true` if they are not blank (valid), `false` otherwise.
      */
     private fun isValidProfile(name: String, email: String, phone: String): Boolean {
-        return name.isNotBlank() && email.isNotBlank() && phone.isNotBlank()
+            return name.isNotBlank() && email.isNotBlank() && phone.isNotBlank()
     }
 }
