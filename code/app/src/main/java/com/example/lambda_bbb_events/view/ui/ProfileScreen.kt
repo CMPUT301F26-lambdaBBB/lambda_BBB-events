@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
@@ -34,7 +35,7 @@ import com.example.lambda_bbb_events.view.ui.components.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
-fun ProfileScreen(navController: NavController, userController: UserController) {
+fun ProfileScreen(navController: NavController, controllers: AppControllers) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -42,7 +43,7 @@ fun ProfileScreen(navController: NavController, userController: UserController) 
             )
         }
     ) { innerPadding ->
-        val user: User = userController.user
+        val user: User = controllers.users.user
 
         Column(
             modifier = Modifier

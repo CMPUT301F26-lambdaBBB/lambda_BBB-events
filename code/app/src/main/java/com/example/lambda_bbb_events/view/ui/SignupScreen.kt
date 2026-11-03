@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
@@ -37,7 +38,7 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 @Composable
 fun SignupScreen(
     navController: NavController,
-    userController: UserController
+    controllers: AppControllers
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -95,7 +96,7 @@ fun SignupScreen(
 
         Button(
             onClick = {
-                val successful = userController.createEntrant(name.trim(), email.trim(), phone.trim())
+                val successful = controllers.users.createEntrant(name.trim(), email.trim(), phone.trim())
                 if (!successful) {
                     showCreationError = true
                 }

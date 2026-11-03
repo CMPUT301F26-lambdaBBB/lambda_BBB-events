@@ -30,17 +30,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.controller.CampsiteController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
 fun CampsiteDetailsScreen(
     navController: NavController,
-    campsiteController: CampsiteController,
+    controllers: AppControllers,
     campsiteId: String
 ) {
-    val campsite = campsiteController.getCampsite(campsiteId)
+    val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
         Text("Campsite not found")

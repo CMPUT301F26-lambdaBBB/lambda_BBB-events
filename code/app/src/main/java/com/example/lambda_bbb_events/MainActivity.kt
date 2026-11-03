@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.remember
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
@@ -16,16 +17,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) // citation: from https://www.youtube.com/watch?v=W5yYiZ45u9I
+
+        val userRepository = UserRepository()
+        val campsiteRepository = CampsiteRepository()
+
+        val controllers = AppControllers(
+            users = UserController(userRepository, deviceId),
+            campsites = CampsiteController(campsiteRepository)
+        )
+
         setContent {
             Lambda_BBBeventsTheme {
-                val userRepository = remember { UserRepository() }
-                val deviceId = remember {
-                    Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-                } // citation: from https://www.youtube.com/watch?v=W5yYiZ45u9I
-                val userController = remember { UserController(userRepository, deviceId) }
-                val campsiteRepository = remember { CampsiteRepository() }
-                val campsiteController = remember { CampsiteController(campsiteRepository) }
-                LambdaEventsApp(userRepository, userController, campsiteController)
+                LambdaEventsApp(controllers)
             }
         }
     }
