@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,18 +30,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
 @Composable
-fun CampsiteDetailsScreen(navController: NavController) {
+fun CampsiteDetailsScreen(
+    navController: NavController,
+    campsiteController: CampsiteController,
+    campsiteId: String
+) {
+    val campsite = campsiteController.getCampsite(campsiteId)
+
+    if (campsite == null) {
+        Text("Campsite not found")
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ScreenTitle(
-                    "Test Campsite",
+                    campsite.campsiteName,
                     navController,
                     showBack = true
                 )
@@ -60,8 +73,8 @@ fun CampsiteDetailsScreen(navController: NavController) {
                 }
 
                 RatingSummary(
-                    4.0f,
-                    15
+                    campsite.rating,
+                    campsite.ratingCount
                 )
 
                 Row(
@@ -74,7 +87,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = "some address here lallalalalal street oh my goodness ABC DEF",
+                        text = campsite.address,
                         fontSize = 15.sp
                     )
                 }
@@ -98,7 +111,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
                             fontSize = 11.sp
                         )
                         Text(
-                            text = "25 people",
+                            text = "${campsite.maxOccupancy} people",
                             fontSize = 15.sp
                         )
                     }
@@ -108,35 +121,13 @@ fun CampsiteDetailsScreen(navController: NavController) {
                 HorizontalDivider()
 
                 SectionTitle("Tags")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // replace the hardcoded colors
-                    DisplayTag(
-                        "has internet",
-                        Color(0xfff5f5f5),
-                        Color(0xffe5e5e5)
-                    )
-                    DisplayTag(
-                        "campfire pit",
-                        Color(0xfff5f5f5),
-                        Color(0xffe5e5e5)
-                    )
-                    DisplayTag(
-                        "lake access",
-                        Color(0xfff5f5f5),
-                        Color(0xffe5e5e5)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DisplayTag(
-                        "stargazing",
-                        Color(0xfff5f5f5),
-                        Color(0xffe5e5e5)
-                    )
-                    DisplayTag(
-                        "dog friendly",
-                        Color(0xfff5f5f5),
-                        Color(0xffe5e5e5)
-                    )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    for (tag in campsite.tags) {
+                        DisplayTag(tag, Color(0xfff5f5f5), Color(0xffe5e5e5))
+                    }
                 }
 
                 HorizontalDivider()
@@ -159,7 +150,7 @@ fun CampsiteDetailsScreen(navController: NavController) {
                 HorizontalDivider()
 
                 SectionTitle("Description")
-                Text("The Yuta Man Site stands as the ultimate, undisputed sanctuary for Yuta...")
+                Text(campsite.description)
 
                 HorizontalDivider()
 

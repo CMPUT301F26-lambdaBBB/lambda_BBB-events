@@ -15,9 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
@@ -38,6 +40,7 @@ import com.example.lambda_bbb_events.view.ui.SignupScreen
 fun LambdaEventsApp(
     userRepository: UserRepository,
     userController: UserController,
+    campsiteController: CampsiteController
 ) {
     if (!userRepository.usersFullyLoaded) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -55,12 +58,12 @@ fun LambdaEventsApp(
             }
         }
     } else {
-        MainApp(userController)
+        MainApp(userController, campsiteController)
     }
 }
 
 @Composable
-private fun MainApp(userController: UserController) {
+private fun MainApp(userController: UserController, campsiteController: CampsiteController) {
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
@@ -71,13 +74,16 @@ private fun MainApp(userController: UserController) {
                 .padding(horizontal = 32.dp)
         ) {
             composable("signup") { SignupScreen(navController, userController) }
-            composable("home") { HomeScreen(navController) }
+            composable("home") { HomeScreen(navController, campsiteController) }
             composable("active_bookings") { ActiveBookingsScreen(navController) }
             composable("past_bookings") { PastBookingsScreen(navController) }
             composable("lottery_bookings") { LotteryBookingsScreen(navController) }
-            composable("campsite_details") { CampsiteDetailsScreen(navController) }
-            composable("explore_default") { ExploreDefaultScreen(navController) }
-            composable("explore_map") { ExploreMapScreen(navController) }
+            composable("explore_default") { ExploreDefaultScreen(navController, campsiteController) }
+            composable("explore_map") { ExploreMapScreen(navController, campsiteController) }
+            composable("campsite_details/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                CampsiteDetailsScreen(navController, campsiteController, campsiteId)
+            }
             composable("notifications") { NotificationsScreen(navController) }
             composable("create") { CreateScreen(navController) }
             composable("profile") {

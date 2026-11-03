@@ -2,6 +2,8 @@ package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -15,15 +17,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SearchBar(label: String, placeholder: String, modifier: Modifier = Modifier) {
-    var text by remember { mutableStateOf("") }
-
+fun SearchBar(
+    label: String,
+    placeholder: String,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit
+) {
     OutlinedTextField(
-        value = text,
-        onValueChange = { text = it },
+        value = query,
+        onValueChange = { query ->
+            onQueryChange(query)
+        },
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         modifier = Modifier.fillMaxWidth(),
@@ -49,6 +58,8 @@ fun SearchBar(label: String, placeholder: String, modifier: Modifier = Modifier)
             // this is color of the label at the top of the search bar when typing, u can remove if no likey
             focusedLabelColor = Color.Gray,
             unfocusedLabelColor = Color.Gray,
-        )
+        ),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() })
     )
 }
