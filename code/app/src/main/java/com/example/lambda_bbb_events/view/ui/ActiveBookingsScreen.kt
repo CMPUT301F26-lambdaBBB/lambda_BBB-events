@@ -43,9 +43,9 @@ fun ActiveBookingsScreen(navController: NavController) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(10) {
-                    VerticalCampsiteCard()
-                }
+//                items(10) {
+//                    VerticalCampsiteCard()
+//                }
             }
         }
     }

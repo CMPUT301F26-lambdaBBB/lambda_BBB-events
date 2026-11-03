@@ -7,16 +7,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.HorizontalCardSection
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, campsiteController: CampsiteController) {
+    var query by remember { mutableStateOf("") }
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -32,8 +39,14 @@ fun HomeScreen(navController: NavController) {
                 navController = navController
             )
             SearchBar(
-                "Search Campsites",
-                "Search campsites..."
+                label = "Search Campsites",
+                placeholder = "Search campsites...",
+                query = query,
+                onQueryChange = { query = it },
+                onSearch = {
+                    campsiteController.search(query)
+                    navController.navigate("explore_default")
+                }
             )
 
             Spacer(modifier = Modifier.height(25.dp))

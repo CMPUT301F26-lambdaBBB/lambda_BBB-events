@@ -6,7 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.remember
+import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 
@@ -21,7 +23,9 @@ class MainActivity : ComponentActivity() {
                     Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
                 } // citation: from https://www.youtube.com/watch?v=W5yYiZ45u9I
                 val userController = remember { UserController(userRepository, deviceId) }
-                LambdaEventsApp(userRepository, userController)
+                val campsiteRepository = remember { CampsiteRepository() }
+                val campsiteController = remember { CampsiteController(campsiteRepository) }
+                LambdaEventsApp(userRepository, userController, campsiteController)
             }
         }
     }

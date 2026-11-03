@@ -18,12 +18,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SearchBar(label: String, placeholder: String, modifier: Modifier = Modifier) {
-    var text by remember { mutableStateOf("") }
-
+fun SearchBar(
+    label: String,
+    placeholder: String,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit
+) {
     OutlinedTextField(
-        value = text,
-        onValueChange = { text = it },
+        value = query,
+        onValueChange = { query ->
+            onQueryChange(query)
+        },
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         modifier = Modifier.fillMaxWidth(),
@@ -49,6 +55,6 @@ fun SearchBar(label: String, placeholder: String, modifier: Modifier = Modifier)
             // this is color of the label at the top of the search bar when typing, u can remove if no likey
             focusedLabelColor = Color.Gray,
             unfocusedLabelColor = Color.Gray,
-        )
+        ),
     )
 }

@@ -150,7 +150,7 @@ fun CampsiteDetailsScreen(
                 HorizontalDivider()
 
                 SectionTitle("Description")
-                Text("The Yuta Man Site stands as the ultimate, undisputed sanctuary for Yuta...")
+                Text(campsite.description)
 
                 HorizontalDivider()
 
