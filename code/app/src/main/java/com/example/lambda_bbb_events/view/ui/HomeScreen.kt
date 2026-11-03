@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.HorizontalCardSection
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
@@ -21,7 +22,7 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 
 @Composable
-fun HomeScreen(navController: NavController, campsiteController: CampsiteController) {
+fun HomeScreen(navController: NavController, controllers: AppControllers) {
     var query by remember { mutableStateOf("") }
 
     Scaffold(
@@ -44,7 +45,7 @@ fun HomeScreen(navController: NavController, campsiteController: CampsiteControl
                 query = query,
                 onQueryChange = { query = it },
                 onSearch = {
-                    campsiteController.search(query)
+                    controllers.campsites.search(query)
                     navController.navigate("explore_default")
                 }
             )

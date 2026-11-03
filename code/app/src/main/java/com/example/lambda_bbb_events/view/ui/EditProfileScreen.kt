@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
@@ -41,9 +42,9 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 @Composable
 fun EditProfileScreen(
     navController: NavController,
-    userController: UserController
+    controllers: AppControllers
 ) {
-    val user: User = userController.user
+    val user: User = controllers.users.user
 
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
@@ -93,7 +94,7 @@ fun EditProfileScreen(
 
         Button(
             onClick = {
-                val successful = userController.updateEntrant(name.trim(), email.trim(), phone.trim())
+                val successful = controllers.users.updateEntrant(name.trim(), email.trim(), phone.trim())
                 if (successful) {
                     navController.navigate("profile")
                 } else {

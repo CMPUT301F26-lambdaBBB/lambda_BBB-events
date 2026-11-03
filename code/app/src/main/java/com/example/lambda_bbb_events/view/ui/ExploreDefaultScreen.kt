@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
@@ -32,11 +33,11 @@ import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
 @Composable
-fun ExploreDefaultScreen(navController: NavController, campsiteController: CampsiteController) {
-    var query by remember { mutableStateOf(campsiteController.searchQuery) }
+fun ExploreDefaultScreen(navController: NavController, controllers: AppControllers) {
+    var query by remember { mutableStateOf(controllers.campsites.searchQuery) }
     val results = remember(query) {
-        campsiteController.search(query)
-        campsiteController.getSearchResults()
+        controllers.campsites.search(query)
+        controllers.campsites.getSearchResults()
     }
 
     Scaffold(
@@ -58,7 +59,7 @@ fun ExploreDefaultScreen(navController: NavController, campsiteController: Camps
                 placeholder = "Search campsites...",
                 query = query,
                 onQueryChange = { query = it },
-                onSearch = { campsiteController.search(query) }
+                onSearch = { controllers.campsites.search(query) }
             )
             AssistChip(
                 onClick = { /* open filters */ },

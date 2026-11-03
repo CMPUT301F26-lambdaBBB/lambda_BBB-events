@@ -23,6 +23,9 @@ class UserController(
     val user: User
         get() = currentUser ?: error("No signed-in user")
 
+    val usersFullyLoaded: Boolean
+        get() = userRepository.usersFullyLoaded
+
     /**
      * Creates an Entrant user.
      *

@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.User
@@ -38,15 +39,13 @@ import com.example.lambda_bbb_events.view.ui.SignupScreen
 
 @Composable
 fun LambdaEventsApp(
-    userRepository: UserRepository,
-    userController: UserController,
-    campsiteController: CampsiteController
+    controllers: AppControllers
 ) {
-    if (!userRepository.usersFullyLoaded) {
+    if (!controllers.users.usersFullyLoaded) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-    } else if (userController.currentUser == null) {
+    } else if (controllers.users.currentUser == null) {
         // no profile so show sign up
         Scaffold { innerPadding ->
             Box(
@@ -54,16 +53,16 @@ fun LambdaEventsApp(
                     .padding(innerPadding)
                     .padding(horizontal = 32.dp)
             ) {
-                SignupScreen(rememberNavController(), userController)
+                SignupScreen(rememberNavController(), controllers)
             }
         }
     } else {
-        MainApp(userController, campsiteController)
+        MainApp(controllers)
     }
 }
 
 @Composable
-private fun MainApp(userController: UserController, campsiteController: CampsiteController) {
+private fun MainApp(controllers: AppControllers) {
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
@@ -73,24 +72,24 @@ private fun MainApp(userController: UserController, campsiteController: Campsite
                 .padding(innerPadding)
                 .padding(horizontal = 32.dp)
         ) {
-            composable("signup") { SignupScreen(navController, userController) }
-            composable("home") { HomeScreen(navController, campsiteController) }
+            composable("signup") { SignupScreen(navController, controllers) }
+            composable("home") { HomeScreen(navController, controllers) }
             composable("active_bookings") { ActiveBookingsScreen(navController) }
             composable("past_bookings") { PastBookingsScreen(navController) }
             composable("lottery_bookings") { LotteryBookingsScreen(navController) }
-            composable("explore_default") { ExploreDefaultScreen(navController, campsiteController) }
-            composable("explore_map") { ExploreMapScreen(navController, campsiteController) }
+            composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
+            composable("explore_map") { ExploreMapScreen(navController, controllers) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
-                CampsiteDetailsScreen(navController, campsiteController, campsiteId)
+                CampsiteDetailsScreen(navController, controllers, campsiteId)
             }
             composable("notifications") { NotificationsScreen(navController) }
             composable("create") { CreateScreen(navController) }
             composable("profile") {
-                ProfileScreen(navController, userController)
+                ProfileScreen(navController, controllers)
             }
             composable("edit_profile") {
-                EditProfileScreen(navController, userController)
+                EditProfileScreen(navController, controllers)
             }
         }
     }

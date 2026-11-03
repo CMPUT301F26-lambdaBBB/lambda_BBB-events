@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.FilterButton
@@ -29,7 +30,7 @@ import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
 
 @Composable
-fun ExploreMapScreen(navController: NavController, campsiteController: CampsiteController) {
+fun ExploreMapScreen(navController: NavController, controllers: AppControllers) {
     var query by remember { mutableStateOf("") }
 
     Scaffold(
@@ -52,7 +53,7 @@ fun ExploreMapScreen(navController: NavController, campsiteController: CampsiteC
                 query = query,
                 onQueryChange = { query = it },
                 onSearch = {
-                    campsiteController.search(query)
+                    controllers.campsites.search(query)
                     navController.navigate("explore_default")
                 }
             )
@@ -76,10 +77,10 @@ fun ExploreMapScreen(navController: NavController, campsiteController: CampsiteC
 
             VerticalCardSection(
                 title = "Nearby Campsites",
-                campsites = campsiteController.campsites, // all for now, we dont have a way to get "nearby" yet. needs location
+                campsites = controllers.campsites.campsites, // all for now, we dont have a way to get "nearby" yet. needs location
                 onCampsiteClick = { navController.navigate("campsite_details/${it.campsiteId}") },
                 onSeeAll = {
-                    campsiteController.search("")
+                    controllers.campsites.search("")
                     navController.navigate("explore_default")
                 },
                 modifier = Modifier.weight(1f)
