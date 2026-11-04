@@ -485,9 +485,13 @@ fun CreateScreen(
 
                             ClickableMap(
                                 height = 220,
-                                onLocationSelected = { coordinates, fetchedPostalCode ->
+                                onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
                                     latitude = coordinates.latitude
                                     longitude = coordinates.longitude
+                                    if (fetchedAddress.isNotBlank()) {
+                                        address = fetchedAddress
+                                        searchLocation = fetchedAddress
+                                    }
                                     if (fetchedPostalCode.isNotBlank()) {
                                         postalCode = fetchedPostalCode
                                     }
