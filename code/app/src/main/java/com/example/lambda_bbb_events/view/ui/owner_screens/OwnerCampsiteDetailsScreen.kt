@@ -149,7 +149,7 @@ fun OwnerCampsiteDetailsScreen(
                         icon = Icons.Outlined.ManageAccounts,
                         backgroundColor = Color(0xFFEDE7FF),
                         contentColor = Color.Black,
-                        onClick = { /* open lottery dashboard screen */ },
+                        onClick = { navController.navigate("manage_lottery/${campsite.campsiteId}") },
                         modifier = Modifier.weight(1f)
                     )
                     OwnerActionButton(
