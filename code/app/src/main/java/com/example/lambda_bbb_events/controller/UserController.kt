@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import android.util.Patterns
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
@@ -77,13 +78,22 @@ class UserController(
         userRepository.setAllowNotifications(user, allow)
     }
 
+    private fun isValidPhone(phone: String): Boolean {
+        return Patterns.PHONE.matcher(phone).matches()
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
     /**
      * Checks if the name, email, and phone fields are blank.
      *
      * @return `true` if they are not blank (valid), `false` otherwise.
      */
     private fun isValidProfile(name: String, email: String, phone: String): Boolean {
-            return name.isNotBlank() && email.isNotBlank() && phone.isNotBlank()
+            return name.isNotBlank() && email.isNotBlank() && phone.isNotBlank() &&
+                    isValidEmail(email) && isValidPhone(phone)
     }
 
     /**
