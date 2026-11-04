@@ -70,6 +70,7 @@ import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import java.util.Calendar
 import java.util.UUID
@@ -89,8 +90,10 @@ fun CreateScreen(
     lotteryRepository: LotteryRepository = remember { LotteryRepository() },
     userController: UserController? = null
 ) {
+    // status variables, 1-> basic info, 2-> location, 3-> lottery
     var currentStep by remember { mutableStateOf(0) }
 
+    // basic info the campsite
     var campsiteName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var maxOccupancy by remember { mutableStateOf("1") }
@@ -107,11 +110,14 @@ fun CreateScreen(
             selectedImageUris.addAll(uris)
         }
     }
-
+    // variables for the location
     var searchLocation by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var postalCode by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf(51.1869) }
+    var longitude by remember { mutableStateOf(-115.5323) }
 
+    // variables for the lottery and registration
     var lotteryDate by remember { mutableStateOf("") }
     var startRegistration by remember { mutableStateOf("") }
     var endRegistration by remember { mutableStateOf("") }
@@ -121,12 +127,18 @@ fun CreateScreen(
     var isEligibilityExpanded by remember { mutableStateOf(false) }
     var additionalRules by remember { mutableStateOf("") }
 
-    val occupancyOptions = listOf("1", "2", "5", "10", "15", "20", "25", "50+")
+    // dropdown options
+    val occupancyOptions = listOf("1", "2", "3", "4", "5", "6", "7", "10", "15", "20", "25", "50+") // may change to be more specific !!!
     val spotsOptions = listOf("5", "10", "15", "20", "25", "50", "100")
     val eligibilityOptions = listOf("All Entrants", "Verified Only", "First-time Entrants")
 
     val context = LocalContext.current
 
+    /**
+     * Show a date picker dialog.
+     *
+     * @param onDateSelected A lambda function that is called when a date is selected.
+     */
     fun showDatePicker(onDateSelected: (String) -> Unit) {
         val calendar = Calendar.getInstance()
         DatePickerDialog(
@@ -140,6 +152,9 @@ fun CreateScreen(
         ).show()
     }
 
+    /**
+     * Save the campsite and associated lottery to the repository
+     */
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()
         val ownerDeviceId = userController?.user?.deviceId ?: ""
@@ -150,6 +165,8 @@ fun CreateScreen(
             campsiteName = campsiteName.trim(),
             description = description.trim(),
             address = if (postalCode.isNotBlank()) "${address.trim()}, ${postalCode.trim()}" else address.trim(),
+            latitude = latitude,
+            longitude = longitude,
             maxOccupancy = maxOccupancy.filter { it.isDigit() }.toIntOrNull() ?: 1,
             rulesPolicies = additionalRules.trim(),
             tags = tags.toList(),
@@ -223,6 +240,8 @@ fun CreateScreen(
                     modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())
                 ) {
                     when (step) {
+
+                        // Basic Info Screen
                         0 -> {
                             FormLabel("Campsite Name *")
                             FormInputField(
@@ -450,6 +469,7 @@ fun CreateScreen(
 
                         }
 
+                        // Location Screen
                         1 -> {
                             FormInputField(
                                 value = searchLocation,
@@ -463,20 +483,16 @@ fun CreateScreen(
                                 }
                             )
 
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                                    .background(Color(0xFFC8E6C9), shape = RoundedCornerShape(16.dp))
-                                    .border(1.dp, Color.LightGray, shape = RoundedCornerShape(16.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    "Map Location Preview",
-                                    color = Color(0xFF2E7D32),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                            ClickableMap(
+                                height = 220,
+                                onLocationSelected = { coordinates, fetchedPostalCode ->
+                                    latitude = coordinates.latitude
+                                    longitude = coordinates.longitude
+                                    if (fetchedPostalCode.isNotBlank()) {
+                                        postalCode = fetchedPostalCode
+                                    }
+                                }
+                            )
 
                             FormLabel("Address")
                             FormInputField(
