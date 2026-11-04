@@ -22,6 +22,7 @@ import com.example.lambda_bbb_events.view.ui.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen
 import com.example.lambda_bbb_events.view.ui.HomeScreen
 import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
+import com.example.lambda_bbb_events.view.ui.LotteryEnteredScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.NotificationsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
@@ -87,11 +88,14 @@ private fun MainApp(controllers: AppControllers) {
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
             }
-            composable( route = "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"){ backStackEntry ->
+            composable(
+                route = "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
                 val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
                 val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
                 RegistrationStatusScreen(
                     navController = navController,
                     controllers = controllers,
@@ -101,6 +105,24 @@ private fun MainApp(controllers: AppControllers) {
                     numPeople = numPeople
                 )
             }
+            composable(
+                route = "lottery_entered/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
+                LotteryEnteredScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    campsiteId = campsiteId,
+                    fromDate = fromDate,
+                    endDate = endDate,
+                    numPeople = numPeople
+                )
+            }
+
             composable("notifications") { NotificationsScreen(navController) }
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
             composable("create_campsite") { CreateScreen(navController) }
