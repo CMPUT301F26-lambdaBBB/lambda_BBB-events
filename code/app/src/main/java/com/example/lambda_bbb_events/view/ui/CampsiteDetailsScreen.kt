@@ -171,7 +171,10 @@ fun CampsiteDetailsScreen(
 
                 HorizontalDivider()
 
-                Button(onClick = { /* check availability */ }, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { navController.navigate("campsite_check_availability/${campsite.campsiteId}") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("Check Availability")
                 }
 
