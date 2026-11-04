@@ -123,4 +123,23 @@ class LotteryRepository {
                 .update("entryIds", FieldValue.arrayRemove(waitlistEntry.entryId))
         }
     }
+
+    /**
+     * Gets all [Lottery] that is created by a specific campsite.
+     *
+     * @param campsiteId The `campsiteId` to search for.
+     * @return The list of lotteries that include the campsite. An empty list is
+     * returned if there are none.
+     */
+    fun getLotteriesForCampsite(campsiteId: String): List<Lottery> {
+        val result = mutableListOf<Lottery>()
+
+        for (lottery in _lotteries) {
+            if (campsiteId in lottery.campsiteIds) {
+                result.add(lottery)
+            }
+        }
+
+        return result
+    }
 }

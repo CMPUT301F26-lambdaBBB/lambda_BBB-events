@@ -51,12 +51,6 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
             ) {
                 Text("+ Create Campsite")
             }
-            Button(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Manage Lottery")
-            }
 
             Spacer(modifier = Modifier.height(20.dp))
 

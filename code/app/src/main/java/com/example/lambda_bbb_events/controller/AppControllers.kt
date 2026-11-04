@@ -9,5 +9,6 @@ package com.example.lambda_bbb_events.controller
  */
 class AppControllers (
     val users: UserController,
-    val campsites: CampsiteController
+    val campsites: CampsiteController,
+    val lotteries: LotteryController
 )

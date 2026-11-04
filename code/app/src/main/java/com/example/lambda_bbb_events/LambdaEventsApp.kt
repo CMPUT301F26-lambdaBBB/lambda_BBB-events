@@ -30,6 +30,7 @@ import com.example.lambda_bbb_events.view.ui.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.RegistrationStatusScreen
 import com.example.lambda_bbb_events.view.ui.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import java.time.LocalDate
 
 @Composable
@@ -106,6 +107,10 @@ private fun MainApp(controllers: AppControllers) {
             composable("edit_campsite/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 EditCampsiteScreen(navController, controllers, campsiteId)
+            }
+            composable("manage_lottery/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                OwnerManageLotteryScreen(navController, controllers, campsiteId)
             }
             composable("profile") {
                 ProfileScreen(navController, controllers)
