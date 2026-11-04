@@ -8,8 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.remember
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
+import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 
@@ -22,10 +24,12 @@ class MainActivity : ComponentActivity() {
 
         val userRepository = UserRepository()
         val campsiteRepository = CampsiteRepository()
+        val lotteryRepository = LotteryRepository()
 
         val controllers = AppControllers(
             users = UserController(userRepository, deviceId),
-            campsites = CampsiteController(campsiteRepository)
+            campsites = CampsiteController(campsiteRepository),
+            lotteries = LotteryController(lotteryRepository)
         )
 
         setContent {

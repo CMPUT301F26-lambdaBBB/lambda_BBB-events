@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -31,14 +30,14 @@ import java.util.Locale
  * @param modifier Modifier for styling and layout.
  * @param height Height of the map in dp.
  * @param initialLocation Initial location to center the map on.
- * @param onLocationSelected Callback when a location is selected. Return Lacation: LatLng, Postal Code: String
+ * @param onLocationSelected Callback when a location is selected. Returns coordinates: LatLng, address: String, postalCode: String
  */
 @Composable
 fun ClickableMap(
     modifier: Modifier = Modifier,
     height: Int = 300,
     initialLocation: LatLng = LatLng(51.1869, -115.5323),
-    onLocationSelected: (coordinates: LatLng, postalCode: String) -> Unit
+    onLocationSelected: (coordinates: LatLng, address: String, postalCode: String) -> Unit
 ) {
     val context = LocalContext.current
     var selectedPosition by remember { mutableStateOf(initialLocation) }
@@ -60,9 +59,9 @@ fun ClickableMap(
                 selectedPosition = latLng
                 markerState.position = latLng
                 
-                // Perform reverse geocoding to retrieve the real postal code
-                fetchPostalCodeFromLatLng(context, latLng) { postalCode ->
-                    onLocationSelected(latLng, postalCode)
+                // Reverse geocode coordinates to retrieve address and postal code
+                fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->
+                    onLocationSelected(latLng, fetchedAddress, fetchedPostalCode)
                 }
             }
         ) {
@@ -74,8 +73,8 @@ fun ClickableMap(
                     selectedPosition.longitude
                 ),
                 onClick = {
-                    fetchPostalCodeFromLatLng(context, selectedPosition) { postalCode ->
-                        onLocationSelected(selectedPosition, postalCode)
+                    fetchAddressAndPostalCodeFromLatLng(context, selectedPosition) { fetchedAddress, fetchedPostalCode ->
+                        onLocationSelected(selectedPosition, fetchedAddress, fetchedPostalCode)
                     }
                     false
                 }
@@ -85,32 +84,36 @@ fun ClickableMap(
 }
 
 /**
- * Performs reverse geocoding to retrieve the real postal code for the given [LatLng] coordinates.
+ * Performs reverse geocoding to retrieve the address and postal code for the given [LatLng] coordinates.
  *
  * @param context The current Android [Context].
  * @param location The [LatLng] coordinates to reverse-geocode.
- * @param callback Callback returning the retrieved postal code (or empty string if unavailable).
+ * @param callback Callback returning the retrieved full address and postal code.
  */
-fun fetchPostalCodeFromLatLng(
+fun fetchAddressAndPostalCodeFromLatLng(
     context: Context,
     location: LatLng,
-    callback: (postalCode: String) -> Unit
+    callback: (address: String, postalCode: String) -> Unit
 ) {
     val geocoder = Geocoder(context, Locale.getDefault())
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             geocoder.getFromLocation(location.latitude, location.longitude, 1) { addresses ->
-                val postalCode = addresses.firstOrNull()?.postalCode ?: ""
-                callback(postalCode)
+                val addrObj = addresses.firstOrNull()
+                val fullAddress = addrObj?.getAddressLine(0) ?: ""
+                val postalCode = addrObj?.postalCode ?: ""
+                callback(fullAddress, postalCode)
             }
         } else {
             @Suppress("DEPRECATION")
             val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            val postalCode = addresses?.firstOrNull()?.postalCode ?: ""
-            callback(postalCode)
+            val addrObj = addresses?.firstOrNull()
+            val fullAddress = addrObj?.getAddressLine(0) ?: ""
+            val postalCode = addrObj?.postalCode ?: ""
+            callback(fullAddress, postalCode)
         }
     } catch (e: Exception) {
         e.printStackTrace()
-        callback("")
+        callback("", "")
     }
 }

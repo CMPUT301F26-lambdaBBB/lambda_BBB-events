@@ -39,9 +39,11 @@ jobs:
 
       - name: Generate Dokka Docs
         run: ./code/gradlew -p code dokkaGenerate
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: code/app/build/dokka/html
 
