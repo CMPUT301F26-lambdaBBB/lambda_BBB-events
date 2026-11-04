@@ -113,7 +113,7 @@ fun BottomNavigationBar(navController: NavController) {
             NavigationBarItem(
                 selected = currentRoute == "create",
                 onClick = {
-                    navController.navigate("create") {
+                    navController.navigate("my_campsites") {
                         launchSingleTop = true
                     }
                 },
