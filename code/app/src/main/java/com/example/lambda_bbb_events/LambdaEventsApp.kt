@@ -32,6 +32,7 @@ import com.example.lambda_bbb_events.view.ui.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen
 import com.example.lambda_bbb_events.view.ui.HomeScreen
 import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
+import com.example.lambda_bbb_events.view.ui.MyCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.NotificationsScreen
 import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
@@ -84,7 +85,8 @@ private fun MainApp(controllers: AppControllers) {
                 CampsiteDetailsScreen(navController, controllers, campsiteId)
             }
             composable("notifications") { NotificationsScreen(navController) }
-            composable("create") { CreateScreen(navController) }
+            composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
+            composable("create_campsite") { CreateScreen(navController) }
             composable("profile") {
                 ProfileScreen(navController, controllers)
             }

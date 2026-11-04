@@ -2,6 +2,7 @@ package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import com.example.lambda_bbb_events.model.roles.Entrant
 
 /**
@@ -83,5 +84,35 @@ class UserController(
      */
     private fun isValidProfile(name: String, email: String, phone: String): Boolean {
             return name.isNotBlank() && email.isNotBlank() && phone.isNotBlank()
+    }
+
+    /**
+     * Makes the user a campsite owner. An entrant is converted to a [CampsiteOwner].
+     * Does not affect if user is owner or admin roles.
+     *
+     * @return `true` if the user can now own campsites, `false` if there is no signed-in user.
+     */
+    fun becomeOwner(): Boolean {
+        val user = currentUser
+
+        if (user == null) {
+            return false
+        }
+
+        // only entrants need converting
+        if (user is Entrant) {
+            userRepository.updateUser(
+                CampsiteOwner(
+                    deviceId = user.deviceId,
+                    name = user.name,
+                    email = user.email,
+                    phone = user.phone,
+                    profilePictureImageId = user.profilePictureImageId,
+                    notificationsEnabled = user.notificationsEnabled
+                )
+            )
+        }
+
+        return true
     }
 }

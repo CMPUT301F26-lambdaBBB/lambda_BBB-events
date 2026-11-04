@@ -85,14 +85,14 @@ class CampsiteRepository {
     /**
      * Gets all [Campsite] of a specific [CampsiteOwner].
      *
-     * @param owner The [CampsiteOwner] device ID.
+     * @param ownerId The [CampsiteOwner] device ID.
      * @return The list of [Campsite] made by the owner.
      */
-    fun getCampsitesByOwner(owner: CampsiteOwner): List<Campsite> {
+    fun getCampsitesByOwner(ownerId: String): List<Campsite> {
         val result = mutableListOf<Campsite>()
 
         for (campsite in _campsites) {
-            if (campsite.ownerId == owner.deviceId) {
+            if (campsite.ownerId == ownerId) {
                 result.add(campsite)
             }
         }

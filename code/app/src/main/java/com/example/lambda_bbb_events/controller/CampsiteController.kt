@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 
 /**
  * Controller for [Campsite]-related operations.
@@ -27,6 +28,16 @@ class CampsiteController(
      */
     fun getCampsite(campsiteId: String): Campsite? {
         return campsiteRepository.get(campsiteId)
+    }
+
+    /**
+     * Gets a list [Campsite] made by a user.
+     *
+     * @param owner The [CampsiteOwner] that made the campsites.
+     * @return A list of [Campsite] associated with the owner.
+     */
+    fun getCampsitesByOwner(ownerId: String): List<Campsite> {
+        return campsiteRepository.getCampsitesByOwner(ownerId)
     }
 
     /**
