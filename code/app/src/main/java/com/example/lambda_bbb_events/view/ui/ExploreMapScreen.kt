@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.FilterButton
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
@@ -55,7 +54,8 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                 onSearch = {
                     controllers.campsites.search(query)
                     navController.navigate("explore_default")
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             )
             FilterButton()
 

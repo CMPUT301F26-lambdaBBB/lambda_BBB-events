@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
@@ -59,7 +59,8 @@ fun ExploreDefaultScreen(navController: NavController, controllers: AppControlle
                 placeholder = "Search campsites...",
                 query = query,
                 onQueryChange = { query = it },
-                onSearch = { controllers.campsites.search(query) }
+                onSearch = { controllers.campsites.search(query) },
+                modifier = Modifier.fillMaxWidth()
             )
             AssistChip(
                 onClick = { /* open filters */ },
