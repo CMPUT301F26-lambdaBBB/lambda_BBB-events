@@ -71,4 +71,5 @@ data class Lottery (
         return status == LotteryStatus.OPEN && date.after(registrationStart) &&
                 date.before(registrationEnd)
     }
+
 }
