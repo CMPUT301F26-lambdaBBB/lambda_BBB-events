@@ -72,6 +72,7 @@ import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
 import java.util.Calendar
 import java.util.UUID
 
@@ -90,6 +91,8 @@ fun CreateScreen(
     lotteryRepository: LotteryRepository = remember { LotteryRepository() },
     userController: UserController? = null
 ) {
+    val context = LocalContext.current
+
     // status variables, 1-> basic info, 2-> location, 3-> lottery
     var currentStep by remember { mutableStateOf(0) }
 
@@ -132,25 +135,6 @@ fun CreateScreen(
     val spotsOptions = listOf("5", "10", "15", "20", "25", "50", "100")
     val eligibilityOptions = listOf("All Entrants", "Verified Only", "First-time Entrants")
 
-    val context = LocalContext.current
-
-    /**
-     * Show a date picker dialog.
-     *
-     * @param onDateSelected A lambda function that is called when a date is selected.
-     */
-    fun showDatePicker(onDateSelected: (String) -> Unit) {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                onDateSelected("$year-${month + 1}-$dayOfMonth")
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
 
     /**
      * Save the campsite and associated lottery to the repository
@@ -556,19 +540,19 @@ fun CreateScreen(
                             FormLabel("Lottery Date *")
                             DateField(
                                 value = lotteryDate,
-                                onClick = { showDatePicker { lotteryDate = it } }
+                                onClick = { PopUpShowDatePicker(context) { lotteryDate = it } }
                             )
 
                             FormLabel("Start Registration *")
                             DateField(
                                 value = startRegistration,
-                                onClick = { showDatePicker { startRegistration = it } }
+                                onClick = { PopUpShowDatePicker(context) { startRegistration = it } }
                             )
 
                             FormLabel("End Registration *")
                             DateField(
                                 value = endRegistration,
-                                onClick = { showDatePicker { endRegistration = it } }
+                                onClick = { PopUpShowDatePicker(context) { endRegistration = it } }
                             )
 
                             Row(
