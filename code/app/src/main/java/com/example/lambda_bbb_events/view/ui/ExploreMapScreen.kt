@@ -1,7 +1,5 @@
 package com.example.lambda_bbb_events.view.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,13 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
@@ -77,25 +74,23 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                 shape = RoundedCornerShape(100.dp)
             )
 
-            // google maps placeholder
-            Box(
-                modifier = Modifier
-                    .height(300.dp)
-                    .background(
-                        color = Color.Gray,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("gooogel map")
-            }
+            // Clickable Google Map: when tapped, updates the search bar query with the address
+            ClickableMap(
+                height = 300,
+                onLocationSelected = { coordinates, address, postalCode ->
+                    if (address.isNotBlank()) {
+                        query = address
+                    } else if (postalCode.isNotBlank()) {
+                        query = postalCode
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             VerticalCardSection(
                 title = "Nearby Campsites",
-                campsites = controllers.campsites.campsites, // all for now, we dont have a way to get "nearby" yet. needs location
+                campsites = controllers.campsites.campsites,
                 onCampsiteClick = { navController.navigate("campsite_details/${it.campsiteId}") },
                 onSeeAll = {
                     controllers.campsites.search("")
@@ -120,5 +115,4 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
             }
         )
     }
-
 }
