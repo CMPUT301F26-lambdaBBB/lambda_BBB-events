@@ -33,11 +33,62 @@ class CampsiteController(
     /**
      * Gets a list [Campsite] made by a user.
      *
-     * @param owner The [CampsiteOwner] that made the campsites.
+     * @param ownerId The [CampsiteOwner] that made the campsites.
      * @return A list of [Campsite] associated with the owner.
      */
     fun getCampsitesByOwner(ownerId: String): List<Campsite> {
         return campsiteRepository.getCampsitesByOwner(ownerId)
+    }
+
+    /**
+     * Updates a Campsite detail information.
+     *
+     * @param campsiteId The ID of the campsite to update.
+     * @param name The new campsite name.
+     * @param address The new address.
+     * @param maxOccupancyText The new max occupancy.
+     * @param description The new description.
+     * @param rulesPolicies The new rules and policies.
+     * @param tags The new tags separated by commas.
+     * @return `true` if the campsite was updated successfully, `false` otherwise.
+     */
+    fun updateCampsite(
+        campsiteId: String,
+        name: String,
+        address: String,
+        maxOccupancyText: String,
+        description: String,
+        rulesPolicies: String,
+        tags: List<String>
+    ): Boolean {
+        val campsite = campsiteRepository.get(campsiteId)
+
+        if (campsite == null) {
+            return false
+        }
+
+        if (name.isBlank() || address.isBlank()) {
+            return false
+        }
+
+        val maxOccupancy = maxOccupancyText.trim().toIntOrNull()
+
+        if (maxOccupancy == null || maxOccupancy < 1) {
+            return false
+        }
+
+        campsiteRepository.updateCampsite(
+            campsite.copy(
+                campsiteName = name.trim(),
+                address = address.trim(),
+                maxOccupancy = maxOccupancy,
+                description = description.trim(),
+                rulesPolicies = rulesPolicies.trim(),
+                tags = tags
+            )
+        )
+
+        return true
     }
 
     /**

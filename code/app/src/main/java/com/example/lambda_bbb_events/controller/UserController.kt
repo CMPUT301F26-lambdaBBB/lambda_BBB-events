@@ -50,7 +50,7 @@ class UserController(
     /**
      * Updates an Entrant user information.
      *
-     * @return `true` if the profile was created, `false` if any one of `name`, `email`,
+     * @return `true` if the profile was updated, `false` if any one of `name`, `email`,
      * `phone` is blank.
      */
     fun updateEntrant(name: String, email: String, phone: String): Boolean {
