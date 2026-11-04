@@ -72,4 +72,24 @@ class LotteryController(
         // past lottery
         return !isCancelled && isOver
     }
+
+    fun getOpenLotteryForCampsite(campsiteId: String): Lottery? {
+        return lotteryRepository
+            .getLotteriesForCampsite(campsiteId)
+            .firstOrNull { it.isRegistrationOpen() }
+    }
+
+    fun joinLotteryEntry(
+        lotteryId: String,
+        entrantId: String,
+        numberOfGuests: Int,
+        onResult: (Boolean, String) -> Unit
+    ) {
+        lotteryRepository.joinLottery(
+            lotteryId = lotteryId,
+            entrantId = entrantId,
+            numberOfGuests = numberOfGuests,
+            onResult = onResult
+        )
+    }
 }

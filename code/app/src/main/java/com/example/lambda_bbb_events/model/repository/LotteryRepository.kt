@@ -142,4 +142,58 @@ class LotteryRepository {
 
         return result
     }
+
+    fun joinLottery(
+        lotteryId: String,
+        entrantId: String,
+        numberOfGuests: Int,
+        onResult: (Boolean, String) -> Unit
+    ){
+        if (lotteryId.isBlank() || entrantId.isBlank() || numberOfGuests < 1) {
+            onResult(false, "Invalid registration information")
+            return
+        }
+
+        val lotteryRef = lotteriesRef.document(lotteryId)
+        val entryId = "${lotteryId}_${entrantId}"
+        val entryRef = db.collection("waitlistEntries").document(entryId)
+
+        db.runTransaction { transaction ->
+            val lotterySnapshot = transaction.get(lotteryRef)
+            val entrySnapshot = transaction.get(entryRef)
+            val lottery = lotterySnapshot.toObject(Lottery::class.java) ?: throw IllegalStateException("Lottery not found")
+            if (!lottery.isRegistrationOpen()) {
+                throw IllegalStateException("Registration is closed")
+            }
+
+            if (entrySnapshot.exists() || entryId in lottery.entryIds) {
+                throw IllegalStateException("Already joined this lottery")
+            }
+
+            if (lottery.isFull()) {
+                throw IllegalStateException("Waitlist is full")
+            }
+
+            val waitlistEntry = WaitlistEntry(
+                entryId = entryId,
+                entrantId = entrantId,
+                lotteryId = lotteryId,
+                numberOfGuests = numberOfGuests,
+                status = WaitlistStatus.IN_WAITLIST
+            )
+
+            transaction.set(entryRef, waitlistEntry)
+
+            transaction.update(
+                lotteryRef,
+                "entryIds",
+                FieldValue.arrayUnion(entryId)
+            )
+            true
+        }.addOnSuccessListener {
+            onResult(true, "Successfully joined lottery")
+        }.addOnFailureListener { exception ->
+            onResult(false, exception.message ?: "Registration failed")
+        }
+    }
 }
