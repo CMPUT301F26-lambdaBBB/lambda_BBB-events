@@ -1,12 +1,17 @@
 package com.example.lambda_bbb_events.model.repository
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import com.google.firebase.Timestamp
 
 /**
  * Handles the data in the Firestore database for the [Campsite] class.
@@ -16,6 +21,7 @@ class CampsiteRepository {
     private val campsitesRef = db.collection("campsites")
 
     private val _campsites = mutableStateListOf<Campsite>()
+    private val _filteredCampsites = mutableStateListOf<Campsite>()
 
     init {
         campsitesRef.addSnapshotListener { snapshot, error ->
@@ -99,4 +105,161 @@ class CampsiteRepository {
 
         return result
     }
+
+    // Filtered Campsite
+    val filteredCampsites: List<Campsite>
+        get() = _filteredCampsites
+
+    var isExploreFiltered by mutableStateOf(false)
+        private set
+
+    var isFiltering by mutableStateOf(false)
+        private set
+
+    var filterError by mutableStateOf<String?>(null)
+        private set
+
+    private var filterRequestVersion = 0
+
+    fun filterCampsites(
+        startDate: Timestamp?,
+        endDate: Timestamp?,
+        location: String,
+        minGuests: Int,
+        maxGuests: Int,
+        minRating: Double?
+    ) {
+        val requestId = ++filterRequestVersion
+
+        isExploreFiltered = true
+        isFiltering = true
+        filterError = null
+        _filteredCampsites.clear()
+
+        if ((startDate == null) != (endDate == null) || (startDate != null && endDate != null && startDate >= endDate)) {
+            filterError = "Invalid date range"
+            isFiltering = false
+            return
+        }
+
+        if (minGuests < 0 || maxGuests < 0 || minGuests > maxGuests) {
+            filterError = "Invalid guest range"
+            isFiltering = false
+            return
+        }
+
+        fun complete(results: List<Campsite>) {
+            if (requestId != filterRequestVersion) {
+                return
+            }
+
+            _filteredCampsites.clear()
+            _filteredCampsites.addAll(results)
+
+            filterError = null
+            isFiltering = false
+        }
+
+        fun fail(error: Exception) {
+            if (requestId != filterRequestVersion) {
+                return
+            }
+
+            filterError = error.message ?: "Failed to filter campsites"
+            isFiltering = false
+        }
+
+        var query: Query = campsitesRef
+
+        if (minGuests > 0) {
+            query = query.whereGreaterThanOrEqualTo(
+                "maxOccupancy",
+                minGuests
+            )
+        }
+
+        if (maxGuests < 100) {
+            query = query.whereLessThanOrEqualTo(
+                "maxOccupancy",
+                maxGuests
+            )
+        }
+
+        if (minRating != null && minRating > 0) {
+            query = query.whereGreaterThanOrEqualTo(
+                "rating",
+                minRating
+            )
+        }
+
+        query.get()
+            .addOnSuccessListener campsiteSuccess@ { snapshot ->
+                if (requestId != filterRequestVersion) {
+                    return@campsiteSuccess
+                }
+
+                val matchingCampsites = snapshot.documents
+                    .mapNotNull { document ->
+                        document.toObject(Campsite::class.java)
+                    }
+                    .filter { campsite ->
+                        location.isBlank() ||
+                                campsite.address.contains(
+                                    location.trim(),
+                                    ignoreCase = true
+                                )
+                    }
+
+
+                if (startDate != null && endDate != null) {
+                    db.collection("reservations")
+                        .whereLessThan(
+                            "startDate",
+                            endDate
+                        )
+                        .whereGreaterThan(
+                            "endDate",
+                            startDate
+                        )
+                        .get()
+                        .addOnSuccessListener { reservationSnapshot ->
+                            val occupiedIds =
+                                reservationSnapshot.documents
+                                    .filter { document ->
+                                        document.getString("status") ==
+                                                "confirmed"
+                                    }
+                                    .mapNotNull { document ->
+                                        document.getString("campsiteId")
+                                    }
+                                    .toSet()
+
+                            val availableCampsites =
+                                matchingCampsites.filterNot { campsite ->
+                                    campsite.campsiteId in occupiedIds
+                                }
+
+                            complete(availableCampsites)
+                        }
+                        .addOnFailureListener { error ->
+                            fail(error)
+                        }
+
+                } else {
+                    complete(matchingCampsites)
+                }
+            }
+            .addOnFailureListener { error ->
+                fail(error)
+            }
+    }
+
+    fun clearExploreFilters() {
+        filterRequestVersion++
+        isExploreFiltered = false
+        isFiltering = false
+        filterError = null
+        _filteredCampsites.clear()
+    }
+
 }
