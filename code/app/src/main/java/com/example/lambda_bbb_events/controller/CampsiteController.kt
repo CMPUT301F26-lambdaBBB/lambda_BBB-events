@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.google.firebase.Timestamp
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 
 /**
@@ -17,8 +18,25 @@ class CampsiteController(
 ) {
     var searchQuery by mutableStateOf("")
 
+    // I have filtered Campsites and non-filtered Campsites
     val campsites: List<Campsite>
         get() = campsiteRepository.campsites
+
+    val exploreCampsites: List<Campsite>
+        get() = if (campsiteRepository.isExploreFiltered) {
+            campsiteRepository.filteredCampsites
+        } else {
+            campsiteRepository.campsites
+        }
+
+    val isFiltering: Boolean
+        get() = campsiteRepository.isFiltering
+
+    val filterError: String?
+        get() = campsiteRepository.filterError
+
+    val isExploreFiltered: Boolean
+        get() = campsiteRepository.isExploreFiltered
 
     /**
      * Gets a [Campsite] given its campsiteId.
@@ -110,12 +128,12 @@ class CampsiteController(
     fun getSearchResults(): List<Campsite> {
         // no search, show everything
         if (searchQuery.isEmpty()) {
-            return campsites
+            return exploreCampsites
         }
 
         val result = mutableListOf<Campsite>()
 
-        for (campsite in campsites) {
+        for (campsite in exploreCampsites) {
             if (matchesSearch(campsite)) {
                 result.add(campsite)
             }
@@ -146,5 +164,27 @@ class CampsiteController(
         }
 
         return false
+    }
+
+    fun applyFilters(
+        startDate: Timestamp?,
+        endDate: Timestamp?,
+        location: String,
+        minGuests: Int,
+        maxGuests: Int,
+        minRating: Double?
+    ) {
+        campsiteRepository.filterCampsites(
+            startDate = startDate,
+            endDate = endDate,
+            location = location,
+            minGuests = minGuests,
+            maxGuests = maxGuests,
+            minRating = minRating
+        )
+    }
+
+    fun clearFilters() {
+        campsiteRepository.clearExploreFilters()
     }
 }

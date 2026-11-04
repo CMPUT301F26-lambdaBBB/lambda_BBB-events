@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
@@ -35,10 +36,8 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 @Composable
 fun ExploreDefaultScreen(navController: NavController, controllers: AppControllers) {
     var query by remember { mutableStateOf(controllers.campsites.searchQuery) }
-    val results = remember(query) {
-        controllers.campsites.search(query)
-        controllers.campsites.getSearchResults()
-    }
+    val results = controllers.campsites.getSearchResults()
+    var openFilter by remember {mutableStateOf(false)}
 
     Scaffold(
         bottomBar = {
@@ -58,12 +57,17 @@ fun ExploreDefaultScreen(navController: NavController, controllers: AppControlle
                 label = "Search Campsites",
                 placeholder = "Search campsites...",
                 query = query,
-                onQueryChange = { query = it },
+                onQueryChange = {
+                    query = it
+                    controllers.campsites.search(it)
+                },
                 onSearch = { controllers.campsites.search(query) },
                 modifier = Modifier.fillMaxWidth()
             )
             AssistChip(
-                onClick = { /* open filters */ },
+                onClick = {
+                    openFilter = true
+                },
                 label = { Text("Filters", fontWeight = FontWeight.Bold) },
                 leadingIcon = {
                     Icon(Icons.Outlined.FilterAlt, contentDescription = "Filter", tint = Color.Black)
@@ -86,5 +90,19 @@ fun ExploreDefaultScreen(navController: NavController, controllers: AppControlle
             }
         }
     }
+
+
+    if (openFilter) {
+        HomeCampsiteFilter(
+            campsiteController = controllers.campsites,
+            onDismiss = {
+                openFilter = false
+            },
+            onShowResults = {
+                openFilter = false
+            }
+        )
+    }
+
 
 }

@@ -82,11 +82,20 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
         }
     }
 
-    if (openFilter == true) {
+
+    if (openFilter) {
         HomeCampsiteFilter(
+            campsiteController = controllers.campsites,
             onDismiss = {
                 openFilter = false
+            },
+            onShowResults = {
+                openFilter = false
+                navController.navigate("explore_default") {
+                    launchSingleTop = true
+                }
             }
         )
     }
+
 }
