@@ -394,7 +394,6 @@ fun CreateScreen(
                     }
                 }
 
-                // ==================== STEP 1: LOCATION ====================
                 1 -> {
                     FormInputField(
                         value = searchLocation,
@@ -463,8 +462,7 @@ fun CreateScreen(
                     }
                 }
 
-                // ==================== STEP 2: LOTTERY ====================
-                2 -> {
+o                2 -> {
                     FormLabel("Lottery Date *")
                     DateField(
                         value = lotteryDate,
