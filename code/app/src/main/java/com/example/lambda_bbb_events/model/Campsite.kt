@@ -35,5 +35,5 @@ data class Campsite(
     val rating: Float = 0f, // average
     val ratingCount: Int = 0,
     val availability: AvailabilitySchedule = AvailabilitySchedule(),
-    var active: Boolean
+    var active: Boolean = true
 )

@@ -76,7 +76,6 @@ import java.util.UUID
  * @param lotteryRepository The repository for saving lotteries.
  * @param userController Optional user controller to obtain campsite owner details.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreateScreen(
     navController: NavController,
@@ -84,10 +83,8 @@ fun CreateScreen(
     lotteryRepository: LotteryRepository = remember { LotteryRepository() },
     userController: UserController? = null
 ) {
-    // Current step state: 0 = Basic Info, 1 = Location, 2 = Lottery
     var currentStep by remember { mutableStateOf(0) }
 
-    // Step 0: Basic Info state
     var campsiteName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var maxOccupancy by remember { mutableStateOf("1") }
@@ -97,7 +94,6 @@ fun CreateScreen(
     var isAddingTag by remember { mutableStateOf(false) }
     val selectedImageUris = remember { mutableStateListOf<Uri>() }
 
-    // System Photo Picker Launcher
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
     ) { uris ->
@@ -106,12 +102,10 @@ fun CreateScreen(
         }
     }
 
-    // Step 1: Location state
     var searchLocation by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var postalCode by remember { mutableStateOf("") }
 
-    // Step 2: Lottery state
     var lotteryDate by remember { mutableStateOf("") }
     var startRegistration by remember { mutableStateOf("") }
     var endRegistration by remember { mutableStateOf("") }
@@ -127,7 +121,6 @@ fun CreateScreen(
 
     val context = LocalContext.current
 
-    // Helper for showing date picker dialog
     fun showDatePicker(onDateSelected: (String) -> Unit) {
         val calendar = Calendar.getInstance()
         DatePickerDialog(
@@ -141,7 +134,6 @@ fun CreateScreen(
         ).show()
     }
 
-    // Saves the entered information as a Campsite and Lottery
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()
         val ownerDeviceId = userController?.user?.deviceId ?: ""
@@ -192,13 +184,11 @@ fun CreateScreen(
                 navController = navController
             )
 
-            // Stage / Step Indicator Bar
             StepStageIndicator(currentStep = currentStep, onStepClick = { currentStep = it })
 
             Spacer(modifier = Modifier.height(4.dp))
 
             when (currentStep) {
-                // ==================== STEP 0: BASIC INFO ====================
                 0 -> {
                     FormLabel("Campsite Name *")
                     FormInputField(
@@ -462,7 +452,7 @@ fun CreateScreen(
                     }
                 }
 
-o                2 -> {
+                2 -> {
                     FormLabel("Lottery Date *")
                     DateField(
                         value = lotteryDate,
