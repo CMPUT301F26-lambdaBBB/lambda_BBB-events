@@ -34,6 +34,7 @@ import com.example.lambda_bbb_events.view.ui.HomeScreen
 import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
 import com.example.lambda_bbb_events.view.ui.MyCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.NotificationsScreen
+import com.example.lambda_bbb_events.view.ui.OwnerCampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.SignupScreen
@@ -83,6 +84,10 @@ private fun MainApp(controllers: AppControllers) {
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CampsiteDetailsScreen(navController, controllers, campsiteId)
+            }
+            composable("owner_campsite_details/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
             }
             composable("notifications") { NotificationsScreen(navController) }
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }

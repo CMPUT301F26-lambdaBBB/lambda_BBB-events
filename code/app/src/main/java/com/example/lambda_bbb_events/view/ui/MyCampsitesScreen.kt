@@ -71,7 +71,7 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
                 items(myCampsites) { campsite ->
                     VerticalCampsiteCard(
                         campsite = campsite,
-                        onClick = { navController.navigate("campsite_details/${campsite.campsiteId}") }
+                        onClick = { navController.navigate("owner_campsite_details/${campsite.campsiteId}") }
                     )
                 }
             }
