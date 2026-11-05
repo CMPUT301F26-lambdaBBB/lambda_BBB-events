@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -63,7 +66,8 @@ fun PickRatingStars(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 IconButton(
-                    onClick = { onRatingChange(i) }
+                    onClick = { onRatingChange(i) },
+                    modifier = Modifier.testTag("ratingStar$i").semantics{selected = i <= rating}
                 ) {
                     Box(
                         contentAlignment = Alignment.Center
