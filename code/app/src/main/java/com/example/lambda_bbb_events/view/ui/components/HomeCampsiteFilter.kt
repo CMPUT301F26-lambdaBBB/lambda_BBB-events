@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,8 +47,13 @@ fun HomeCampsiteFilter(
         else -> false
     }
 
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
     ModalBottomSheet(
-        onDismissRequest = onDismiss
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
     ) {
         Column(
             modifier = Modifier
@@ -70,7 +76,9 @@ fun HomeCampsiteFilter(
                 onReset = {
                     fromDate = ""
                     toDate = ""
-                }
+                },
+                titleTag = "dateRangeLabel",
+                resetTag = "dateResetButton"
             )
 
             Row(
@@ -85,17 +93,17 @@ fun HomeCampsiteFilter(
                     DatePickerField(
                         value = fromDate,
                         onValueChange = { fromDate = it },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("fromDateInput")
                     )
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("To")
+                    Text(text = "To")
 
                     DatePickerField(
                         value = toDate,
                         onValueChange = { toDate = it },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().testTag("toDateInput")
                     )
                 }
             }
@@ -103,7 +111,8 @@ fun HomeCampsiteFilter(
             if (!datesValid) {
                 Text(
                     text = "Please select a valid date range.",
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("dateRangeError")
                 )
             }
 
@@ -112,14 +121,16 @@ fun HomeCampsiteFilter(
 
             FilterHeader(
                 title = "Location",
-                onReset = { location = "" }
+                onReset = { location = "" },
+                titleTag = "locationLabel",
+                resetTag = "locationResetButton"
             )
 
             FormTextField(
                 value = location,
                 onValueChange = { location = it },
                 placeholder = "Search",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("locationInput")
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -127,7 +138,9 @@ fun HomeCampsiteFilter(
 
             FilterHeader(
                 title = "Number of Guests",
-                onReset = { guestRange = 0f..100f }
+                onReset = { guestRange = 0f..100f },
+                titleTag = "guestsLabel",
+                resetTag = "guestResetButton"
             )
 
             RangePicker(
@@ -135,7 +148,7 @@ fun HomeCampsiteFilter(
                 onValueChange = { guestRange = it },
                 min = 0f,
                 max = 100f,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("guestRangeInput")
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -143,13 +156,16 @@ fun HomeCampsiteFilter(
 
             FilterHeader(
                 title = "Rating",
-                onReset = { rating = 0 }
+                onReset = { rating = 0 },
+                titleTag = "ratingLabel",
+                resetTag = "ratingResetButton"
             )
 
             PickRatingStars(
                 rating = rating,
                 onRatingChange = { rating = it }
             )
+
 
             Spacer(modifier = Modifier.height(20.dp))
             HorizontalDivider(color = Color.LightGray)
@@ -173,7 +189,8 @@ fun HomeCampsiteFilter(
                 enabled = datesValid,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(52.dp)
+                    .testTag("showResultsButton"),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.LightGray,
                     contentColor = Color.Black,
@@ -193,7 +210,9 @@ fun HomeCampsiteFilter(
 @Composable
 private fun FilterHeader(
     title: String,
-    onReset: () -> Unit
+    onReset: () -> Unit,
+    titleTag: String,
+    resetTag: String
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -203,10 +222,15 @@ private fun FilterHeader(
         Text(
             text = title,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .testTag(titleTag)
         )
 
-        TextButton(onClick = onReset) {
+        TextButton(
+            onClick = onReset,
+            modifier = Modifier.testTag(resetTag)
+        ) {
             Text("Reset")
         }
     }
