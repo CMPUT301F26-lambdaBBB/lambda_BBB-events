@@ -33,7 +33,10 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 @Composable
 fun SignupScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers? = null,
+    onCreateEntrant: (String, String, String) -> Boolean = { name, email, phone ->
+        requireNotNull(controllers).users.createEntrant(name, email, phone)
+    }
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -41,7 +44,7 @@ fun SignupScreen(
     var showCreationError by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("signupScreen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -71,7 +74,8 @@ fun SignupScreen(
             value = name,
             onValueChange = { name = it },
             placeholder = "Yuta",
-            modifier = Modifier.testTag("nameInput")
+            modifier = Modifier.testTag("nameInput"),
+            titleTag = "nameLabel"
         )
 
         FormTextFieldWithTitle(
@@ -79,7 +83,8 @@ fun SignupScreen(
             value = email,
             onValueChange = { email = it },
             placeholder = "yuta@hotmail.com",
-            modifier = Modifier.testTag("emailInput")
+            modifier = Modifier.testTag("emailInput"),
+            titleTag = "emailLabel"
         )
 
         FormTextFieldWithTitle(
@@ -87,14 +92,15 @@ fun SignupScreen(
             value = phone,
             onValueChange = { phone = it },
             placeholder = "+1",
-            modifier = Modifier.testTag("phonenumberInput")
+            modifier = Modifier.testTag("phonenumberInput"),
+            titleTag = "phonenumberLabel"
         )
 
         Spacer(Modifier.height(64.dp))
 
         Button(
             onClick = {
-                val successful = controllers.users.createEntrant(name.trim(), email.trim(), phone.trim())
+                val successful = onCreateEntrant(name.trim(), email.trim(), phone.trim())
                 if (!successful) {
                     showCreationError = true
                 }
