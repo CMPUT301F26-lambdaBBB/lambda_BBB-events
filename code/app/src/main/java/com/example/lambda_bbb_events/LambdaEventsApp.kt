@@ -125,7 +125,7 @@ private fun MainApp(controllers: AppControllers) {
 
             composable("notifications") { NotificationsScreen(navController) }
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
-            composable("create_campsite") { CreateScreen(navController) }
+            composable("create_campsite") { CreateScreen(navController, controllers) }
             composable("edit_campsite/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 EditCampsiteScreen(navController, controllers, campsiteId)

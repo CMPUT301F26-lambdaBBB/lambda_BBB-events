@@ -22,8 +22,14 @@ enum class LotteryFilter {
  * @property lotteryRepository The repository for [Lottery].
  */
 class LotteryController(
-    private val lotteryRepository: LotteryRepository
+    val lotteryRepository: LotteryRepository
 ) {
+    /**
+     * Adds a new lottery to the repository and Firestore database.
+     */
+    fun addLottery(lottery: Lottery) {
+        lotteryRepository.addLottery(lottery)
+    }
     /**
      * Gets the lotteries of a campsite that match a filter.
      *
