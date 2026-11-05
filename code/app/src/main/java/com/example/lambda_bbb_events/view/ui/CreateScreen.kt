@@ -71,7 +71,6 @@ import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
-import java.util.Calendar
 import java.util.UUID
 
 /**

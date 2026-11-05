@@ -14,7 +14,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.HomeScreen
-import com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen
 import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
