@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.view.ui
 
-import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -12,8 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +69,6 @@ import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
-import java.util.Calendar
 import java.util.UUID
 
 /**
@@ -166,6 +163,7 @@ fun CreateScreen(
     }
 
     Scaffold(
+        modifier = Modifier.testTag("screen_create"),
         bottomBar = {
             BottomNavigationBar(
                 navController
