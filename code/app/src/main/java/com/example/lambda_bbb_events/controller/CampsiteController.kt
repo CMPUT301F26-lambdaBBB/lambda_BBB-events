@@ -14,8 +14,14 @@ import com.example.lambda_bbb_events.model.roles.CampsiteOwner
  * @property campsiteRepository The repository for [Campsite].
  */
 class CampsiteController(
-    private val campsiteRepository: CampsiteRepository
+    val campsiteRepository: CampsiteRepository
 ) {
+    /**
+     * Adds a new campsite to the repository and Firestore database.
+     */
+    fun addCampsite(campsite: Campsite) {
+        campsiteRepository.addCampsite(campsite)
+    }
     var searchQuery by mutableStateOf("")
 
     // I have filtered Campsites and non-filtered Campsites

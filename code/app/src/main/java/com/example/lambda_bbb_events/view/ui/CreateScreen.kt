@@ -64,11 +64,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.repository.CampsiteRepository
-import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
@@ -80,16 +78,12 @@ import java.util.UUID
  * Create Screen for creating a new campsite and associated lottery.
  *
  * @param navController The navigation controller for navigating between screens.
- * @param campsiteRepository The repository for saving campsites.
- * @param lotteryRepository The repository for saving lotteries.
- * @param userController Optional user controller to obtain campsite owner details.
+ * @param controllers AppControllers holding campsites, lotteries, and user data.
  */
 @Composable
 fun CreateScreen(
     navController: NavController,
-    campsiteRepository: CampsiteRepository = remember { CampsiteRepository() },
-    lotteryRepository: LotteryRepository = remember { LotteryRepository() },
-    userController: UserController? = null
+    controllers: AppControllers
 ) {
     val context = LocalContext.current
 
@@ -141,7 +135,7 @@ fun CreateScreen(
      */
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()
-        val ownerDeviceId = userController?.user?.deviceId ?: ""
+        val ownerDeviceId = controllers.users.user.deviceId
 
         val newCampsite = Campsite(
             campsiteId = generatedCampsiteId,
@@ -157,7 +151,7 @@ fun CreateScreen(
             imageIds = selectedImageUris.map { it.toString() }
         )
 
-        campsiteRepository.addCampsite(newCampsite)
+        controllers.campsites.addCampsite(newCampsite)
 
         val newLottery = Lottery(
             lotteryId = UUID.randomUUID().toString(),
@@ -167,7 +161,7 @@ fun CreateScreen(
             waitlistCapacity = (numberOfSpots.filter { it.isDigit() }.toIntOrNull() ?: 10) * 2
         )
 
-        lotteryRepository.addLottery(newLottery)
+        controllers.lotteries.addLottery(newLottery)
         navController.navigate("home")
     }
 
