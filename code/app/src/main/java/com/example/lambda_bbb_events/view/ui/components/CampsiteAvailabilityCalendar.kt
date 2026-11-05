@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -20,37 +21,31 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
-private val availableColor = Color(0xFF89F5A3)
+private val availableColor = Color.White
 private val bookedColor = Color(0xFFF9D3DF)
-private val selectedColor = Color(0xFF303030)
+private val selectedColor = Color(0xFF89F5A3)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CampsiteAvailabilityCalendar(
     unavailableDates: Set<LocalDate>,
-    availableDates: Set<LocalDate>,
     startDate: LocalDate?,
     endDate: LocalDate?,
     onDateRangeChange: (LocalDate?, LocalDate?) -> Unit,
     modifier: Modifier = Modifier,
     initialMonth: YearMonth = YearMonth.now()
 ) {
-    var displayedMonth by remember(initialMonth) {
-        mutableStateOf(initialMonth)
-    }
-
+    var displayedMonth by remember { mutableStateOf(initialMonth) }
     var monthExpanded by remember { mutableStateOf(false) }
     var yearExpanded by remember { mutableStateOf(false) }
+
     val firstDay = displayedMonth.atDay(1)
     val firstDayOffset = firstDay.dayOfWeek.value % 7
     val daysInMonth = displayedMonth.lengthOfMonth()
-    val totalCells =
-        ((firstDayOffset + daysInMonth + 6) / 7) * 7
+    val totalCells = ((firstDayOffset + daysInMonth + 6) / 7) * 7
 
     val calendarDays = (0 until totalCells).map { index ->
-        firstDay.plusDays(
-            (index - firstDayOffset).toLong()
-        )
+        firstDay.plusDays((index - firstDayOffset).toLong())
     }
 
     Column(
@@ -60,34 +55,27 @@ fun CampsiteAvailabilityCalendar(
         Surface(
             color = Color.White,
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(
-                1.dp, Color.LightGray
-            ),
+            border = BorderStroke(1.dp, Color.LightGray),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                // Month and year navigation
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     IconButton(
                         onClick = {
-                            displayedMonth =
-                                displayedMonth.minusMonths(1)
+                            displayedMonth = displayedMonth.minusMonths(1)
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
                         Text("‹", fontSize = 30.sp)
                     }
 
-                    // Month dropdown
                     Box {
                         TextButton(
                             onClick = { monthExpanded = true }
@@ -130,7 +118,6 @@ fun CampsiteAvailabilityCalendar(
                         }
                     }
 
-                    // Year dropdown
                     Box {
                         TextButton(
                             onClick = { yearExpanded = true }
@@ -150,27 +137,24 @@ fun CampsiteAvailabilityCalendar(
                         ) {
                             val currentYear = displayedMonth.year
 
-                            (currentYear - 2..currentYear + 4)
-                                .forEach { year ->
-                                    DropdownMenuItem(
-                                        text = { Text(year.toString()) },
-                                        onClick = {
-                                            displayedMonth =
-                                                YearMonth.of(
-                                                    year,
-                                                    displayedMonth.month
-                                                )
-                                            yearExpanded = false
-                                        }
-                                    )
-                                }
+                            (currentYear - 2..currentYear + 4).forEach { year ->
+                                DropdownMenuItem(
+                                    text = { Text(year.toString()) },
+                                    onClick = {
+                                        displayedMonth = YearMonth.of(
+                                            year,
+                                            displayedMonth.month
+                                        )
+                                        yearExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
 
                     IconButton(
                         onClick = {
-                            displayedMonth =
-                                displayedMonth.plusMonths(1)
+                            displayedMonth = displayedMonth.plusMonths(1)
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
@@ -178,7 +162,6 @@ fun CampsiteAvailabilityCalendar(
                     }
                 }
 
-                // Days of the week
                 Row(modifier = Modifier.fillMaxWidth()) {
                     listOf(
                         "Su", "Mo", "Tu", "We",
@@ -197,11 +180,9 @@ fun CampsiteAvailabilityCalendar(
                     }
                 }
 
-                // Calendar grid
                 calendarDays.chunked(7).forEach { week ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         week.forEach { date ->
-
                             val isCurrentMonth =
                                 YearMonth.from(date) == displayedMonth
 
@@ -212,9 +193,6 @@ fun CampsiteAvailabilityCalendar(
                                         !date.isBefore(startDate) &&
                                         !date.isAfter(endDate ?: startDate)
 
-                            val isAvailable =
-                                date in availableDates
-
                             val canSelect =
                                 isCurrentMonth &&
                                         !isBooked &&
@@ -222,9 +200,9 @@ fun CampsiteAvailabilityCalendar(
 
                             val backgroundColor = when {
                                 !isCurrentMonth -> Color.Transparent
-                                isSelected -> selectedColor
                                 isBooked -> bookedColor
-                                isAvailable -> availableColor
+                                isSelected -> selectedColor
+                                canSelect -> availableColor
                                 else -> Color.Transparent
                             }
 
@@ -255,7 +233,6 @@ fun CampsiteAvailabilityCalendar(
                                                     }
 
                                             if (hasConflict) {
-                                                // Restart selection
                                                 onDateRangeChange(date, null)
                                             } else {
                                                 onDateRangeChange(
@@ -270,14 +247,13 @@ fun CampsiteAvailabilityCalendar(
                                 Text(
                                     text = date.dayOfMonth.toString(),
                                     fontSize = 15.sp,
-                                    fontWeight =
-                                        if (isSelected)
-                                            FontWeight.Bold
-                                        else
-                                            FontWeight.Normal,
+                                    fontWeight = if (isSelected) {
+                                        FontWeight.Bold
+                                    } else {
+                                        FontWeight.Normal
+                                    },
                                     color = when {
                                         !isCurrentMonth -> Color.LightGray
-                                        isSelected -> Color.White
                                         else -> Color.Black
                                     }
                                 )
@@ -288,7 +264,6 @@ fun CampsiteAvailabilityCalendar(
             }
         }
 
-        // Calendar legend
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)

@@ -16,20 +16,20 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.lambda_bbb_events.view.ui.theme.PurpleGrey80
-import com.example.lambda_bbb_events.view.ui.theme.Purple80
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val backStackEntry = navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry.value?.destination?.route
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
 
-    Box (
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
@@ -38,9 +38,9 @@ fun BottomNavigationBar(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp)),
-            containerColor = Purple80
-        ){
-            // Navigation to Home
+            containerColor = Color(0xFFF5F0FF),
+            tonalElevation = 2.dp
+        ) {
             NavigationBarItem(
                 selected = currentRoute == "home",
                 onClick = {
@@ -58,14 +58,17 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Home")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PurpleGrey80
+                    selectedIconColor = Color(0xFF592A96),
+                    selectedTextColor = Color(0xFF592A96),
+                    indicatorColor = Color(0xFFD8C4FF),
+                    unselectedIconColor = Color(0xFF746B82),
+                    unselectedTextColor = Color(0xFF746B82)
                 )
             )
 
-            // Navigation to Explore
             NavigationBarItem(
-                selected = currentRoute == "explore_map"
-                        || currentRoute == "explore_default",
+                selected = currentRoute == "explore_map" ||
+                        currentRoute == "explore_default",
                 onClick = {
                     navController.navigate("explore_map") {
                         launchSingleTop = true
@@ -81,15 +84,18 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Explore")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PurpleGrey80
+                    selectedIconColor = Color(0xFF592A96),
+                    selectedTextColor = Color(0xFF592A96),
+                    indicatorColor = Color(0xFFD8C4FF),
+                    unselectedIconColor = Color(0xFF746B82),
+                    unselectedTextColor = Color(0xFF746B82)
                 )
             )
 
-            // Navigation to Bookings
             NavigationBarItem(
-                selected = currentRoute == "active_bookings"
-                        || currentRoute == "past_bookings"
-                        || currentRoute == "lottery_bookings",
+                selected = currentRoute == "active_bookings" ||
+                        currentRoute == "past_bookings" ||
+                        currentRoute == "lottery_bookings",
                 onClick = {
                     navController.navigate("active_bookings") {
                         launchSingleTop = true
@@ -105,13 +111,17 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Bookings")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PurpleGrey80
+                    selectedIconColor = Color(0xFF592A96),
+                    selectedTextColor = Color(0xFF592A96),
+                    indicatorColor = Color(0xFFD8C4FF),
+                    unselectedIconColor = Color(0xFF746B82),
+                    unselectedTextColor = Color(0xFF746B82)
                 )
             )
 
-            // Navigation to Create
             NavigationBarItem(
-                selected = currentRoute == "create",
+                selected = currentRoute == "create" ||
+                        currentRoute == "my_campsites",
                 onClick = {
                     navController.navigate("my_campsites") {
                         launchSingleTop = true
@@ -127,11 +137,14 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Create")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PurpleGrey80
+                    selectedIconColor = Color(0xFF592A96),
+                    selectedTextColor = Color(0xFF592A96),
+                    indicatorColor = Color(0xFFD8C4FF),
+                    unselectedIconColor = Color(0xFF746B82),
+                    unselectedTextColor = Color(0xFF746B82)
                 )
             )
 
-            // Navigation to Bookings
             NavigationBarItem(
                 selected = currentRoute == "profile",
                 onClick = {
@@ -149,7 +162,11 @@ fun BottomNavigationBar(navController: NavController) {
                     Text("Profile")
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PurpleGrey80
+                    selectedIconColor = Color(0xFF592A96),
+                    selectedTextColor = Color(0xFF592A96),
+                    indicatorColor = Color(0xFFD8C4FF),
+                    unselectedIconColor = Color(0xFF746B82),
+                    unselectedTextColor = Color(0xFF746B82)
                 )
             )
         }
