@@ -3,11 +3,14 @@ package com.example.lambda_bbb_events
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
+import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.lambda_bbb_events.view.ui.SignupScreen
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +18,17 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SignUpScreenUITest {
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<MainActivity>()
+    val composeTestRule = createComposeRule()
+
+    @Before
+    fun setup() {
+        composeTestRule.setContent {
+            SignupScreen(
+                navController = rememberNavController(),
+                onCreateEntrant = { _, _, _ -> true }
+            )
+        }
+    }
 
     @Test
     fun lambdaCampingTitleIsDisplayed() {
@@ -24,17 +37,17 @@ class SignUpScreenUITest {
 
     @Test
     fun nameLabelIsDisplayed() {
-        composeTestRule.onNodeWithText("Name").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("nameLabel").assertIsDisplayed()
     }
 
     @Test
     fun emailLabelIsDisplayed() {
-        composeTestRule.onNodeWithText("Email").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("emailLabel").assertIsDisplayed()
     }
 
     @Test
     fun phoneNumberLabelIsDisplayed() {
-        composeTestRule.onNodeWithText("Phone Number").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("phonenumberLabel").assertIsDisplayed()
     }
 
     @Test
