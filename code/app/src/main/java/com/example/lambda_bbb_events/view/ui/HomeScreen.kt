@@ -34,6 +34,7 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
     var openFilter by remember {mutableStateOf(false)}
 
     Scaffold(
+        modifier = Modifier.testTag("screen_home"),
         bottomBar = {
             BottomNavigationBar(
                 navController
@@ -41,7 +42,7 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("homeScreen")
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
             ScreenTitle(
                 title = "Home",
