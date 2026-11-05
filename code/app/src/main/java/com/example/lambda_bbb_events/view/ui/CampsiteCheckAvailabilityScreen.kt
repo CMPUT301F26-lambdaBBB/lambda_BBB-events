@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.lambda_bbb_events.view.ui.components.DatePickerField
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 
-
 @Composable
 fun CampsiteCheckAvailabilityScreen(
     navController: NavController,
@@ -46,43 +45,33 @@ fun CampsiteCheckAvailabilityScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
-
     if (campsite == null) {
         Text("Loading campsite...")
         return
     }
-
     var fromDate by remember(campsiteId) {
         mutableStateOf("")
     }
-
     var toDate by remember(campsiteId) {
         mutableStateOf("")
     }
-
     val startDate = runCatching {
         LocalDate.parse(fromDate)
     }.getOrNull()
-
     val endDate = runCatching {
         LocalDate.parse(toDate)
     }.getOrNull()
-
     var numberOfPeople by remember(campsiteId) {
         mutableStateOf("")
     }
-
     val context = LocalContext.current
-
     val validPeople = numberOfPeople.toIntOrNull()
 
-    val canConfirm =
-        startDate != null &&
-                endDate != null &&
-                !endDate!!.isBefore(startDate) &&
-                validPeople != null &&
-                validPeople in 1..campsite.maxOccupancy
-
+    val canConfirm = startDate != null &&
+            endDate != null &&
+            !endDate!!.isBefore(startDate) &&
+            validPeople != null &&
+            validPeople in 1..campsite.maxOccupancy
 
     Column(
         modifier = Modifier
@@ -102,8 +91,6 @@ fun CampsiteCheckAvailabilityScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-
-            // Campsite image
             Box(
                 modifier = Modifier
                     .size(110.dp)
@@ -124,7 +111,6 @@ fun CampsiteCheckAvailabilityScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-
                 Text(
                     text = campsite.campsiteName,
                     fontSize = 16.sp,
@@ -167,7 +153,6 @@ fun CampsiteCheckAvailabilityScreen(
                         modifier = Modifier.size(16.dp)
                     )
 
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
@@ -184,7 +169,6 @@ fun CampsiteCheckAvailabilityScreen(
                             lineHeight = 13.sp
                         )
                     }
-
                 }
             }
         }
@@ -196,19 +180,11 @@ fun CampsiteCheckAvailabilityScreen(
 
         SubTitle("Select Availability")
 
-        val exampleBookedDates = setOf(
-            LocalDate.of(2026, 11, 10),
-            LocalDate.of(2026, 11, 13)
-        )
-
-        val exampleAvailableDates = setOf(
-            LocalDate.of(2026, 11, 16)
-        )
+        val unavailableDates = emptySet<LocalDate>()
 
         CampsiteAvailabilityCalendar(
-            initialMonth = YearMonth.of(2026, 11),
-            unavailableDates = exampleBookedDates,
-            availableDates = exampleAvailableDates,
+            initialMonth = YearMonth.now(),
+            unavailableDates = unavailableDates,
             startDate = startDate,
             endDate = endDate,
             onDateRangeChange = { start, end ->
@@ -237,13 +213,16 @@ fun CampsiteCheckAvailabilityScreen(
             title = "Number of People:",
             value = numberOfPeople,
             onValueChange = { newValue ->
-                if (newValue.all { it.isDigit() }) {
+                val maxDigits = campsite.maxOccupancy.toString().length
+                if (newValue.all { it.isDigit() } && newValue.length <= maxDigits
+                ) {
                     numberOfPeople = newValue
                 }
             },
             placeholder = "Enter number of people",
             modifier = Modifier.fillMaxWidth()
         )
+
 
         Text(
             text = "Max Occupancy: ${campsite.maxOccupancy} people",
