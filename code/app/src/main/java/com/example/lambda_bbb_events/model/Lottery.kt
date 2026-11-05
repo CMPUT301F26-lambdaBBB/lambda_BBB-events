@@ -43,14 +43,6 @@ data class Lottery (
     val entryIds: List<String> = emptyList(),
     val status: LotteryStatus = LotteryStatus.OPEN
 ) {
-//    init {
-//        require(campsiteIds.isNotEmpty()) { "A lottery needs at least one campsite" }
-//        require(numberOfWinners >= 1) { "numberOfWinners must be at least 1" }
-//        require(numberOfWinners <= waitlistCapacity) {
-//            "numberOfWinners cannot be over the waitlistCapacity"
-//        }
-//    }
-
     /**
      * Checks if the waitlist is full.
      *
@@ -68,7 +60,7 @@ data class Lottery (
      * @return `true` if registration is open, `false` otherwise.
      */
     fun isRegistrationOpen(date: Date = Date()): Boolean {
-        return status == LotteryStatus.OPEN && date.after(registrationStart) &&
-                date.before(registrationEnd)
+        return status == LotteryStatus.OPEN && date >= registrationStart &&
+                date <= registrationEnd
     }
 }
