@@ -1,7 +1,9 @@
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -25,6 +28,7 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
 @Composable
 fun MyCampsitesScreen(navController: NavController, controllers: AppControllers) {
+    val context = LocalContext.current
     val user: User = controllers.users.user
     val myCampsites: List<Campsite> = controllers.campsites.getCampsitesByOwner(user.deviceId)
 
@@ -42,14 +46,34 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
                 title = "My Campsites",
                 navController = navController
             )
-            Button(
-                onClick = {
-                    controllers.users.becomeOwner()
-                    navController.navigate("create_campsite")
-                },
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("+ Create Campsite")
+                Button(
+                    onClick = {
+                        controllers.users.becomeOwner()
+                        navController.navigate("create_campsite")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("+ Create Campsite")
+                }
+                Button(
+                    onClick = {
+                        val firstCampsiteId = myCampsites.firstOrNull()?.campsiteId ?: ""
+                        if (firstCampsiteId.isNotEmpty()) {
+                            navController.navigate("manage_lottery/$firstCampsiteId")
+                        } else {
+                            Toast.makeText(context, "No campsite is created yet", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Manage Lottery")
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
