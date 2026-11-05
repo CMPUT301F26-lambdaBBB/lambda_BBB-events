@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -76,6 +77,7 @@ fun SignupScreen(
             value = name,
             onValueChange = { name = it },
             placeholder = "Yuta",
+            modifier = Modifier.testTag("nameInput")
         )
 
         FormTextFieldWithTitle(
@@ -83,6 +85,7 @@ fun SignupScreen(
             value = email,
             onValueChange = { email = it },
             placeholder = "yuta@hotmail.com",
+            modifier = Modifier.testTag("emailInput")
         )
 
         FormTextFieldWithTitle(
@@ -90,6 +93,7 @@ fun SignupScreen(
             value = phone,
             onValueChange = { phone = it },
             placeholder = "+1",
+            modifier = Modifier.testTag("phonenumberInput")
         )
 
         Spacer(Modifier.height(64.dp))
@@ -103,7 +107,8 @@ fun SignupScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .height(52.dp)
+                .testTag("continueButton"),
             shape = RoundedCornerShape(8.dp),
         ) {
             Text("Continue", fontWeight = FontWeight.Bold)

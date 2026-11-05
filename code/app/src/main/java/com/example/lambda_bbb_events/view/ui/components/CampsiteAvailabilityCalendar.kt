@@ -268,7 +268,6 @@ fun CampsiteAvailabilityCalendar(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CalendarLegend("Available", availableColor)
             CalendarLegend("Booked / unavailable", bookedColor)
             CalendarLegend("Selected", selectedColor)
         }
