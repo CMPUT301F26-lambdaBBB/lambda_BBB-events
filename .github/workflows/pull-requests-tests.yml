@@ -21,6 +21,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Create local.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_TEST_KEY }}" >> code/local.properties
+
       - run: chmod +x code/gradlew
 
       - name: Tests
@@ -48,6 +52,10 @@ jobs:
           java-version: 21
 
       - uses: gradle/actions/setup-gradle@v4
+      
+      - name: Create local.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_TEST_KEY }}" >> code/local.properties
 
       - run: chmod +x code/gradlew
 
