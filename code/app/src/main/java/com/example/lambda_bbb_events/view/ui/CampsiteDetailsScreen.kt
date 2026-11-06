@@ -35,6 +35,17 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+
+/**
+ * Displays detailed information about a selected campsite.
+ *
+ * Shows campsite tags, description, and placeholders for images,
+ * QR code, and map. Allows users to check campsite availability.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves campsite information.
+ * @param campsiteId The ID of the selected campsite.
+ */
 @Composable
 fun CampsiteDetailsScreen(
     navController: NavController,
@@ -185,6 +196,11 @@ fun CampsiteDetailsScreen(
     }
 }
 
+/**
+ * Displays a heading for a section of the application.
+ *
+ * @param text The text displayed as the section heading.
+ */
 @Composable
 fun SectionTitle(text: String) {
     Text(
@@ -193,6 +209,13 @@ fun SectionTitle(text: String) {
         fontWeight = FontWeight.Bold)
 }
 
+/**
+ * Displays a campsite tag with customizable colors.
+ *
+ * @param text The text displayed inside the tag.
+ * @param bgColor The background color of the tag.
+ * @param borderColor The color of the tag's border.
+ */
 @Composable
 fun DisplayTag(
     text: String,

@@ -39,6 +39,16 @@ import com.example.lambda_bbb_events.view.ui.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+/**
+ * Displays campsite details and management options for owners.
+ *
+ * Allows owners to edit, view, and manage campsite lotteries.
+ * Includes reservation sections and a placeholder delete action.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves campsite information.
+ * @param campsiteId The ID of the campsite being managed.
+ */
 @Composable
 fun OwnerCampsiteDetailsScreen(
     navController: NavController,
@@ -243,6 +253,18 @@ fun OwnerCampsiteDetailsScreen(
     }
 }
 
+
+/**
+ * Displays a customizable button for campsite management actions.
+ *
+ * @param label Text displayed below the button icon.
+ * @param icon The [ImageVector] displayed above the label.
+ * @param backgroundColor Background color of the button.
+ * @param contentColor Color used for the icon and text.
+ * @param onClick Callback invoked when the button is clicked.
+ * @param modifier Modifier used to customize the button's
+ * layout and appearance.
+ */
 @Composable
 fun OwnerActionButton(
     label: String,

@@ -30,6 +30,15 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
+
+/**
+ * Displays the user's campsite lottery reservations.
+ *
+ * Provides navigation between active, past, and lottery
+ * reservations, along with the application's main screens.
+ *
+ * @param navController Handles screen navigation.
+ */
 @Composable
 fun LotteryBookingsScreen(navController: NavController, controllers: AppControllers) {
     Scaffold(
