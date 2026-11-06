@@ -4,14 +4,15 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Image
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * Handles the data in the Firestore database for the [Image] class.
  */
-class ImageRepository {
-    private val db = Firebase.firestore
+class ImageRepository(
+    private val db: FirebaseFirestore = Firebase.firestore
+) {
     private val imagesRef = db.collection("images")
-
     private val _images = mutableStateListOf<Image>()
 
     init {
