@@ -32,7 +32,7 @@ jobs:
 
       - name: Create local.properties
         run: |
-          echo "API_KEY=${{ secrets.GOOGLE_MAPS_TEST_KEY }}" >> code/local.properties
+          echo "MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_TEST_KEY }}" >> code/local.properties
 
       - run: chmod +x code/gradlew
 
