@@ -67,20 +67,15 @@ fun RatingSummary(
 
 
 
+
 /**
  * Displays an interactive five-star rating selector.
  *
- * Users can select a rating from one to five by clicking
- * the corresponding star. Selected stars are highlighted
- * in gold, while unselected stars appear outlined.
+ * Highlights selected stars and allows users to change their rating.
  *
- *
- * @param rating The currently selected rating from 0 to 5.
- * A value of 0 indicates that no rating is selected.
- * @param onRatingChange Callback invoked with the selected
- * rating when a star is clicked.
- * @param modifier Modifier used to customize the selector's
- * layout and appearance.
+ * @param rating The current rating from 0 to 5.
+ * @param onRatingChange Callback for updating the selected rating.
+ * @param modifier Customizes the selector's layout.
  */
 @Composable
 fun PickRatingStars(

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,11 +26,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlinx.coroutines.launch
 
+
+/**
+ * Displays the account registration screen.
+ *
+ * Requires user's name, email, and phone number,
+ * then attempts to create an entrant account.
+ * Displays an error message if registration fails.
+ *
+ * @param navController The [NavController] used for navigation.
+ * @param controllers The [AppControllers] used to create the account.
+ * @param onCreateEntrant Callback that submits user information
+ * and returns whether account creation succeeded.
+ */
 @Composable
 fun SignupScreen(
     navController: NavController,

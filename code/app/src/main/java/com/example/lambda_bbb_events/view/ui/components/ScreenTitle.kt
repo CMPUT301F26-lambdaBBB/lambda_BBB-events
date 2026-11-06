@@ -22,8 +22,7 @@ import androidx.navigation.NavController
  * Displays a customizable title bar for application screens.
  *
  * The back button returns to the previous
- * screen using the navigation back stack. The notification
- * button navigates to the notifications screen.
+ * screen and the notification button navigates to the notifications screen.
  *
  * @param title Text displayed as the screen heading.
  * @param navController The [NavController] used to navigate

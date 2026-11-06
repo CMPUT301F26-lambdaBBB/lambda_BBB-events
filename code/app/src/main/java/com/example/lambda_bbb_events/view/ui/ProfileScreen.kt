@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
@@ -32,6 +33,16 @@ import com.example.lambda_bbb_events.view.ui.components.ProfileRow
 import com.example.lambda_bbb_events.view.ui.components.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+
+/**
+ * Displays the user's profile and account options.
+ *
+ * Shows the user's name, email, and a placeholder profile picture.
+ * Provides options for settings, editing the profile, and logging out functionality.
+ *
+ * @param navController The [NavController] used to navigate between screens.
+ * @param controllers The [AppControllers] instance used to retrieve user information.
+ */
 @Composable
 fun ProfileScreen(navController: NavController, controllers: AppControllers) {
     Scaffold(
@@ -120,7 +131,7 @@ fun ProfileScreen(navController: NavController, controllers: AppControllers) {
                         Icons.AutoMirrored.Outlined.ExitToApp,
                         contentDescription = null,
                         modifier = Modifier.size(30.dp),
-                        tint = Color.Red // this red looks ugly, should change it @yuta
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             )

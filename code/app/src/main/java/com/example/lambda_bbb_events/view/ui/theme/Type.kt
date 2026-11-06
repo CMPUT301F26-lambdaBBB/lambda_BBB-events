@@ -7,6 +7,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 // Set of Material typography styles to start with
+
+/**
+ * Customizes the default bodyLarge text style with the
+ * system font family, normal font weight, a 16sp font size,
+ * 24sp line height, and 0.5sp letter spacing.
+ *
+ * (Other typography styles currently use the default
+ * Material 3 settings)
+ */
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

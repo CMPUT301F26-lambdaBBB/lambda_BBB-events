@@ -28,6 +28,16 @@ import com.example.lambda_bbb_events.view.ui.components.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 
+
+/**
+ * Displays the application's home screen for browsing campsites.
+ *
+ * Allows users to search and filter campsites, with sections
+ * for recently viewed and featured listings.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Manages campsite searches and filters.
+ */
 @Composable
 fun HomeScreen(navController: NavController, controllers: AppControllers) {
     var query by remember { mutableStateOf("") }
