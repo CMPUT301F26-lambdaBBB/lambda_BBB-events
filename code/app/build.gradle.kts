@@ -8,9 +8,11 @@ if (localPropertiesFile.exists()) {
 }
 
 val apiKey =
-    properties.getProperty("MAPS_API_KEY")
-        ?: System.getenv("GOOGLE_MAPS_TEST_KEY")
-        ?: throw GradleException("API_KEY not found")
+properties.getProperty("GOOGLE_MAPS_TEST_KEY")
+    ?: properties.getProperty("MAPS_API_KEY")
+    ?: System.getenv("GOOGLE_MAPS_TEST_KEY")
+    ?: System.getenv("MAPS_API_KEY")
+    ?: throw GradleException("Maps API key not found")
 
 plugins {
     alias(libs.plugins.android.application)
