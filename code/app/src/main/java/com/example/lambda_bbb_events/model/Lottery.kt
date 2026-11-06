@@ -65,4 +65,5 @@ data class Lottery (
         return status == LotteryStatus.OPEN && date >= registrationStart &&
                 date <= registrationEnd
     }
+
 }
