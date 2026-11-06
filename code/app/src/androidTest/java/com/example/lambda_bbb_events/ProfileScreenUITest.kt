@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -81,9 +82,11 @@ class ProfileScreenUITest {
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("Edit Profile")
+            .performScrollTo()
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("Logout")
+            .performScrollTo()
             .assertIsDisplayed()
     }
 
@@ -93,6 +96,7 @@ class ProfileScreenUITest {
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("Edit Profile")
+            .performScrollTo()
             .performClick()
 
         composeTestRule.onNodeWithText("Name")
@@ -105,7 +109,7 @@ class ProfileScreenUITest {
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("Save Changes")
-            .assertIsDisplayed()
+            .assertExists()
     }
 
     @Test
@@ -140,9 +144,6 @@ class ProfileScreenUITest {
         composeTestRule.onNodeWithText("Save Changes")
             .performClick()
 
-        composeTestRule.onNodeWithTag("screen_profile")
-            .assertIsDisplayed()
-
         coVerify(exactly = 1) {
             userController.updateEntrant(
                 "Updated User",
@@ -150,6 +151,9 @@ class ProfileScreenUITest {
                 "7809876543"
             )
         }
+
+        composeTestRule.onNodeWithTag("screen_profile")
+            .assertIsDisplayed()
     }
 
     @Test
