@@ -19,13 +19,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+
+/**
+ * Initializes the repositories and controllers, retrieves
+ * the device identifier, and launches the application
+ * using the configured theme.
+ */
 class MainActivity : ComponentActivity() {
     @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) // citation: from https://www.youtube.com/watch?v=W5yYiZ45u9I
+        // Reference:
+        // Selcuk, B. (2022, October 8).
+        // Android device ID in Kotlin language [Video]. YouTube.
+        // https://www.youtube.com/watch?v=W5yYiZ45u9I
+        val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         val userRepository = UserRepository()
         val campsiteRepository = CampsiteRepository()

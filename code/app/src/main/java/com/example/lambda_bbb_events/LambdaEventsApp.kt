@@ -34,6 +34,16 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import java.time.LocalDate
 
+
+/**
+ * Main entry point for the application
+ *
+ * Displays a loading indicator while user data loads,
+ * then opens either the signup screen or the main application
+ * depending on whether a user has an account.
+ *
+ * @param controllers The [AppControllers] managing application data.
+ */
 @Composable
 fun LambdaEventsApp(
     controllers: AppControllers
@@ -58,8 +68,18 @@ fun LambdaEventsApp(
     }
 }
 
+/**
+ * Configures the application's navigation graph and screens.
+ *
+ * Defines routes for campsite browsing, bookings, lottery
+ * registration, profile management, and owner features.
+ *
+ * @param controllers The [AppControllers] shared across screens.
+ */
 @Composable
 private fun MainApp(controllers: AppControllers) {
+    // NOTE: Screen looks too zoomed on small phone so cant login, someone test
+    // and try fix if happens for u too thx
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(

@@ -31,21 +31,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 
+
 /**
- * Displays a vertically listed campsite card with its details.
+ * Displays a campsite card with its key details.
  *
- * Displays the campsite name, location, rating, review count,
- * and maximum occupancy. The name and address are limited
- * to a single line, with overflowing text truncated.
+ * Shows the campsite name, location, rating, reviews,
+ * and maximum occupancy.
  *
- * Uses [RatingSummary] to display the campsite's rating
- * and total number of reviews.
- *
- * @param campsite The [Campsite] containing the name, address,
- * rating, review count, and maximum occupancy to display.
- * @param onClick Callback invoked when the user clicks the card.
- * @param modifier Modifier used to customize the card's
- * layout and appearance.
+ * @param campsite The campsite information to display.
+ * @param onClick Callback triggered when the card is selected.
+ * @param modifier Customizes the card's layout and appearance.
  */
 @Composable
 fun VerticalCampsiteCard(

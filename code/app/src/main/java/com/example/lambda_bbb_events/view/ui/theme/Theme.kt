@@ -32,7 +32,24 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
-
+/**
+ * Applies the application's Material Design theme to its content.
+ *
+ * On Android 12 and later, dynamic coloring is enabled
+ * by default, allowing the theme colors to adapt to the
+ * device's wallpaper.
+ *
+ * When dynamic coloring is disabled or unavailable,
+ * the application uses its predefined light or dark
+ * color schemes.
+ *
+ * @param darkTheme Whether to use the dark color scheme.
+ * Defaults to the system's current theme setting.
+ * @param dynamicColor Whether to enable dynamic wallpaper-based
+ * colors on Android 12 and later. Defaults to true.
+ * @param content The composable content to which the
+ * application's theme is applied.
+ */
 @Composable
 fun Lambda_BBBeventsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

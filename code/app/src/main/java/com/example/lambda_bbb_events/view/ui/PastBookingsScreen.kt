@@ -18,6 +18,16 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
+
+/**
+ * Displays the user's past campsite reservations.
+ *
+ * Provides navigation between reservation categories and
+ * a scrollable list for past bookings.
+ *
+ * @param navController The [NavController] used to navigate
+ * between reservation categories and application screens.
+ */
 @Composable
 fun PastBookingsScreen(navController: NavController) {
     Scaffold(

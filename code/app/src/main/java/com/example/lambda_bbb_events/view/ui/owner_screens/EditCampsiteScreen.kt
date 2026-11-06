@@ -38,6 +38,16 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.TagEditor
 import kotlinx.coroutines.launch
 
+
+/**
+ * Allows users to edit campsite details and tags.
+ *
+ * Saves or discards changes and displays errors when needed.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves and updates campsite data.
+ * @param campsiteId The ID of the campsite being edited.
+ */
 @Composable
 fun EditCampsiteScreen(
     navController: NavController,

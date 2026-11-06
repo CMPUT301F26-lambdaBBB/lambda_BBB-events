@@ -30,6 +30,18 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
 
+
+
+/**
+ * Displays the campsite exploration screen with an interactive map.
+ *
+ * Allows users to search, filter, and browse campsites.
+ * Map selections update the search location, while campsite
+ * selections navigate to their details screens.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Manages campsite searches and filters.
+ */
 @Composable
 fun ExploreMapScreen(navController: NavController, controllers: AppControllers, showMap: Boolean = true) {
     var query by remember { mutableStateOf("") }
@@ -75,6 +87,13 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
                 shape = RoundedCornerShape(100.dp)
             )
 
+            /**
+             * Displays Google Maps within the application.
+             *
+             * Reference:
+             * Google Maps SDK for Android documentation.
+             * https://developers.google.com/maps/documentation/android-sdk/overview
+             */
             if (showMap) {
                 // Clickable Google Map: when tapped, updates the search bar query with the address
                 ClickableMap(

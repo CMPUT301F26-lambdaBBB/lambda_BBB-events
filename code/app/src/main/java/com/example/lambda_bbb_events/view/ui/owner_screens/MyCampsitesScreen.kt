@@ -28,6 +28,16 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
+
+/**
+ * Displays the current user's owned campsites.
+ *
+ * Allows users to view campsite details, create new listings,
+ * and manage lotteries for their first campsite.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves campsite data and manages owner permissions.
+ */
 @Composable
 fun MyCampsitesScreen(navController: NavController, controllers: AppControllers) {
     val context = LocalContext.current

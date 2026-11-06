@@ -77,6 +77,18 @@ import kotlinx.coroutines.launch
 /**
  * Create Screen for creating a new campsite and associated lottery.
  *
+ * Requires three sets of information to create:
+ * - **Basic Info**: Enter the campsite name, description,
+ *   maximum occupancy, tags, and photos.
+ * - **Location**: Select a location on an interactive map
+ *   and enter the campsite address and postal code.
+ * - **Lottery**: Enter lottery dates, registration dates,
+ *   number of spots, eligibility, and additional rules.
+ *
+ * Selecting "Done" creates a campsite and an associated
+ * lottery using [AppControllers], then navigates to the
+ * home screen.
+ *
  * @param navController The navigation controller for navigating between screens.
  * @param controllers AppControllers holding campsites, lotteries, and user data.
  */
@@ -132,7 +144,11 @@ fun CreateScreen(
 
 
     /**
-     * Save the campsite and associated lottery to the repository
+     * Creates and saves a campsite, its associated lottery
+     * and generates a unique id to assign owner to the creating user.
+     *
+     * Creates an associated lottery with the selected number
+     * of winners and a waitlist capacity twice that number.
      */
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()
@@ -723,6 +739,16 @@ fun CreateScreen(
     }
 }
 
+/**
+ * Displays a navigation indicator for the campsite
+ * creation process.
+ *
+ * Users can select a stage to navigate directly to it.
+ *
+ * @param currentStep Index of the currently active stage.
+ * @param onStepClick Callback invoked with the selected
+ * stage index when a stage is clicked.
+ */
 @Composable
 private fun StepStageIndicator(currentStep: Int, onStepClick: (Int) -> Unit) {
     Surface(
@@ -746,6 +772,14 @@ private fun StepStageIndicator(currentStep: Int, onStepClick: (Int) -> Unit) {
     }
 }
 
+
+/**
+ * Displays a selectable stage indicator.
+ *
+ * @param text Label displayed inside the stage indicator.
+ * @param isActive Whether the stage is currently selected.
+ * @param onClick Callback invoked when the stage is clicked.
+ */
 @Composable
 private fun StepPill(text: String, isActive: Boolean, onClick: () -> Unit) {
     Surface(
@@ -763,6 +797,11 @@ private fun StepPill(text: String, isActive: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Displays a label for an input field.
+ *
+ * @param text The label displayed above the input field.
+ */
 @Composable
 private fun FormLabel(text: String) {
     Text(
@@ -772,6 +811,18 @@ private fun FormLabel(text: String) {
     )
 }
 
+
+/**
+ * Displays a customizable single-line form input field.
+ *
+ * @param value The current text entered in the field.
+ * @param onValueChange Callback invoked when the text changes.
+ * @param placeholder Text displayed when the field is empty.
+ * @param leadingIcon Optional composable displayed at the
+ * beginning of the input field. Defaults to null.
+ * @param modifier Modifier used to customize the input
+ * field's layout and appearance.
+ */
 @Composable
 private fun FormInputField(
     value: String,
@@ -797,6 +848,17 @@ private fun FormInputField(
     )
 }
 
+
+/**
+ * Displays a read-only date selection field.
+ *
+ * Clicking the field or calendar icon invokes the
+ * provided callback to open a date picker.
+ *
+ * @param value The currently selected date as a string.
+ * @param onClick Callback invoked when the date field
+ * or calendar icon is clicked.
+ */
 @Composable
 private fun DateField(value: String, onClick: () -> Unit) {
     OutlinedTextField(
@@ -826,6 +888,17 @@ private fun DateField(value: String, onClick: () -> Unit) {
         )
     )
 }
+
+
+/**
+ * Displays a removable campsite tag.
+ *
+ * Clicking the close icon invokes the deletion callback.
+ *
+ * @param tagText The text displayed inside the tag.
+ * @param onDelete Callback invoked when the close icon
+ * is clicked.
+ */
 
 @Composable
 private fun TagChip(tagText: String, onDelete: () -> Unit) {

@@ -34,20 +34,16 @@ import androidx.compose.ui.unit.sp
 
 // copied from bob's create screen composable function
 
+
 /**
- * Displays an interactive editor for managing a list of tags.
+ * Allows users to add and remove tags.
  *
- * Existing tags are displayed as removable chips in a
- * wrapping layout. Users can remove tags or select
- * "Add Tags" to enter a new tag name.
+ * Displays existing tags as removable chips.
  *
- * @param tags The current list of tags to display.
- * @param onAddTag Callback invoked with the new tag name
- * when a valid tag is added.
- * @param onRemoveTag Callback invoked with the tag name
- * when a tag's remove icon is clicked.
- * @param modifier Modifier intended to customize the
- * editor's layout. Currently unused by the implementation.
+ * @param tags The current list of tags.
+ * @param onAddTag Callback for adding a tag.
+ * @param onRemoveTag Callback for removing a tag.
+ * @param modifier Customizes the editor's layout.
  */
 @Composable
 fun TagEditor(
