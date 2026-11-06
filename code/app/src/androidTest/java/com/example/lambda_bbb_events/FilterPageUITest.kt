@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
@@ -107,6 +108,7 @@ class FilterPageUITest {
     fun showResultsButtonWorks() {
         composeTestRule
             .onNodeWithTag("showResultsButton")
+            .performScrollTo()
             .assertIsDisplayed()
             .performClick()
 
