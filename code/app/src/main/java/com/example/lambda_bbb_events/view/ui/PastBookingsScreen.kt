@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
@@ -28,7 +29,7 @@ fun PastBookingsScreen(navController: NavController) {
         }
     ){ innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("past_bookings")
         ) {
             ScreenTitle(
                 title = "My Reservations",
