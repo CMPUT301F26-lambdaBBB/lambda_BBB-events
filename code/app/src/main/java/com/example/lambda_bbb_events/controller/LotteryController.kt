@@ -75,16 +75,30 @@ class LotteryController(
             return !isCancelled && !isOver
         }
 
-        // past lottery
         return !isCancelled && isOver
     }
 
+    /**
+     * Gets the first lottery for a campsite whose registration period is currently open.
+     *
+     * @param campsiteId The `campsiteId` to search for.
+     * @return The first lottery with open registration, or `null` if none exists.
+     */
     fun getOpenLotteryForCampsite(campsiteId: String): Lottery? {
         return lotteryRepository
             .getLotteriesForCampsite(campsiteId)
             .firstOrNull { it.isRegistrationOpen() }
     }
 
+    /**
+     * Registers an entrant for a lottery.
+     *
+     * @param lotteryId The ID of the lottery to join.
+     * @param entrantId The ID of the entrant joining the lottery.
+     * @param numberOfGuests The number of guests included in the entry.
+     * @param onResult Callback that returns whether registration was successful
+     * and a message describing the result.
+     */
     fun joinLotteryEntry(
         lotteryId: String,
         entrantId: String,

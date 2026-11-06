@@ -143,6 +143,18 @@ class LotteryRepository {
         return result
     }
 
+    /**
+     * Registers an entrant for a lottery and adds their entry to the Firestore database.
+     *
+     * Checks if registration is open, the entrant has already joined, and the waitlist
+     * has available space. Uses a Firestore transaction to prevent duplicate entries.
+     *
+     * @param lotteryId The `lotteryId` of the lottery to join.
+     * @param entrantId The ID of the entrant joining the lottery.
+     * @param numberOfGuests The number of guests included in the registration.
+     * @param onResult Callback that returns `true` if registration was successful,
+     * `false` otherwise, along with a message describing the result.
+     */
     fun joinLottery(
         lotteryId: String,
         entrantId: String,

@@ -109,7 +109,6 @@ class CampsiteRepository {
         return result
     }
 
-    // Filtered Campsite
     val filteredCampsites: List<Campsite>
         get() = _filteredCampsites
 
@@ -124,6 +123,19 @@ class CampsiteRepository {
 
     private var filterRequestVersion = 0
 
+    /**
+     * Filters campsites based on dates, location, guest capacity, and rating.
+     *
+     * Retrieves matching campsites from Firestore and excludes campsites
+     * with confirmed reservations overlapping the selected dates.
+     *
+     * @param startDate The start date of the requested stay, or `null` if not specified.
+     * @param endDate The end date of the requested stay, or `null` if not specified.
+     * @param location The location to search for in the campsite address.
+     * @param minGuests The minimum guest capacity.
+     * @param maxGuests The maximum guest capacity.
+     * @param minRating The minimum campsite rating, or `null` if not specified.
+     */
     suspend fun filterCampsites(
         startDate: Timestamp?,
         endDate: Timestamp?,
@@ -245,6 +257,12 @@ class CampsiteRepository {
         }
     }
 
+    /**
+     * Clears all applied campsite filters and resets the filtering state.
+     *
+     * Removes filtered campsite results, clears any filter errors,
+     * and invalidates pending filter requests.
+     */
     fun clearExploreFilters() {
         filterRequestVersion++
         isExploreFiltered = false
