@@ -21,9 +21,10 @@ class CampsiteRepository {
 
     private val _campsites = mutableStateListOf<Campsite>()
     private val _filteredCampsites = mutableStateListOf<Campsite>()
+    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
     init {
-        campsitesRef.addSnapshotListener { snapshot, error ->
+        listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 return@addSnapshotListener
             }
@@ -51,6 +52,11 @@ class CampsiteRepository {
         campsitesRef.document(campsite.campsiteId)
             .set(campsite)
             .await()
+
+        _campsites.removeAll {
+            it.campsiteId == campsite.campsiteId
+        }
+        _campsites.add(campsite)
     }
 
     /**
@@ -62,6 +68,10 @@ class CampsiteRepository {
         campsitesRef.document(campsite.campsiteId)
             .delete()
             .await()
+
+        _campsites.removeAll {
+            it.campsiteId == campsite.campsiteId
+        }
     }
 
     /**
@@ -73,7 +83,14 @@ class CampsiteRepository {
     suspend fun updateCampsite(updatedCampsite: Campsite) {
         // assumes the old and updated campsite uses same ID bcs this function overwrites
         // the campsite with the same campsiteId
-        campsitesRef.document(updatedCampsite.campsiteId).set(updatedCampsite).await()
+        campsitesRef.document(updatedCampsite.campsiteId)
+            .set(updatedCampsite)
+            .await()
+
+        _campsites.removeAll {
+            it.campsiteId == updatedCampsite.campsiteId
+        }
+        _campsites.add(updatedCampsite)
     }
 
     /**
@@ -269,6 +286,11 @@ class CampsiteRepository {
         isFiltering = false
         filterError = null
         _filteredCampsites.clear()
+    }
+
+    fun close() {
+        listenerRegistration?.remove()
+        listenerRegistration = null
     }
 
 }
