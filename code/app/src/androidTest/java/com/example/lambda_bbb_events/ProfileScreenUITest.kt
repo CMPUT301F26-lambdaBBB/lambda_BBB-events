@@ -15,6 +15,8 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.EditProfileScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -42,7 +44,7 @@ class ProfileScreenUITest {
 
         every { userController.user } returns user
 
-        every {
+        coEvery {
             userController.updateEntrant(any(), any(), any())
         } returns true
 
@@ -141,7 +143,7 @@ class ProfileScreenUITest {
         composeTestRule.onNodeWithTag("screen_profile")
             .assertIsDisplayed()
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             userController.updateEntrant(
                 "Updated User",
                 "updated@example.com",
@@ -152,7 +154,7 @@ class ProfileScreenUITest {
 
     @Test
     fun failedProfileUpdateDisplaysError() {
-        every {
+        coEvery {
             userController.updateEntrant(any(), any(), any())
         } returns false
 
