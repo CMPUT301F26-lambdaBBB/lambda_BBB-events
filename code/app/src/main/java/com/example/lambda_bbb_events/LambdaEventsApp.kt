@@ -73,7 +73,7 @@ private fun MainApp(controllers: AppControllers) {
             composable("home") { HomeScreen(navController, controllers) }
             composable("active_bookings") { ActiveBookingsScreen(navController) }
             composable("past_bookings") { PastBookingsScreen(navController) }
-            composable("lottery_bookings") { LotteryBookingsScreen(navController) }
+            composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->

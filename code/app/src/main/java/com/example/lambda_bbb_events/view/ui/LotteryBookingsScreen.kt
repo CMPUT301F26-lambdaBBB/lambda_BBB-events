@@ -13,13 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.Reservation
+import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
 @Composable
-fun LotteryBookingsScreen(navController: NavController) {
+fun LotteryBookingsScreen(navController: NavController, controllers: AppControllers) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -27,6 +31,11 @@ fun LotteryBookingsScreen(navController: NavController) {
             )
         }
     ){ innerPadding ->
+
+        val reservationRepo = ReservationRepository()
+        val reservations: List<Reservation> = reservationRepo.getReservationsForEntrant( controllers.users.user.deviceId)
+
+
         Column(
         modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("lottery_bookings")
         ) {
@@ -43,10 +52,16 @@ fun LotteryBookingsScreen(navController: NavController) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-//                items(10) {
-//                    VerticalCampsiteCard()
-//                }
+                items(reservations.size) { index ->
+                    VerticalCampsiteCard(reservations[index])
+                }
             }
         }
     }
+}
+
+@Composable
+fun VerticalCampsiteCard(reservation: Reservation){
+
+    val campsite = CampsiteRepository().get(reservation.campsiteId)
 }

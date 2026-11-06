@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.model
 
-import android.R
 import androidx.compose.runtime.mutableStateListOf
 
 
