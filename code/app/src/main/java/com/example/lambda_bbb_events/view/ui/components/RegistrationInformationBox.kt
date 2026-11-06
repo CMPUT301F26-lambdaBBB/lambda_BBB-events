@@ -21,6 +21,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/*
+ * Displays a campsite registration summary.
+ */
 
 /**
  * Displays a summary of the selected campsite registration details.

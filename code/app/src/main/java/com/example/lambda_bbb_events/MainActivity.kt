@@ -19,6 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+/*
+ * Defines the application's main Android activity.
+ * Initializes repositories and controllers, retrieves
+ * the device identifier, and launches the Compose UI.
+ *
+ * TODO: Handle user data loading failures.
+ */
 
 /**
  * Initializes the repositories and controllers, retrieves

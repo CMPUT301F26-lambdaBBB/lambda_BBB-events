@@ -18,7 +18,10 @@ import com.example.lambda_bbb_events.view.ui.components.RegistrationInformationB
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import java.time.LocalDate
 
-
+/*
+ * Displays the lottery entry confirmation screen,
+ * including campsite information and reservation information
+ */
 
 /**
  * Displays a confirmation of successful lottery entry.

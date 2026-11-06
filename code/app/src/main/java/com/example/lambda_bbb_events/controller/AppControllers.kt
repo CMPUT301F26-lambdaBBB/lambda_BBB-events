@@ -1,11 +1,13 @@
 package com.example.lambda_bbb_events.controller
 
 /**
- * Has every controller used for the app so that each screen only
- * needs to take in one controller.
+ * Groups the application's controllers into a single container.
  *
- * @param users Controller for User class.
- * @param campsites Controller for Campsite class.
+ * Simplifies passing controllers between screens.
+ *
+ * @property users Controller for user operations.
+ * @property campsites Controller for campsite operations.
+ * @property lotteries Controller for lottery operations.
  */
 class AppControllers (
     val users: UserController,

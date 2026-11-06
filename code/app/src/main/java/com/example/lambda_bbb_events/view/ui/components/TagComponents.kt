@@ -32,8 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// copied from bob's create screen composable function
-
+/*
+ * Provides a reusable editor for adding and removing campsite tags.
+ * and displays existing tags as removable chips.
+ */
 
 /**
  * Allows users to add and remove tags.

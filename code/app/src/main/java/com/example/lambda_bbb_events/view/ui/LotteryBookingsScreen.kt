@@ -18,12 +18,19 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
+/*
+ * Defines the lottery bookings screen, allowing navigation between
+ *  reservation categories and viewing of lottery entries.
+ *
+ * TODO: Retrieve and display the user's lottery entries.
+ */
+
 
 /**
- * Displays the user's campsite lottery reservations.
+ * Displays the user's lottery bookings screen.
  *
  * Provides navigation between active, past, and lottery
- * reservations, along with the application's main screens.
+ * reservations, along with a section for lottery entries.
  *
  * @param navController Handles screen navigation.
  */

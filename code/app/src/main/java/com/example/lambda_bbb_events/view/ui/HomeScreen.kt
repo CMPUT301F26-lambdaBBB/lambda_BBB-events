@@ -28,6 +28,13 @@ import com.example.lambda_bbb_events.view.ui.components.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 
+/*
+ * Defines the ome screen, has campsite
+ * searching, filtering, and featured listing sections.
+ *
+ * TODO: Display actual recently viewed and featured campsites.
+ * TODO: Implement the See All actions for both sections.
+ */
 
 /**
  * Displays the application's home screen for browsing campsites.

@@ -3,6 +3,10 @@ package com.example.lambda_bbb_events.model
 import com.google.firebase.firestore.Exclude
 import java.util.Date
 
+/*
+ * Defines lottery information such as registration periods and waitlist capacity
+ */
+
 /**
  * The current status of a campsite lottery.
  */
@@ -27,8 +31,6 @@ enum class LotteryStatus {
  * @property waitlistCapacity The maximum number of entries allowed on the waitlist.
  * @property entryIds IDs of the [WaitlistEntry] objects currently in this lottery.
  * @property status The current status of the lottery.
- * @throws IllegalArgumentException triggered when [campsiteIds] is empty,
- * [numberOfWinners] is less than 1, or [numberOfWinners] is over the [waitlistCapacity].
  */
 data class Lottery (
     val lotteryId: String = "",

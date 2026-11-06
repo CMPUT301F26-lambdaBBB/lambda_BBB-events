@@ -11,6 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+
+/*
+ * Defines a horizontal card for displaying campsite information.
+ *
+ * TODO: Replace the placeholder with actual campsite details.
+ */
+
 /**
  * Displays a placeholder card for campsite information.
  */

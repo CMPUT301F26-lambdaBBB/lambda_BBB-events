@@ -17,6 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/*
+ * Defines reusable notification settings rows for displaying notification options.
+ */
+
 /**
  * Displays a clickable row representing a notification setting or option.
  *

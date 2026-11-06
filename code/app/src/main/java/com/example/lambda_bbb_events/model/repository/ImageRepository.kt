@@ -6,8 +6,15 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.FirebaseFirestore
 
+/*
+ * Stores and synchronizes image data using Firestore.
+ */
+
+
 /**
  * Handles the data in the Firestore database for the [Image] class.
+ *
+ * @param db The Firestore database instance.
  */
 class ImageRepository(
     private val db: FirebaseFirestore = Firebase.firestore
@@ -32,6 +39,7 @@ class ImageRepository(
         }
     }
 
+    /** Cached images synchronized with Firestore. */
     val images: List<Image>
         get() = _images
 

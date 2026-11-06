@@ -30,7 +30,14 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
 
-
+/*
+ * Provides a map-based campsite exploration screen with
+ * searching and filtering.
+ *
+ * TODO: Filter nearby campsites based on the selected
+ *  map location instead of displaying all campsites.
+ * TODO: Implement use of coordinate parameter
+ */
 
 /**
  * Displays the campsite exploration screen with an interactive map.
@@ -41,6 +48,8 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
  *
  * @param navController Handles screen navigation.
  * @param controllers Manages campsite searches and filters.
+ * @param showMap Whether to display the interactive map.
+ * Defaults to true.
  */
 @Composable
 fun ExploreMapScreen(navController: NavController, controllers: AppControllers, showMap: Boolean = true) {
@@ -95,10 +104,10 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
              * https://developers.google.com/maps/documentation/android-sdk/overview
              */
             if (showMap) {
-                // Clickable Google Map: when tapped, updates the search bar query with the address
+                // Clickable Google Maps: when tapped, updates the search bar query with the address
                 ClickableMap(
                     height = 300,
-                    onLocationSelected = { coordinates, address, postalCode ->
+                    onLocationSelected = { coordinates, address, postalCode -> // Implement coordi
                         if (address.isNotBlank()) {
                             query = address
                         } else if (postalCode.isNotBlank()) {

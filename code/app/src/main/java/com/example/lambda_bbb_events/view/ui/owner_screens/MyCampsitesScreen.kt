@@ -29,6 +29,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
 
+/*
+ * Displays campsites owned by the current user and provides
+ * navigation for creating campsites and managing lotteries.
+ *
+ * owner registration before campsite creation might need some work
+ */
+
 /**
  * Displays the current user's owned campsites.
  *

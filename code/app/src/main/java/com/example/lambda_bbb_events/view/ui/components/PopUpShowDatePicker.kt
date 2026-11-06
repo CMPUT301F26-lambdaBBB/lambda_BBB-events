@@ -4,6 +4,10 @@ import android.app.DatePickerDialog
 import android.content.Context
 import java.util.Calendar
 
+/*
+ * Provides a date picker dialog for selecting calendar dates.
+ */
+
 /**
  * Show a date picker dialog.
  *

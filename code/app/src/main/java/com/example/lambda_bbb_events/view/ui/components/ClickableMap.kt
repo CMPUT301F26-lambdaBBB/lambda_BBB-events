@@ -24,6 +24,12 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import java.util.Locale
 
+
+/*
+ * Provides an interactive Google Map for selecting campsite locations
+ */
+
+
 /**
  * Composable for displaying a clickable map with a marker.
  *

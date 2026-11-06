@@ -10,6 +10,10 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 
+/*
+ * Defines generating and scanning QR codes to navigate to campsite details.
+ */
+
 /**
  * Generates a QR code from the given content.
  *
@@ -40,11 +44,12 @@ fun generateQR(
     }
 }
 
+
 /**
- * Navigate to the corresponding campsite details page given the QR code content.
+ * Navigates to a campsite details page using QR code content.
  *
- * @param navController The [NavController] to use for navigation.
- * @param qrContent The content of the QR code. (Ex. "campsites URL or campsiteId")
+ * @param navController The NavController used for navigation.
+ * @param qrContent A campsite ID or URL ending with a campsite ID.
  */
 fun goToPage(
     navController: NavController,

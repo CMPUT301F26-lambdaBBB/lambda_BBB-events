@@ -10,14 +10,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+/*
+ * Defines a reusable filter button for opening search filters.
+ *
+ * This component may not stay. not used or idk but work in progress or to be removed later
+ */
+
 /**
  * Displays a filter button for accessing search filtering options.
  *
  * @param onClick Callback invoked when the user clicks
  * the filter button.
  */
+
 @Composable
-fun FilterButton( // not used or idk but work in progress or to be removed later
+fun FilterButton(
     onClick: () -> Unit
 ) {
     AssistChip(

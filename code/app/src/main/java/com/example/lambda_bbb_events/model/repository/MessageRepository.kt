@@ -5,6 +5,10 @@ import com.example.lambda_bbb_events.model.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
+/*
+ * Manages message data and synchronizes it with Firestore.
+ */
+
 /**
  *  Handle the data in the Firestore database for the [Message] class.
  */
@@ -31,6 +35,7 @@ class MessageRepository {
         }
     }
 
+    /** Cached messages synchronized with Firestore. */
     val messages : List<Message>
         get() = _messages
 
@@ -52,11 +57,11 @@ class MessageRepository {
         messagesRef.document(message.messageId).delete()
     }
 
+
     /**
-     * Overwrites an existing message in the Firestore database with updated data.
+     * Saves a message to Firestore, creating it if absent.
      *
-     * @param updatedMessage The message to be updated. Must have the same `messageId`
-     * as the original document.
+     * @param updatedMessage The message data to save.
      */
     fun updateMessage(updatedMessage: Message) {
         messagesRef.document(updatedMessage.messageId).set(updatedMessage)

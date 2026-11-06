@@ -18,6 +18,12 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
+/*
+ * Defines the active bookings screen and navigation
+ * between reservation categories.
+ *
+ * TODO: Display the user's actual active reservations.
+ */
 
 /**
  * Displays the user's active campsite reservations.

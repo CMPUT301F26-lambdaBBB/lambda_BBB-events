@@ -31,6 +31,10 @@ import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlinx.coroutines.launch
 
+/*
+ * Provides a screen for editing the current user's profile
+ */
+
 /**
  * Allows users to edit their profile information.
  *
@@ -119,7 +123,7 @@ fun EditProfileScreen(
         }
 
         if (showCreationError) {
-            Text("Unable to create account. Please review your information.")
+            Text("Unable to update profile. Please review your information.")
         }
     }
 }

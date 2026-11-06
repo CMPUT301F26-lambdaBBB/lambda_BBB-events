@@ -19,6 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 
+/*
+ * Defines a vertically scrollable section of campsite cards
+ * and function to press "See All" to view more campsites
+ */
+
 /**
  * Displays a vertically scrollable section of campsite cards.
  *
