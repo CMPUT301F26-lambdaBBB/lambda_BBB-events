@@ -118,11 +118,7 @@ class UserController(
      * @return `true` if the user can now own campsites, `false` if there is no signed-in user.
      */
     suspend fun becomeOwner(): Boolean {
-        val user = currentUser
-
-        if (user == null) {
-            return false
-        }
+        val user = currentUser ?: return false
 
         // only entrants need converting
         if (user is Entrant) {
