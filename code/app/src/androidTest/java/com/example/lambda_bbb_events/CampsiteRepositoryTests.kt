@@ -72,8 +72,9 @@ class CampsiteRepositoryTests {
             Campsite("Test Man Site 3", ownerId)
         )
 
-        val repository = CampsiteRepository()
-
+        val repository = CampsiteRepository(
+            enableListener = false
+        )
         ownerCampsites.forEach {
             repository.addCampsite(it)
         }
