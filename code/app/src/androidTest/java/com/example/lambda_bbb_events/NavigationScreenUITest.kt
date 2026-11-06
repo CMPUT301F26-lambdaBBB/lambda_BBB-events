@@ -33,7 +33,6 @@ class NavigationScreenUITest {
 
     @Before
     fun setup() {
-        val controllers = mockk<AppControllers>(relaxed = true)
 
         composeTestRule.setContent {
             navController = rememberNavController()
