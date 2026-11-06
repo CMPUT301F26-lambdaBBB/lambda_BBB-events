@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -42,6 +43,7 @@ fun BottomNavigationBar(navController: NavController) {
             tonalElevation = 2.dp
         ) {
             NavigationBarItem(
+                modifier = Modifier.testTag("nav_home"),
                 selected = currentRoute == "home",
                 onClick = {
                     navController.navigate("home") {
@@ -67,6 +69,7 @@ fun BottomNavigationBar(navController: NavController) {
             )
 
             NavigationBarItem(
+                modifier = Modifier.testTag("nav_explore"),
                 selected = currentRoute == "explore_map" ||
                         currentRoute == "explore_default",
                 onClick = {
@@ -93,6 +96,7 @@ fun BottomNavigationBar(navController: NavController) {
             )
 
             NavigationBarItem(
+                modifier = Modifier.testTag("nav_bookings"),
                 selected = currentRoute == "active_bookings" ||
                         currentRoute == "past_bookings" ||
                         currentRoute == "lottery_bookings",
@@ -120,6 +124,7 @@ fun BottomNavigationBar(navController: NavController) {
             )
 
             NavigationBarItem(
+                modifier = Modifier.testTag("nav_create"),
                 selected = currentRoute == "create" ||
                         currentRoute == "my_campsites",
                 onClick = {
@@ -146,6 +151,7 @@ fun BottomNavigationBar(navController: NavController) {
             )
 
             NavigationBarItem(
+                modifier = Modifier.testTag("nav_profile"),
                 selected = currentRoute == "profile",
                 onClick = {
                     navController.navigate("profile") {
