@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import com.example.lambda_bbb_events.view.ui.components.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.TagEditor
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditCampsiteScreen(
@@ -43,6 +45,7 @@ fun EditCampsiteScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
+    val scope = rememberCoroutineScope()
 
     if (campsite == null) {
         Text("Campsite not found")
@@ -171,20 +174,22 @@ fun EditCampsiteScreen(
 
                 Button(
                     onClick = {
-                        val saved = controllers.campsites.updateCampsite(
-                            campsiteId,
-                            name,
-                            address,
-                            maxOccupancy,
-                            description,
-                            rulesPolicies,
-                            tags
-                        )
+                        scope.launch {
+                            val saved = controllers.campsites.updateCampsite(
+                                campsiteId,
+                                name,
+                                address,
+                                maxOccupancy,
+                                description,
+                                rulesPolicies,
+                                tags
+                            )
 
-                        if (saved) {
-                            navController.popBackStack()
-                        } else {
-                            showError = true
+                            if (saved) {
+                                navController.popBackStack()
+                            } else {
+                                showError = true
+                            }
                         }
                     },
                     modifier = Modifier

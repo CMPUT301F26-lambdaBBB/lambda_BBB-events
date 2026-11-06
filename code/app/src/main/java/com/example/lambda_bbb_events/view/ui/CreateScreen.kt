@@ -67,9 +67,12 @@ import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 /**
  * Create Screen for creating a new campsite and associated lottery.
@@ -148,8 +151,11 @@ fun CreateScreen(
             tags = tags.toList(),
             imageIds = selectedImageUris.map { it.toString() }
         )
+        val scope = CoroutineScope(Dispatchers.IO)
 
-        controllers.campsites.addCampsite(newCampsite)
+        scope.launch {
+            controllers.campsites.addCampsite(newCampsite)
+        }
 
         val newLottery = Lottery(
             lotteryId = UUID.randomUUID().toString(),
@@ -159,7 +165,9 @@ fun CreateScreen(
             waitlistCapacity = (numberOfSpots.filter { it.isDigit() }.toIntOrNull() ?: 10) * 2
         )
 
-        controllers.lotteries.addLottery(newLottery)
+        scope.launch {
+            controllers.lotteries.addLottery(newLottery)
+        }
         navController.navigate("home")
     }
 

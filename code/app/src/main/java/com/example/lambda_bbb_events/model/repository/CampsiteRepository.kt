@@ -5,13 +5,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import com.google.firebase.Timestamp
+import kotlinx.coroutines.tasks.await
 
 /**
  * Handles the data in the Firestore database for the [Campsite] class.
@@ -48,8 +47,10 @@ class CampsiteRepository {
      *
      * @param campsite The campsite to add.
      */
-    fun addCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId).set(campsite)
+    suspend fun addCampsite(campsite: Campsite) {
+        campsitesRef.document(campsite.campsiteId)
+            .set(campsite)
+            .await()
     }
 
     /**
@@ -57,8 +58,10 @@ class CampsiteRepository {
      *
      * @param campsite The campsite to be deleted.
      */
-    fun deleteCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId).delete()
+    suspend fun deleteCampsite(campsite: Campsite) {
+        campsitesRef.document(campsite.campsiteId)
+            .delete()
+            .await()
     }
 
     /**
@@ -67,10 +70,10 @@ class CampsiteRepository {
      * @param updatedCampsite The campsite to be updated. Must have the same `campsiteId`
      * as the original document.
      */
-    fun updateCampsite(updatedCampsite: Campsite) {
+    suspend fun updateCampsite(updatedCampsite: Campsite) {
         // assumes the old and updated campsite uses same ID bcs this function overwrites
         // the campsite with the same campsiteId
-        campsitesRef.document(updatedCampsite.campsiteId).set(updatedCampsite)
+        campsitesRef.document(updatedCampsite.campsiteId).set(updatedCampsite).await()
     }
 
     /**
@@ -79,7 +82,7 @@ class CampsiteRepository {
      * @param campsiteId The `campsiteId` to search for.
      * @return The [Campsite] object with the specified campsiteId if it exists. `null` otherwise.
      */
-    fun get(campsiteId: String): Campsite? {
+     fun get(campsiteId: String): Campsite? {
         for (campsite in _campsites) {
             if (campsite.campsiteId == campsiteId) {
                 return campsite
@@ -133,7 +136,7 @@ class CampsiteRepository {
      * @param maxGuests The maximum guest capacity.
      * @param minRating The minimum campsite rating, or `null` if not specified.
      */
-    fun filterCampsites(
+    suspend fun filterCampsites(
         startDate: Timestamp?,
         endDate: Timestamp?,
         location: String,
@@ -204,66 +207,54 @@ class CampsiteRepository {
             )
         }
 
-        query.get()
-            .addOnSuccessListener campsiteSuccess@ { snapshot ->
-                if (requestId != filterRequestVersion) {
-                    return@campsiteSuccess
+        try {
+            val snapshot = query.get().await()
+
+            if (requestId != filterRequestVersion) {
+                return
+            }
+
+            val matchingCampsites = snapshot.documents
+                .mapNotNull { document ->
+                    document.toObject(Campsite::class.java)
+                }
+                .filter { campsite ->
+                    location.isBlank() ||
+                            campsite.address.contains(
+                                location.trim(),
+                                ignoreCase = true
+                            )
                 }
 
-                val matchingCampsites = snapshot.documents
-                    .mapNotNull { document ->
-                        document.toObject(Campsite::class.java)
+            if (startDate != null && endDate != null) {
+
+                val reservationSnapshot = db.collection("reservations")
+                    .whereLessThan("startDate", endDate)
+                    .whereGreaterThan("endDate", startDate)
+                    .get()
+                    .await()
+
+                val occupiedIds = reservationSnapshot.documents
+                    .filter {
+                        it.getString("status") == "confirmed"
                     }
-                    .filter { campsite ->
-                        location.isBlank() ||
-                                campsite.address.contains(
-                                    location.trim(),
-                                    ignoreCase = true
-                                )
+                    .mapNotNull {
+                        it.getString("campsiteId")
                     }
+                    .toSet()
 
-
-                if (startDate != null && endDate != null) {
-                    db.collection("reservations")
-                        .whereLessThan(
-                            "startDate",
-                            endDate
-                        )
-                        .whereGreaterThan(
-                            "endDate",
-                            startDate
-                        )
-                        .get()
-                        .addOnSuccessListener { reservationSnapshot ->
-                            val occupiedIds =
-                                reservationSnapshot.documents
-                                    .filter { document ->
-                                        document.getString("status") ==
-                                                "confirmed"
-                                    }
-                                    .mapNotNull { document ->
-                                        document.getString("campsiteId")
-                                    }
-                                    .toSet()
-
-                            val availableCampsites =
-                                matchingCampsites.filterNot { campsite ->
-                                    campsite.campsiteId in occupiedIds
-                                }
-
-                            complete(availableCampsites)
-                        }
-                        .addOnFailureListener { error ->
-                            fail(error)
-                        }
-
-                } else {
-                    complete(matchingCampsites)
+                val availableCampsites = matchingCampsites.filterNot {
+                    it.campsiteId in occupiedIds
                 }
+
+
+            } else {
+                complete(matchingCampsites)
             }
-            .addOnFailureListener { error ->
-                fail(error)
-            }
+
+        } catch (error: Exception) {
+            fail(error)
+        }
     }
 
     /**
