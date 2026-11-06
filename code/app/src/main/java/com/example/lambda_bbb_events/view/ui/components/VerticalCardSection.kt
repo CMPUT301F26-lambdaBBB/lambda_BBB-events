@@ -18,6 +18,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 
+/**
+ * Displays a vertically scrollable section of campsite cards.
+ *
+ * Uses [VerticalCampsiteCard] to display individual campsites.
+ *
+ * @param title The heading displayed above the campsite list.
+ * @param campsites The list of [Campsite] objects to display.
+ * @param onCampsiteClick Callback invoked with the selected
+ * campsite when a card is clicked.
+ * @param onSeeAll Callback invoked when "See All" is clicked.
+ * @param modifier Modifier used to customize the section layout.
+ */
 @Composable
 fun VerticalCardSection(
     title: String,
@@ -27,7 +39,7 @@ fun VerticalCardSection(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.padding(bottom = 25.dp),
+        modifier = modifier.padding(bottom = 25.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(

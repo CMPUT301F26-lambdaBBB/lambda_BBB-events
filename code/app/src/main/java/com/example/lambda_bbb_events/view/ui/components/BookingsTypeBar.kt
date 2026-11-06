@@ -17,7 +17,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lambda_bbb_events.view.ui.theme.Purple80
-
+/**
+ * Displays a navigation bar for switching between booking categories.
+ *
+ * The bar contains three selectable tabs:
+ * - **Active**: Displays currently active campsite reservations.
+ * - **Past**: Displays previously reserved campsites.
+ * - **Lottery**: Displays lottery reservations.
+ *
+ * @param navController The [NavController] responsible for managing
+ * navigation between booking screens and determining the active tab.
+ */
 @Composable
 fun BookingsTypeBar(navController: NavController) {
     val backStackEntry = navController.currentBackStackEntryAsState()

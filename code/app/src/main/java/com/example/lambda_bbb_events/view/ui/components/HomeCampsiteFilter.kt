@@ -18,7 +18,20 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
-
+/**
+ * Displays a bottom sheet for filtering available campsites.
+ *
+ * The "Show Results" button applies the selected filters
+ * through [CampsiteController] and invokes the results callback.
+ * The button is disabled when the date range is invalid.
+ *
+ * @param campsiteController Controller responsible for applying
+ * the selected campsite filters.
+ * @param onDismiss Callback invoked when the filter sheet
+ * is dismissed.
+ * @param onShowResults Callback invoked after the selected
+ * filters have been applied.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeCampsiteFilter(
@@ -207,6 +220,15 @@ fun HomeCampsiteFilter(
     }
 }
 
+/**
+ * Displays a filter section heading with a reset button.
+ *
+ * @param title Text displayed as the filter section heading.
+ * @param onReset Callback invoked when the reset button is clicked.
+ * @param titleTag Test tag used to identify the section heading.
+ * @param resetTag Test tag used to identify the reset button.
+ */
+
 @Composable
 private fun FilterHeader(
     title: String,
@@ -235,6 +257,18 @@ private fun FilterHeader(
         }
     }
 }
+
+/**
+ * Converts a date string into a Firebase timestamp.
+ *
+ * Parses the provided date using the yyyy-MM-dd format
+ * with the UTC time zone. Lenient date parsing is disabled
+ * to reject invalid calendar dates.
+ *
+ * @param value Date string to convert into a timestamp.
+ * @return The parsed [Timestamp], or null if parsing fails
+ * or the input is blank.
+ */
 
 private fun parseFilterDate(value: String): Timestamp? {
     if (value.isBlank()) return null

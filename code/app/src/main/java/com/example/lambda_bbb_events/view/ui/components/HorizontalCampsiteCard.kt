@@ -11,10 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
+/**
+ * Displays a placeholder card for campsite information.
+ *
+ */
 @Composable
 fun HorizontalCampsiteCard() {
-    // to yuta: display the campsite info here
+    // display the campsite info here someone thx xoxo
     Box(
         Modifier
             .width(220.dp)

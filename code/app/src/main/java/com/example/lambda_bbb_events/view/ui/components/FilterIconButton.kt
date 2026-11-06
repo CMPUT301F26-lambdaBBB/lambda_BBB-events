@@ -14,7 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-
+/**
+ * Displays an icon button for opening filtering options.
+ *
+ * @param onClick Callback invoked when the user clicks
+ * the filter button.
+ */
 @Composable
 fun FilterIconButton(
     onClick: () -> Unit

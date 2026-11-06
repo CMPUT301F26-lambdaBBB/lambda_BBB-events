@@ -17,6 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a clickable row for navigating between profile options.
+ *
+ * @param title The text displayed in the profile row.
+ * @param onClick Callback invoked when the user clicks the row.
+ * @param modifier Modifier used to customize the row's layout and appearance.
+ * @param leadingIcon Composable function that displays the icon
+ * at the beginning of the row.
+ */
 @Composable
 fun ProfileRow(
     title: String,
@@ -44,6 +53,13 @@ fun ProfileRow(
     }
 }
 
+/**
+ * Displays a section heading for grouping profile options.
+ *
+ * @param title Text displayed as the section heading.
+ * @param modifier Modifier used to customize the heading's
+ * layout and appearance.
+ */
 @Composable
 fun ProfileSectionHeader(title: String, modifier: Modifier = Modifier) {
     Text(

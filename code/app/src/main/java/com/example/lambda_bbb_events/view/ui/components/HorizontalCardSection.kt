@@ -16,6 +16,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a horizontally scrollable section of campsite cards.
+ *
+ * Uses [HorizontalCampsiteCard] to render each campsite card.
+ *
+ * @param title The heading displayed above the campsite cards.
+ * @param onSeeAll Callback invoked when the user clicks "See All".
+ * @param modifier Modifier intended to customize the section layout.
+ * Currently unused by the implementation.
+ * @param itemCount Number of campsite cards to display.
+ * Defaults to five.
+ */
+
 @Composable
 fun HorizontalCardSection(
     title: String,
