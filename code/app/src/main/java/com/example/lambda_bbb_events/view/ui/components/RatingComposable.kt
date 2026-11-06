@@ -22,6 +22,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a visual representation of a campsite rating.
+ *
+ * @param rating The campsite's rating value.
+ * Currently unused when displaying the stars.
+ * @param modifier Modifier used to customize the appearance
+ * and layout of the rating display.
+ */
 @Composable
 fun RatingStars(
     rating: Float,
@@ -37,6 +45,14 @@ fun RatingStars(
     )
 }
 
+/**
+ * Displays a summary of a campsite's rating and review count.
+ *
+ * Uses [RatingStars] to display the star representation.
+ *
+ * @param rating The campsite's numeric rating.
+ * @param reviewCount The total number of reviews.
+ */
 @Composable
 fun RatingSummary(
     rating: Float,
@@ -51,6 +67,21 @@ fun RatingSummary(
 
 
 
+/**
+ * Displays an interactive five-star rating selector.
+ *
+ * Users can select a rating from one to five by clicking
+ * the corresponding star. Selected stars are highlighted
+ * in gold, while unselected stars appear outlined.
+ *
+ *
+ * @param rating The currently selected rating from 0 to 5.
+ * A value of 0 indicates that no rating is selected.
+ * @param onRatingChange Callback invoked with the selected
+ * rating when a star is clicked.
+ * @param modifier Modifier used to customize the selector's
+ * layout and appearance.
+ */
 @Composable
 fun PickRatingStars(
     rating: Int,

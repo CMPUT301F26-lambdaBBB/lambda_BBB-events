@@ -86,4 +86,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.google.maps.android:maps-compose:4.3.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.17")
 }

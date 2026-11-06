@@ -21,7 +21,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import java.time.LocalDate
 import java.util.Locale
-
+/**
+ * Displays an editable date field with a calendar date picker.
+ *
+ * Users can manually enter a date in yyyy-MM-dd format or
+ * select a date using the calendar icon.
+ *
+ * @param value The currently entered date as a string
+ * in yyyy-MM-dd format.
+ * @param onValueChange Callback invoked when the date
+ * changes through manual input or calendar selection.
+ * @param modifier Modifier used to customize the
+ * appearance and layout of the date field.
+ */
 @Composable
 fun DatePickerField(
     value: String,

@@ -7,8 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a subtitle for a section of the application.
+ *
+ * @param title The text displayed as the subtitle.
+ */
 @Composable
-fun SubTitle(title: String) {
+fun SubTitle(title: String) { // W spelling
     Text(
         text = title,
         fontSize = 18.sp,
