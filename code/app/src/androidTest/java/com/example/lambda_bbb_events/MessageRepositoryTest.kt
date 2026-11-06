@@ -8,7 +8,7 @@ import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.security.Timestamp
+import com.google.firebase.Timestamp
 import java.util.UUID
 
 class MessageRepositoryTest {
@@ -46,10 +46,10 @@ class MessageRepositoryTest {
             content = "Hello, is this campsite available?",
             senderId = senderId,
             recipientId = recipientId,
-            timestamp = Timestamp(System.currentTimeMillis())
+            timestamp = Timestamp.now()
         )
 
-        // 1. Add to DB
+        // 1. Add to DBa
         repository.addMessage(message)
 
         // 2. Wait for the SnapshotListener to update the local list
@@ -78,7 +78,7 @@ class MessageRepositoryTest {
             content = "Delete me",
             senderId = "sender-1",
             recipientId = "receiver-1",
-            timestamp = Timestamp(System.currentTimeMillis())
+            timestamp = Timestamp.now()
         )
 
         repository.addMessage(message)
@@ -102,14 +102,20 @@ class MessageRepositoryTest {
             content = "Original text",
             senderId = "sender-1",
             recipientId = "receiver-1",
-            timestamp = Timestamp(System.currentTimeMillis())
+            timestamp = Timestamp.now()
         )
 
         repository.addMessage(originalMessage)
         waitForCondition { repository.messages.any { it.messageId == messageId } }
 
         // Update the message
-        val updatedMessage = originalMessage.copy(content = "Updated text!")
+        val updatedMessage = Message(
+            messageId = originalMessage.messageId,
+            content = "Updated text!",
+            senderId = originalMessage.senderId,
+            recipientId = originalMessage.recipientId,
+            timestamp = originalMessage.timestamp
+        )
         repository.updateMessage(updatedMessage)
 
         // Wait for Snapshot to reflect update
@@ -136,14 +142,14 @@ class MessageRepositoryTest {
             content = "Older message",
             senderId = "sender-1",
             recipientId = recipientId,
-            timestamp = Timestamp(1000000)
+            timestamp = Timestamp(1L, 0)
         )
         val msg2 = Message(
             messageId = "msg-2-${UUID.randomUUID()}",
             content = "Newer message",
             senderId = "sender-1",
             recipientId = recipientId,
-            timestamp = Timestamp(2000000)
+            timestamp = Timestamp(2L, 0)
         )
 
         repository.addMessage(msg1)
