@@ -12,6 +12,13 @@ import com.example.lambda_bbb_events.view.ui.components.*
 import com.example.lambda_bbb_events.view.ui.theme.Pink40
 import java.time.LocalDate
 
+/*
+ * Displays campsite registration information and allows
+ * users to enter an open lottery if available.
+ *
+ * TODO: Display a message when lottery registration is closed.
+ */
+
 
 /**
  * Displays the campsite registration status and lottery entry options.

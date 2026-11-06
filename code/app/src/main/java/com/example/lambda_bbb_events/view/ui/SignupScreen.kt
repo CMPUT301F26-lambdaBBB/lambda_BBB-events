@@ -30,18 +30,26 @@ import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlinx.coroutines.launch
 
+/*
+ * Provides the signup screen for creating a new entrant account.
+ *
+ * TODO: Replace the logo placeholder when a final logo is added.
+ * TODO: Add loading and error handling during account creation.
+ */
 
 /**
  * Displays the account registration screen.
  *
- * Requires user's name, email, and phone number,
- * then attempts to create an entrant account.
+ * Requires the user's name, email, and phone number
+ * and attempts to create an entrant account.
  * Displays an error message if registration fails.
  *
  * @param navController The [NavController] used for navigation.
- * @param controllers The [AppControllers] used to create the account.
+ * @param controllers Optional [AppControllers] used for account
+ * creation when no custom callback is provided.
  * @param onCreateEntrant Callback that submits user information
  * and returns whether account creation succeeded.
+ * Defaults to using the user controller.
  */
 @Composable
 fun SignupScreen(

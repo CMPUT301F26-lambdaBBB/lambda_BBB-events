@@ -32,6 +32,12 @@ import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 
 
+/*
+ * Defines a clickable campsite card
+ *
+ * TODO: Replace the image placeholder with an actual campsite image.
+ */
+
 /**
  * Displays a campsite card with its key details.
  *

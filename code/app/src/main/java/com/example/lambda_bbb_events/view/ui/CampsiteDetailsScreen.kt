@@ -35,6 +35,15 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+/*
+ * Displays campsite information, including ratings, location,
+ * tags, description, and reservation availability.
+ *
+ * TODO: Replace the image carousel placeholder with campsite images.
+ * TODO: Display a QR code for the campsite.
+ * TODO: Display the campsite location using Google Maps.
+ * TODO: Implement the campsite reviews section.
+ */
 
 /**
  * Displays detailed information about a selected campsite.

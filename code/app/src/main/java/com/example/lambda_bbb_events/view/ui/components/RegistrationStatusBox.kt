@@ -15,6 +15,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/*
+ * Defines a status box for displaying campsite registration status
+ */
+
 /**
  * Displays the current status of a campsite registration.
  *

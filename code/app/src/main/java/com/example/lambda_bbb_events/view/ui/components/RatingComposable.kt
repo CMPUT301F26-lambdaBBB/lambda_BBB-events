@@ -22,11 +22,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/*
+ * Provides components for displaying campsite ratings,
+ * review counts, and selecting star ratings.
+ *
+ * TODO: Make RatingStars rating value functionality
+ */
+
 /**
  * Displays a visual representation of a campsite rating.
  *
  * @param rating The campsite's rating value.
- * Currently unused when displaying the stars.
  * @param modifier Modifier used to customize the appearance
  * and layout of the rating display.
  */

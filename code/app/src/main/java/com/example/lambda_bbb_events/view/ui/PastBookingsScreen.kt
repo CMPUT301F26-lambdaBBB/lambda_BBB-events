@@ -18,12 +18,19 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
+/*
+ * Provides the past bookings screen with navigation
+ * between reservation categories.
+ *
+ * TODO: Retrieve and display the user's past reservations.
+ */
+
 
 /**
- * Displays the user's past campsite reservations.
+ * Displays the user's past bookings screen.
  *
- * Provides navigation between reservation categories and
- * a scrollable list for past bookings.
+ * Provides navigation between reservation categories
+ * and an empty scrollable list for past reservations.
  *
  * @param navController The [NavController] used to navigate
  * between reservation categories and application screens.

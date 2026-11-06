@@ -33,7 +33,12 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
-
+/*
+ * Provides campsite exploration , allowing users
+ * to search, filter, and browse available campsite listings.
+ *
+ * Selecting a campsite navigates to its details screen.
+ */
 
 /**
  * Displays the campsite exploration screen.

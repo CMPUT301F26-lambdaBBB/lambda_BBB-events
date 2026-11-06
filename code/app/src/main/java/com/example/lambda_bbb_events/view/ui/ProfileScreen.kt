@@ -35,12 +35,19 @@ import com.example.lambda_bbb_events.view.ui.components.ProfileRow
 import com.example.lambda_bbb_events.view.ui.components.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+/*
+ * Displays the current user's profile information and account settings.
+ *
+ * TODO: Implement the Settings and Logout actions.
+ * TODO: Replace the placeholder profile picture when profile image support is added.
+ */
+
 
 /**
  * Displays the user's profile and account options.
  *
  * Shows the user's name, email, and a placeholder profile picture.
- * Provides options for settings, editing the profile, and logging out functionality.
+ * Provides options for settings, editing the profile, and logging out.
  *
  * @param navController The [NavController] used to navigate between screens.
  * @param controllers The [AppControllers] instance used to retrieve user information.

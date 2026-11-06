@@ -1,5 +1,9 @@
 package com.example.lambda_bbb_events.model
 
+/*
+ * Stores image metadata and URLs for user-uploaded images.
+ */
+
 /**
  * Represents an image uploaded by a user which stores its unique ID,
  * the user ID of the uploader, and its download URL (for now).

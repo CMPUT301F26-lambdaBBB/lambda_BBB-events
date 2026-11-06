@@ -16,6 +16,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/*
+ * Defines a horizontally scrollable section of campsite cards
+ * with a title and a "See All" action.
+ *
+ * TODO: Replace placeholder cards with actual campsite data.
+ */
+
 /**
  * Displays a horizontally scrollable section of campsite cards.
  *

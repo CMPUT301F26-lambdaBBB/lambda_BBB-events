@@ -10,6 +10,12 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Manages lottery and waitlist data in Firestore.
+ * TODO: Remove waitlist entry records when entries are deleted.
+ */
+
+
 /**
  * Handles the data in the Firestore database for the [Lottery] class.
  */
@@ -36,6 +42,7 @@ class LotteryRepository {
         }
     }
 
+    /** Cached lotteries synchronized with Firestore. */
     val lotteries: List<Lottery>
         get() = _lotteries
 
@@ -57,11 +64,11 @@ class LotteryRepository {
         lotteriesRef.document(lottery.lotteryId).delete().await()
     }
 
+
     /**
-     * Overwrites an existing lottery in the Firestore database with updated data.
+     * Saves a lottery to Firestore, creating it if absent.
      *
-     * @param updatedLottery The lottery to be updated. Must have the same `lotteryId`
-     * as the original document.
+     * @param updatedLottery The lottery data to save.
      */
     suspend fun updateLottery(updatedLottery: Lottery) {
         lotteriesRef.document(updatedLottery.lotteryId).set(updatedLottery).await()

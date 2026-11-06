@@ -10,6 +10,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Manages waitlist entries in Firestore using the repository pattern.
+ *
+ */
+
+
 /**
  * Handles the data in the Firestore database for the [WaitlistEntry] class.
  */
@@ -37,6 +43,7 @@ class WaitlistEntryRepository {
         }
     }
 
+    /** Cached waitlist entries synchronized with Firestore. */
     val waitlistEntries: List<WaitlistEntry>
         get() = _waitlistEntries
 
@@ -58,11 +65,11 @@ class WaitlistEntryRepository {
         entriesRef.document(entry.entryId).delete().await()
     }
 
+
     /**
-     * Overwrites an existing waitlist entry in the Firestore database with updated data.
+     * Saves a waitlist entry to Firestore, creating it if absent.
      *
-     * @param updatedEntry The waitlist entry to be updated. Must have the same `waitlistentryId`
-     * as the original document.
+     * @param updatedEntry The entry data to save.
      */
     suspend fun updateWaitlistEntry(updatedEntry: WaitlistEntry) {
         entriesRef.document(updatedEntry.entryId).set(updatedEntry).await()

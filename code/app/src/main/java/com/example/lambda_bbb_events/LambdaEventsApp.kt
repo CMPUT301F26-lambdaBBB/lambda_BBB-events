@@ -34,9 +34,16 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import java.time.LocalDate
 
+/*
+ * Displays loading and signup states before opening the
+ * main application, and defines navigation routes for
+ * campsite browsing, reservations, lotteries, and profiles.
+ *
+ * layout issues on smaller screens could be an issue.
+ */
 
 /**
- * Main entry point for the application
+ * Root composable that controls application startup.
  *
  * Displays a loading indicator while user data loads,
  * then opens either the signup screen or the main application

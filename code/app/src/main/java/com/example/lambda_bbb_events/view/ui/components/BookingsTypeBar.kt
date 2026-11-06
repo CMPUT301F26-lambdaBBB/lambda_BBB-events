@@ -17,6 +17,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lambda_bbb_events.view.ui.theme.Purple80
+
+/*
+ * Defines the navigation bar in booking screen for switching between active,
+ * past, and lottery booking screens.
+ *
+ * Possible Issue: booking tab switches might accumulate duplicate destinations
+ */
+
 /**
  * Displays a navigation bar for switching between booking categories.
  *

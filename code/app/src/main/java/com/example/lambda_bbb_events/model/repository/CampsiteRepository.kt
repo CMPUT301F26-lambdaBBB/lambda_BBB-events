@@ -12,8 +12,17 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Manages campsite data and filtering in Firestore.
+ * TODO: Complete date-filtered results handling.
+ */
+
+
+
 /**
- * Handles the data in the Firestore database for the [Campsite] class.
+ * Manages campsite storage, retrieval, and filtering in Firestore.
+ *
+ * @param enableListener Whether to listen for live database updates.
  */
 class CampsiteRepository(enableListener: Boolean = true) {
     private val db = Firebase.firestore
@@ -43,6 +52,7 @@ class CampsiteRepository(enableListener: Boolean = true) {
         }
     }
 
+    /** Cached campsite listings. */
     val campsites: List<Campsite>
         get() = _campsites
 
@@ -129,15 +139,19 @@ class CampsiteRepository(enableListener: Boolean = true) {
         return result
     }
 
+    /** Campsites matching the applied filters. */
     val filteredCampsites: List<Campsite>
         get() = _filteredCampsites
 
+    /** Whether Explore filtering is enabled. */
     var isExploreFiltered by mutableStateOf(false)
         private set
 
+    /** Whether a filter request is running. */
     var isFiltering by mutableStateOf(false)
         private set
 
+    /** The latest filter error, or null. */
     var filterError by mutableStateOf<String?>(null)
         private set
 
@@ -266,11 +280,11 @@ class CampsiteRepository(enableListener: Boolean = true) {
                 val availableCampsites = matchingCampsites.filterNot {
                     it.campsiteId in occupiedIds
                 }
+                complete(availableCampsites)
 
-
-            } else {
-                complete(matchingCampsites)
-            }
+                }
+                else { complete(matchingCampsites)
+                }
 
         } catch (error: Exception) {
             fail(error)
@@ -291,6 +305,9 @@ class CampsiteRepository(enableListener: Boolean = true) {
         _filteredCampsites.clear()
     }
 
+    /**
+     * Removes the Firestore snapshot listener.
+     */
     fun close() {
         listenerRegistration?.remove()
         listenerRegistration = null

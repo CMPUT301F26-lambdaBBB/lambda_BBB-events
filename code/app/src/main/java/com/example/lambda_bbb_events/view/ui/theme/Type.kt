@@ -6,7 +6,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+/*
+ * Defines the application's Material 3 typography styles.
+ */
 
 /**
  * Customizes the default bodyLarge text style with the

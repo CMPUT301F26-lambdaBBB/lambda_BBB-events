@@ -17,15 +17,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/*
+ * Defines reusable single-line and multi-line text fields
+ * for forms, including fields with titles.
+ *
+ */
+
+
 /**
- * Displays a single-line text field for entering form information.
+ * Displays a multi-line text field for longer form responses.
  *
  * @param value The current text displayed in the field.
  * @param onValueChange Callback invoked when the user edits the text.
  * @param placeholder Text displayed when the field is empty.
  * @param modifier Modifier used to customize the text field layout.
  */
-
 @Composable
 fun FormTextField(
     value: String,
@@ -116,7 +122,7 @@ fun FormTextFieldMultiLine(
         value = value,
         onValueChange = onValueChange,
         placeholder = { Text(placeholder) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         singleLine = false,
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(

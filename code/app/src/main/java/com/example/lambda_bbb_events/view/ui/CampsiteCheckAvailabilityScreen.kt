@@ -38,11 +38,21 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.lambda_bbb_events.view.ui.components.DatePickerField
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 
-/**
- * Allows users to check campsite availability and select reservation details.
+/*
+ * Allows users to select campsite reservation dates
+ * and guest counts before registration.
  *
- * Displays campsite information, date selection, and guest count.
- * Valid selections navigate to the registration status screen.
+ * TODO: Integrate the campsite's availability schedule into calendar selection and reservation validation.
+ * TODO: Replace the campsite image placeholder.
+ */
+
+
+/**
+ * Displays campsite information and a form for selecting
+ * reservation dates and guest count.
+ *
+ * Navigates to the registration status screen when the
+ * entered dates and guest count pass validation.
  *
  * @param navController Handles screen navigation.
  * @param controllers Retrieves campsite information.

@@ -19,6 +19,12 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
 
+/*
+ * Provides filtering campsites by date, location, guest capacity, and minimum rating.
+ *
+ * content might not scrollable on smaller screens.
+ *
+ */
 
 /**
  * Displays a bottom sheet for filtering campsites.

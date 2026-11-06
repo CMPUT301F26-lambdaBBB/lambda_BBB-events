@@ -25,6 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+/*
+ * Defines the main bottom navigation bar throughout the app for switching between
+ * Home, Explore, Bookings, Create, and Profile screens
+ *
+ */
+
 /**
  * Displays the main bottom navigation bar through the entire application.
  *

@@ -6,16 +6,24 @@ import androidx.compose.ui.Modifier
 import coil3.compose.AsyncImage
 
 
+/*
+ * Provides a reusable composable for displaying images from URLs using Coil.
+ *
+ * functionality not fully implemented yet
+ */
+
+
 /**
  * Displays an image asynchronously using Coil's [AsyncImage].
  *
- * Loads images from valid URLs and invokes [onBadUrl]
- * when the URL is invalid. Supports custom image styling.
+ * Checks the URL before loading and displays fallback content
+ * when the URL is invalid.
  *
  * @param url The URL of the image to load.
  * @param imageDescription Description for accessibility.
- * @param onBadUrl Callback for handling invalid URLs.
+ * @param onBadUrl Optional composable content for invalid URLs.
  * @param imageModifier Customizes the image's appearance.
+ * @return `true` if the URL passes validation, `false` otherwise.
  */
 @Composable
 fun showImage(url: String, // fix showimg functionality

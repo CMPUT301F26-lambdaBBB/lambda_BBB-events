@@ -18,6 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+/*
+ * Defines a reusable screen title bar with optional
+ * back and notification navigation.
+ *
+ * TODO: Connect the notification button to the completed notifications screen.
+ */
+
 /**
  * Displays a customizable title bar for application screens.
  *

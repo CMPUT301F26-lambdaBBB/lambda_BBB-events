@@ -39,6 +39,15 @@ import com.example.lambda_bbb_events.view.ui.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+/*
+ * Displays campsite details and provides management actions
+ * for owners in managing lotteries.
+ *
+ * TODO: Replace the image carousel placeholder with campsite images.
+ * TODO: Display actual upcoming, past, and cancelled reservations.
+ * TODO: Implement campsite deletion with confirmation.
+ */
+
 /**
  * Displays campsite details and management options for owners.
  *
