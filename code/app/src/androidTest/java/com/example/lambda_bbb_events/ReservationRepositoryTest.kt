@@ -19,10 +19,18 @@ class ReservationRepositoryTest {
     ): Boolean {
         val startTime = System.currentTimeMillis()
         while (System.currentTimeMillis() - startTime < timeoutMs) {
-            if (condition()) return true
+            try {
+                if (condition()) return true
+            } catch (e: Exception) {
+                // Ignore transient race exceptions while Firestore snapshot is updating
+            }
             delay(100)
         }
-        return condition()
+        return try {
+            condition()
+        } catch (e: Exception) {
+            false
+        }
     }
 
     @Test
