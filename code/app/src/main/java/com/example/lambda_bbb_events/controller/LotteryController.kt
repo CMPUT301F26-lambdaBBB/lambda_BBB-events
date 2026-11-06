@@ -27,7 +27,7 @@ class LotteryController(
     /**
      * Adds a new lottery to the repository and Firestore database.
      */
-    fun addLottery(lottery: Lottery) {
+    suspend fun addLottery(lottery: Lottery) {
         lotteryRepository.addLottery(lottery)
     }
     /**

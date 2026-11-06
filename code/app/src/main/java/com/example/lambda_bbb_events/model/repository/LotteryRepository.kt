@@ -8,6 +8,7 @@ import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
 
 /**
  * Handles the data in the Firestore database for the [Lottery] class.
@@ -43,8 +44,8 @@ class LotteryRepository {
      *
      * @param lottery The lottery to add.
      */
-    fun addLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).set(lottery)
+    suspend fun addLottery(lottery: Lottery) {
+        lotteriesRef.document(lottery.lotteryId).set(lottery).await()
     }
 
     /**
@@ -52,8 +53,8 @@ class LotteryRepository {
      *
      * @param lottery The lottery to be deleted.
      */
-    fun deleteLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).delete()
+    suspend fun deleteLottery(lottery: Lottery) {
+        lotteriesRef.document(lottery.lotteryId).delete().await()
     }
 
     /**
@@ -62,8 +63,8 @@ class LotteryRepository {
      * @param updatedLottery The lottery to be updated. Must have the same `lotteryId`
      * as the original document.
      */
-    fun updateLottery(updatedLottery: Lottery) {
-        lotteriesRef.document(updatedLottery.lotteryId).set(updatedLottery)
+    suspend fun updateLottery(updatedLottery: Lottery) {
+        lotteriesRef.document(updatedLottery.lotteryId).set(updatedLottery).await()
     }
 
     /**
@@ -72,7 +73,7 @@ class LotteryRepository {
      * @param lotteryId The `lotteryId` to search for.
      * @return The [Lottery] object with the specified lotteryId if it exists. `null` otherwise.
      */
-    fun getLottery(lotteryId: String): Lottery? {
+    suspend fun getLottery(lotteryId: String): Lottery? {
         // there's probably a faster way to do this but i dont understand all the stuff i read in google
         // someone pls rewrite this, this is temporary
         for (lottery in _lotteries) {
@@ -91,7 +92,7 @@ class LotteryRepository {
      * @return `true` if the entry was added successfully, `false` if the waitlist
      * is full or the entry is already on it.
      */
-    fun addWaitlistToLottery(lottery: Lottery, waitlistEntry: WaitlistEntry): Boolean {
+    suspend fun addWaitlistToLottery(lottery: Lottery, waitlistEntry: WaitlistEntry): Boolean {
         // check if the waitlist is already full
         if (lottery.entryIds.size >= lottery.waitlistCapacity) { // > should be impos, but include strict bound incase
             return false
@@ -104,7 +105,7 @@ class LotteryRepository {
 
         // valid conditions, union the old entryIds with the new entryId (add)
         lotteriesRef.document(lottery.lotteryId)
-            .update("entryIds", FieldValue.arrayUnion(waitlistEntry.entryId))
+            .update("entryIds", FieldValue.arrayUnion(waitlistEntry.entryId)).await()
 
         return true
     }
@@ -116,11 +117,11 @@ class LotteryRepository {
      * @param lottery The [Lottery] to remove the waitlist from.
      * @param waitlistEntry The [WaitlistEntry] to remove.
      */
-    fun removeWaitlistFromLottery(lottery: Lottery, waitlistEntry: WaitlistEntry) {
+    suspend fun removeWaitlistFromLottery(lottery: Lottery, waitlistEntry: WaitlistEntry) {
         // check if this entry is on the waitlist
         if (waitlistEntry.entryId in lottery.entryIds) {
             lotteriesRef.document(lottery.lotteryId)
-                .update("entryIds", FieldValue.arrayRemove(waitlistEntry.entryId))
+                .update("entryIds", FieldValue.arrayRemove(waitlistEntry.entryId)).await()
         }
     }
 
