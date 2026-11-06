@@ -95,24 +95,45 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
 
 
         val reservationRepo = ReservationRepository()
-        val res_all = reservationRepo.reservations
+//        val res_all = reservationRepo.reservations  // res_all is empty
         val reservations: List<Reservation> = reservationRepo.getReservationsForEntrant( controllers.users.user.deviceId)
-//
-//
-//        val res1 = Reservation(
-//            "111",
-//            "035a2a44-30ee-42bc-b6e8-3eea3ba0e203",
-//            controllers.users.user.deviceId,
-//            "466a08d621173733",
-//            "2026-12-01",
-//            "2026-12-03",
-//            2,
-//            ReservationStatus.PENDING,
-//            true
-//        )
-//        reservationRepo.addReservation(res1)
 
 
+        val res1 = Reservation(
+            "111",
+            "035a2a44-30ee-42bc-b6e8-3eea3ba0e203",
+            controllers.users.user.deviceId,
+            "466a08d621173733",
+            "2026-12-01",
+            "2026-12-03",
+            2,
+            ReservationStatus.PENDING,
+            true
+        )
+        val res2 = Reservation(
+            "112",
+            "035a2a44-30ee-42bc-b6e8-3eea3ba0e203",
+            controllers.users.user.deviceId,
+            "466a08d621173733",
+            "2027-2-01",
+            "2026-2-03",
+            3,
+            ReservationStatus.PENDING,
+            true
+        )
+        val res3 = Reservation(
+            "112",
+            "2811678e-d2c4-4d8e-8b6a-52b131f8f817",
+            controllers.users.user.deviceId,
+            "466a08d621173733",
+            "2027-2-01",
+            "2026-2-03",
+            3,
+            ReservationStatus.PENDING,
+            true
+        )
+
+        val res_all = listOf<Reservation>(res1, res2, res3)
 
 
         Column(
@@ -132,8 +153,10 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
+
                 items(res_all.size) { index ->
-                    Text(text = "Testing index $index")
+//                    Text(text = "Testing index $index")
                     VerticalCampsiteCard(modifier = Modifier.fillMaxWidth(), reservation = res_all[index])
                 }
             }
@@ -146,7 +169,6 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
 @Composable
 fun VerticalCampsiteCard(modifier: Modifier, reservation: Reservation){
 
-    Text(text = "Testing2")
 
 
     val campsite = CampsiteRepository().get(reservation.campsiteId)
