@@ -27,7 +27,6 @@ class CampsiteController(
     }
     var searchQuery by mutableStateOf("")
 
-    // I have filtered Campsites and non-filtered Campsites
     val campsites: List<Campsite>
         get() = campsiteRepository.campsites
 
@@ -175,6 +174,16 @@ class CampsiteController(
         return false
     }
 
+    /**
+     * Applies filters to the campsite list in the Explore screen.
+     *
+     * @param startDate The earliest available date for the campsite.
+     * @param endDate The latest available date for the campsite.
+     * @param location The location to filter campsites by.
+     * @param minGuests The minimum number of guests.
+     * @param maxGuests The maximum number of guests.
+     * @param minRating The minimum campsite rating.
+     */
     fun applyFilters(
         startDate: Timestamp?,
         endDate: Timestamp?,
@@ -197,6 +206,9 @@ class CampsiteController(
         }
     }
 
+    /**
+     * Clears all applied filters from the Explore screen.
+     */
     fun clearFilters() {
         campsiteRepository.clearExploreFilters()
     }
