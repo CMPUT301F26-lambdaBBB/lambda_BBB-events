@@ -18,6 +18,21 @@ import com.example.lambda_bbb_events.view.ui.components.RegistrationInformationB
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import java.time.LocalDate
 
+
+
+/**
+ * Displays a confirmation of successful lottery entry.
+ *
+ * Shows the campsite and reservation details, with
+ * an option to return home.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves campsite information.
+ * @param campsiteId The ID of the selected campsite.
+ * @param fromDate The reservation start date.
+ * @param endDate The reservation end date.
+ * @param numPeople The number of guests.
+ */
 @Composable
 fun LotteryEnteredScreen(
     navController: NavController,

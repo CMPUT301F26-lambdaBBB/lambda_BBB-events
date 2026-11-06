@@ -24,20 +24,19 @@ import java.util.Locale
 private val availableColor = Color.White
 private val bookedColor = Color(0xFFF9D3DF)
 private val selectedColor = Color(0xFF89F5A3)
+
+
 /**
- * Displays an interactive calendar for selecting campsite booking dates.
+ * Displays an interactive calendar for selecting reservation dates.
  *
- * @param unavailableDates Set of dates that are already booked
- * or otherwise unavailable for reservation.
- * @param startDate The selected start date, or null if no
- * start date has been selected.
- * @param endDate The selected end date, or null if the
- * selection is incomplete.
- * @param onDateRangeChange Callback invoked when the user
- * selects or changes the reservation date range.
- * @param modifier Modifier used to customize the calendar layout.
- * @param initialMonth The month initially displayed in the calendar.
- * Defaults to the current month.
+ * Allows users to select a date range while excluding unavailable dates.
+ *
+ * @param unavailableDates Dates that cannot be booked.
+ * @param startDate The selected start date, or null.
+ * @param endDate The selected end date, or null.
+ * @param onDateRangeChange Callback for updating the date range.
+ * @param modifier Customizes the calendar layout.
+ * @param initialMonth The initially displayed month.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

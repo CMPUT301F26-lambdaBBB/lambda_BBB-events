@@ -30,6 +30,19 @@ import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+
+/**
+ * Displays the account registration screen.
+ *
+ * Requires user's name, email, and phone number,
+ * then attempts to create an entrant account.
+ * Displays an error message if registration fails.
+ *
+ * @param navController The [NavController] used for navigation.
+ * @param controllers The [AppControllers] used to create the account.
+ * @param onCreateEntrant Callback that submits user information
+ * and returns whether account creation succeeded.
+ */
 @Composable
 fun SignupScreen(
     navController: NavController,

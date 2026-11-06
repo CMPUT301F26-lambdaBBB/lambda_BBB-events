@@ -15,6 +15,12 @@ import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 
+
+/**
+ * Initializes the repositories and controllers, retrieves
+ * the device identifier, and launches the application
+ * using the configured theme.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

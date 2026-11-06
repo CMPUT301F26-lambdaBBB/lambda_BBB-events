@@ -39,6 +39,15 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+/**
+ * Allows users to edit their profile information.
+ *
+ * Displays editable name, email, and phone fields.
+ * Saves changes and displays an error if the update fails.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves and updates user information.
+ */
 @Composable
 fun EditProfileScreen(
     navController: NavController,
