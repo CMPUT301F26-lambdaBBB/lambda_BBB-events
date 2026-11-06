@@ -15,7 +15,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * Handles the data in the Firestore database for the [Campsite] class.
  */
-class CampsiteRepository {
+class CampsiteRepository(enableListener: Boolean = true) {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
 
@@ -23,18 +23,21 @@ class CampsiteRepository {
     private val _filteredCampsites = mutableStateListOf<Campsite>()
     private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
+
     init {
-        listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
+        if (enableListener) {
+            listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
 
-            _campsites.clear()
+                _campsites.clear()
 
-            snapshot?.documents?.forEach { document ->
-                val campsite = document.toObject(Campsite::class.java)
-                if (campsite != null) {
-                    _campsites.add(campsite)
+                snapshot?.documents?.forEach { document ->
+                    val campsite = document.toObject(Campsite::class.java)
+                    if (campsite != null) {
+                        _campsites.add(campsite)
+                    }
                 }
             }
         }
