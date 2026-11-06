@@ -75,6 +75,13 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
                 shape = RoundedCornerShape(100.dp)
             )
 
+            /**
+             * Displays Google Maps within the application.
+             *
+             * Reference:
+             * Google Maps SDK for Android documentation.
+             * https://developers.google.com/maps/documentation/android-sdk/overview
+             */
             if (showMap) {
                 // Clickable Google Map: when tapped, updates the search bar query with the address
                 ClickableMap(
