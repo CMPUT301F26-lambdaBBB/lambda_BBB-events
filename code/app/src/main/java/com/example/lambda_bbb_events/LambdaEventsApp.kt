@@ -71,7 +71,7 @@ private fun MainApp(controllers: AppControllers) {
         ) {
             composable("signup") { SignupScreen(navController, controllers) }
             composable("home") { HomeScreen(navController, controllers) }
-            composable("active_bookings") { ActiveBookingsScreen(navController) }
+            composable("active_bookings") { ActiveBookingsScreen(navController, controllers) }
             composable("past_bookings") { PastBookingsScreen(navController) }
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
