@@ -169,7 +169,7 @@ class ProfileScreenUITest {
             .performClick()
 
         composeTestRule.onNodeWithText(
-            "Unable to create account. Please review your information."
+            "Unable to update profile. Please review your information."
         ).assertIsDisplayed()
     }
 }

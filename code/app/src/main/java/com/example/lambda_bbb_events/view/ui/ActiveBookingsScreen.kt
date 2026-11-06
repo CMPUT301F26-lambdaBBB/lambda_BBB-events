@@ -74,6 +74,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -96,7 +97,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.sp
+import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.ReservationStatus
 
 @Composable
@@ -110,9 +113,11 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
     ) { innerPadding ->
 
 
-        val reservationRepo = ReservationRepository()
+        val reservationRepo = remember { ReservationRepository() }
 //        val res_all = reservationRepo.reservations  // res_all is empty
-        val reservations: List<Reservation> = reservationRepo.getReservationsForEntrant( controllers.users.user.deviceId)
+        val reservations = controllers.reservations.getReservationsForEntrant(
+            controllers.users.user.deviceId
+        )
 
 
         val res1 = Reservation(
@@ -171,9 +176,12 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
             ) {
 
 
-                items(res_all.size) { index ->
+                items(reservations) { reservation  ->
 //                    Text(text = "Testing index $index")
-                    VerticalCampsiteCard(modifier = Modifier.fillMaxWidth(), reservation = res_all[index])
+                    ReservationCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        reservation = reservation,
+                        campsite = controllers.campsites.getCampsite(reservation.campsiteId))
                 }
             }
         }
@@ -183,14 +191,7 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
 
 
 @Composable
-fun VerticalCampsiteCard(modifier: Modifier, reservation: Reservation){
-
-
-
-    val campsite = CampsiteRepository().get(reservation.campsiteId)
-
-
-
+fun ReservationCard(reservation: Reservation, campsite: Campsite?, modifier: Modifier){
     val campsiteName = campsite?.campsiteName ?: "Unknown Name"
     val rating = campsite?.rating ?: 0
 

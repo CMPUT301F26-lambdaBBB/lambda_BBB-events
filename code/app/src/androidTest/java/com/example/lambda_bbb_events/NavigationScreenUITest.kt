@@ -37,6 +37,7 @@ class NavigationScreenUITest {
 
         composeTestRule.setContent {
             navController = rememberNavController()
+            val controllers = mockk<AppControllers>(relaxed = true)
 
             NavHost(
                 navController = navController,
@@ -56,7 +57,7 @@ class NavigationScreenUITest {
 
                 composable("active_bookings") {
                     Box(Modifier.fillMaxSize().testTag("test_bookings")) {
-                        ActiveBookingsScreen(navController)
+                        ActiveBookingsScreen(navController, controllers)
                     }
                 }
 
