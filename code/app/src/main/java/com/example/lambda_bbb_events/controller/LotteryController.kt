@@ -24,8 +24,11 @@ enum class LotteryFilter {
 class LotteryController(
     val lotteryRepository: LotteryRepository
 ) {
+
     /**
-     * Adds a new lottery to the repository and Firestore database.
+     * Adds a lottery to the repository.
+     *
+     * @param lottery The [Lottery] to add.
      */
     suspend fun addLottery(lottery: Lottery) {
         lotteryRepository.addLottery(lottery)
@@ -78,11 +81,13 @@ class LotteryController(
         return !isCancelled && isOver
     }
 
+
     /**
-     * Gets the first lottery for a campsite whose registration period is currently open.
+     * Retrieves the first lottery accepting registrations
+     * for the specified campsite.
      *
-     * @param campsiteId The `campsiteId` to search for.
-     * @return The first lottery with open registration, or `null` if none exists.
+     * @param campsiteId The ID of the campsite.
+     * @return An open [Lottery], or null if none is available.
      */
     fun getOpenLotteryForCampsite(campsiteId: String): Lottery? {
         return lotteryRepository
@@ -90,14 +95,14 @@ class LotteryController(
             .firstOrNull { it.isRegistrationOpen() }
     }
 
+
     /**
-     * Registers an entrant for a lottery.
+     * Submits a user's entry to a campsite lottery.
      *
      * @param lotteryId The ID of the lottery to join.
-     * @param entrantId The ID of the entrant joining the lottery.
-     * @param numberOfGuests The number of guests included in the entry.
-     * @param onResult Callback that returns whether registration was successful
-     * and a message describing the result.
+     * @param entrantId The ID of the participating user.
+     * @param numberOfGuests The number of guests in the entry.
+     * @param onResult Callback returning the success status and a message.
      */
     fun joinLotteryEntry(
         lotteryId: String,

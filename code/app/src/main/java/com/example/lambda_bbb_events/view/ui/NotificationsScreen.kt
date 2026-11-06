@@ -27,6 +27,15 @@ import com.example.lambda_bbb_events.view.ui.components.NotificationSectionHeade
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlin.repeat
 
+
+
+/**
+ * Displays the application's notification management screen.
+ *
+ * Organizes notification options by people and categories.
+ *
+ * @param navController Handles screen navigation.
+ */
 @Composable
 fun NotificationsScreen(navController: NavController) {
     // placeholders: replace these lists with actual data (later we'll have user class, you can take names and images there).

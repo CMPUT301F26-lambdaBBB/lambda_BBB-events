@@ -12,6 +12,25 @@ import com.example.lambda_bbb_events.view.ui.components.*
 import com.example.lambda_bbb_events.view.ui.theme.Pink40
 import java.time.LocalDate
 
+
+/**
+ * Displays the campsite registration status and lottery entry options.
+ *
+ * Shows the selected reservation details and allows users
+ * to join an available lottery. Checks whether registration
+ * is open and whether the lottery is full.
+ *
+ * Successful entries navigate to the lottery confirmation
+ * screen, while failed entries display an error message.
+ *
+ * @param navController The [NavController] used for navigation.
+ * @param controllers The [AppControllers] used to access campsite,
+ * lottery, and user information.
+ * @param campsiteId The ID of the selected campsite.
+ * @param fromDate The reservation start date.
+ * @param endDate The reservation end date.
+ * @param numPeople The number of guests included in the entry.
+ */
 @Composable
 fun RegistrationStatusScreen(
     navController: NavController,

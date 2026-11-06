@@ -18,19 +18,17 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
+
+
 /**
- * Displays a bottom sheet for filtering available campsites.
+ * Displays a bottom sheet for filtering campsites.
  *
- * The "Show Results" button applies the selected filters
- * through [CampsiteController] and invokes the results callback.
- * The button is disabled when the date range is invalid.
+ * Applies selected filters and displays matching results.
+ * Invalid date ranges prevent submission.
  *
- * @param campsiteController Controller responsible for applying
- * the selected campsite filters.
- * @param onDismiss Callback invoked when the filter sheet
- * is dismissed.
- * @param onShowResults Callback invoked after the selected
- * filters have been applied.
+ * @param campsiteController Manages campsite filters.
+ * @param onDismiss Callback for closing the filter sheet.
+ * @param onShowResults Callback triggered after applying filters.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

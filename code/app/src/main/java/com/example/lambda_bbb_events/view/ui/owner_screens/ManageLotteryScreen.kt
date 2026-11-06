@@ -47,6 +47,17 @@ import com.example.lambda_bbb_events.view.ui.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 
+
+/**
+ * Displays the campsite owner's lottery management screen.
+ *
+ * Organizes lotteries into active, past, and canceled sections.
+ * Shows an error message if the campsite cannot be found.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves campsite and lottery information.
+ * @param campsiteId The ID of the campsite being managed.
+ */
 @Composable
 fun OwnerManageLotteryScreen(
     navController: NavController,

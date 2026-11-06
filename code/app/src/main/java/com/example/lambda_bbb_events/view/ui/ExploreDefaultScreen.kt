@@ -33,6 +33,17 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 
+
+
+/**
+ * Displays the campsite exploration screen.
+ *
+ * Allows users to search, filter, and browse campsites.
+ * Selecting a campsite opens its details screen.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Manages campsite searches and filters.
+ */
 @Composable
 fun ExploreDefaultScreen(navController: NavController, controllers: AppControllers) {
     var query by remember { mutableStateOf(controllers.campsites.searchQuery) }

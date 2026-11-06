@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 /**
  * Displays a clickable row representing a notification setting or option.
  *
- *
  * @param title The main text displayed in the notification row.
  * @param subtitle Additional descriptive text displayed below the title.
  * @param onClick Callback invoked when the user clicks the row.
