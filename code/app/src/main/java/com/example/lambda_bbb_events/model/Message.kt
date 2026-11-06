@@ -1,6 +1,6 @@
 package com.example.lambda_bbb_events.model
 
-import java.security.Timestamp
+import com.google.firebase.Timestamp
 
 /**
  * Represents a message sent between users.
@@ -16,5 +16,5 @@ class Message(
     val content: String = "",
     val senderId: String = "",
     val recipientId: String = "",
-    val timestamp: Timestamp
+    var timestamp: Timestamp = Timestamp.now()
 )
