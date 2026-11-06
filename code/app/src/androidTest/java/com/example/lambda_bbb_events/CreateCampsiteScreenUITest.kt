@@ -10,9 +10,11 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.printToLog
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,25 +22,22 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.CreateScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
+import io.mockk.verify
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.coEvery
-import io.mockk.coVerify
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import io.mockk.coEvery
-import io.mockk.coVerify
-
 
 @RunWith(AndroidJUnit4::class)
 class CreateCampsiteScreenUITest {
@@ -51,9 +50,10 @@ class CreateCampsiteScreenUITest {
 
     @Before
     fun setup() {
-        every {
-            controllers.users.user.deviceId
-        } returns "test-owner"
+        val testUser = mockk<User>(relaxed = true)
+
+        every { testUser.deviceId } returns "test-owner"
+        every { controllers.users.currentUser } returns testUser
 
         val campsite = mockk<Campsite>(relaxed = true)
 
@@ -181,7 +181,6 @@ class CreateCampsiteScreenUITest {
         }
     }
 
-    // Navigate directly to My Campsites
     private fun openMyCampsites() {
         composeTestRule.runOnIdle {
             navController.navigate("my_campsites")
@@ -191,6 +190,12 @@ class CreateCampsiteScreenUITest {
 
         composeTestRule.onNodeWithText("+ Create Campsite")
             .assertExists()
+
+        composeTestRule.onRoot().printToLog("CAMPSITE_TEST")
+
+        verify(atLeast = 1) {
+            controllers.campsites.getCampsitesByOwner("test-owner")
+        }
     }
 
     // Navigate from My Campsites to Owner Details
