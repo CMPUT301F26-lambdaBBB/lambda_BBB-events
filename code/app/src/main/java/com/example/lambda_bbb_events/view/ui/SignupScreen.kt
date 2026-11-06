@@ -106,6 +106,7 @@ fun SignupScreen(
         Spacer(Modifier.height(64.dp))
 
         Button(
+            modifier = Modifier.testTag("continueButton"),
             onClick = {
                 scope.launch {
                     val successful = onCreateEntrant(
