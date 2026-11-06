@@ -16,7 +16,6 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
-import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 
 @Composable
