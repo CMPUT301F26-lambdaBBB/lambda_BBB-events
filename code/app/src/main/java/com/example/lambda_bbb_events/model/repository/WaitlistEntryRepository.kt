@@ -8,6 +8,7 @@ import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
 
 /**
  * Handles the data in the Firestore database for the [WaitlistEntry] class.
@@ -44,8 +45,8 @@ class WaitlistEntryRepository {
      *
      * @param entry The waitlist entry to add.
      */
-    fun addWaitlistEntry(entry: WaitlistEntry) {
-        entriesRef.document(entry.entryId).set(entry)
+    suspend fun addWaitlistEntry(entry: WaitlistEntry) {
+        entriesRef.document(entry.entryId).set(entry).await()
     }
 
     /**
@@ -53,8 +54,8 @@ class WaitlistEntryRepository {
      *
      * @param entry The waitlist entry to be deleted.
      */
-    fun deleteWaitlistEntry(entry: WaitlistEntry) {
-        entriesRef.document(entry.entryId).delete()
+    suspend fun deleteWaitlistEntry(entry: WaitlistEntry) {
+        entriesRef.document(entry.entryId).delete().await()
     }
 
     /**
@@ -63,8 +64,21 @@ class WaitlistEntryRepository {
      * @param updatedEntry The waitlist entry to be updated. Must have the same `waitlistentryId`
      * as the original document.
      */
-    fun updateWaitlistEntry(updatedEntry: WaitlistEntry) {
-        entriesRef.document(updatedEntry.entryId).set(updatedEntry)
+    suspend fun updateWaitlistEntry(updatedEntry: WaitlistEntry) {
+        entriesRef.document(updatedEntry.entryId).set(updatedEntry).await()
+    }
+
+    /**
+     * Gets a [WaitlistEntry] object from the database given its entryId.
+     *
+     * @param entryId The `entryId` to search for.
+     * @return The [WaitlistEntry] object with the specified entryId if it exists. `null` otherwise.
+     */
+    suspend fun getWaitlistEntry(entryId: String): WaitlistEntry? {
+        if (entryId.isBlank()) {
+            return null
+        }
+        return entriesRef.document(entryId).get().await().toObject(WaitlistEntry::class.java)
     }
 
     /**
@@ -109,7 +123,7 @@ class WaitlistEntryRepository {
      * @param waitlistEntry The [WaitlistEntry] to update.
      * @param newStatus The new [WaitlistStatus] of the entry.
      */
-    fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
-        entriesRef.document(waitlistEntry.entryId).update("status", newStatus.name)
+    suspend fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
+        entriesRef.document(waitlistEntry.entryId).update("status", newStatus.name).await()
     }
 }
