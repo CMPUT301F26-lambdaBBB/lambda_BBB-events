@@ -8,32 +8,39 @@ import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.util.UUID
 
 class CampsiteRepositoryTests {
     @Test
     fun addingCampsiteToDBAndGetCampsites() = runTest {
-        val campsite = Campsite("Test Campsite",
-            "Test Location")
+        val campsite = Campsite(
+            campsiteId = UUID.randomUUID().toString(),
+            ownerId = "Test Location"
+        )
         val campsiteRepository = CampsiteRepository()
         campsiteRepository.addCampsite(campsite)
         assertEquals(campsite, campsiteRepository.get(campsite.campsiteId))
         campsiteRepository.deleteCampsite(campsite)
+        campsiteRepository.close()
     }
 
     @Test
     fun campsiteGetsDeleted() = runTest {
-        val campsite = Campsite("Test Campsite",
-            "Test Location")
+        val campsite = Campsite(
+            campsiteId = UUID.randomUUID().toString(),
+            ownerId = "Test Location"
+        )
         val campsiteRepository = CampsiteRepository()
         campsiteRepository.addCampsite(campsite)
         campsiteRepository.deleteCampsite(campsite)
         assertEquals(null, campsiteRepository.get(campsite.campsiteId))
+        campsiteRepository.close()
     }
 
     @Test
     fun updateCampsiteWithNewDetails() = runTest {
         val campsite = Campsite(
-            campsiteId = "Test Campsite",
+            campsiteId = UUID.randomUUID().toString(),
             ownerId = "Test Location"
         )
 
@@ -52,10 +59,12 @@ class CampsiteRepositoryTests {
         )
 
         repository.deleteCampsite(updatedCampsite)
+        repository.close()
     }
+
     @Test
     fun checkCampsitesReceivedAreValidByOwner() = runTest {
-        val ownerId = "owner-${System.currentTimeMillis()}"
+        val ownerId = "owner-${UUID.randomUUID()}"
 
         val ownerCampsites = listOf(
             Campsite("Yuta Man Site 1", ownerId),
@@ -78,6 +87,8 @@ class CampsiteRepositoryTests {
         ownerCampsites.forEach {
             repository.deleteCampsite(it)
         }
+        repository.close()
+
     }
 
     @Test
@@ -92,11 +103,12 @@ class CampsiteRepositoryTests {
         for (campsite in ownerCampsites) {
             campsiteRepository.addCampsite(campsite)
         }
-        assertTrue(CampsiteRepository().getCampsitesByOwner("Yutah").isEmpty())
+        assertTrue(campsiteRepository.getCampsitesByOwner("Yutah").isEmpty())
 
         for (campsite in ownerCampsites) {
             campsiteRepository.deleteCampsite(campsite)
         }
+        campsiteRepository.close()
     }
 
     @Test
@@ -152,5 +164,7 @@ class CampsiteRepositoryTests {
         assertFalse(repository.isExploreFiltered)
         assertFalse(repository.isFiltering)
         assertNull(repository.filterError)
+
+        repository.close()
     }
 }
