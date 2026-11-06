@@ -31,6 +31,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import io.mockk.coEvery
+import io.mockk.coVerify
+
 
 @RunWith(AndroidJUnit4::class)
 class CreateCampsiteScreenUITest {
@@ -60,7 +63,8 @@ class CreateCampsiteScreenUITest {
             controllers.campsites.getCampsite("test-campsite-1")
         } returns campsite
 
-        every {
+        coEvery {
+
             controllers.campsites.updateCampsite(
                 any(), any(), any(), any(), any(), any(), any()
             )
@@ -302,7 +306,7 @@ class CreateCampsiteScreenUITest {
         composeTestRule.onNodeWithTag("test_home")
             .assertIsDisplayed()
 
-        verify(exactly = 1) {
+        coVerify (exactly = 1) {
             controllers.campsites.addCampsite(
                 match {
                     it.campsiteName == "Test campsite" &&
@@ -365,7 +369,7 @@ class CreateCampsiteScreenUITest {
 
         val campsiteController = controllers.campsites
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             campsiteController.updateCampsite(
                 "test-campsite-1",
                 any(),

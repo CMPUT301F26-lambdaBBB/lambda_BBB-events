@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,19 +30,25 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignupScreen(
     navController: NavController,
     controllers: AppControllers? = null,
-    onCreateEntrant: (String, String, String) -> Boolean = { name, email, phone ->
-        requireNotNull(controllers).users.createEntrant(name, email, phone)
-    }
+    onCreateEntrant: suspend (String, String, String) -> Boolean =
+        { name, email, phone ->
+            requireNotNull(controllers)
+                .users
+                .createEntrant(name, email, phone)
+        }
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var showCreationError by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier.fillMaxSize().testTag("signupScreen"),
@@ -100,17 +107,20 @@ fun SignupScreen(
 
         Button(
             onClick = {
-                val successful = onCreateEntrant(name.trim(), email.trim(), phone.trim())
-                if (!successful) {
-                    showCreationError = true
+                scope.launch {
+                    val successful = onCreateEntrant(
+                        name.trim(),
+                        email.trim(),
+                        phone.trim()
+                    )
+
+                    if (!successful) {
+                        showCreationError = true
+                    }
                 }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .testTag("continueButton"),
-            shape = RoundedCornerShape(8.dp),
-        ) {
+            }
+        )
+        {
             Text("Continue", fontWeight = FontWeight.Bold)
         }
 
