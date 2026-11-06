@@ -196,7 +196,7 @@ fun ReservationCard(reservation: Reservation, campsite: Campsite?, modifier: Mod
     val rating = campsite?.rating ?: 0
 
 
-
+    //The following is from Chat GPT, with debugging by hand "how can i make the cards in jetpack compose. i've already got a lazycolumn and items () that calls a function called campsiteCard", 2026-11-06
     Card(
         modifier = Modifier
             .fillMaxWidth()
