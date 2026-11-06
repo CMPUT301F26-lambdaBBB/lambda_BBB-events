@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -30,7 +31,7 @@ import com.example.lambda_bbb_events.view.ui.components.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
 
 @Composable
-fun ExploreMapScreen(navController: NavController, controllers: AppControllers) {
+fun ExploreMapScreen(navController: NavController, controllers: AppControllers, showMap: Boolean = true) {
     var query by remember { mutableStateOf("") }
     var openFilter by remember { mutableStateOf(false) }
 
@@ -40,7 +41,7 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("screen_explore")
         ) {
             ScreenTitle(
                 title = "Explore",
@@ -55,7 +56,7 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                     controllers.campsites.search(query)
                     navController.navigate("explore_default")
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("exploreSearchInput")
             )
 
             AssistChip(
@@ -74,17 +75,19 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                 shape = RoundedCornerShape(100.dp)
             )
 
-            // Clickable Google Map: when tapped, updates the search bar query with the address
-            ClickableMap(
-                height = 300,
-                onLocationSelected = { coordinates, address, postalCode ->
-                    if (address.isNotBlank()) {
-                        query = address
-                    } else if (postalCode.isNotBlank()) {
-                        query = postalCode
+            if (showMap) {
+                // Clickable Google Map: when tapped, updates the search bar query with the address
+                ClickableMap(
+                    height = 300,
+                    onLocationSelected = { coordinates, address, postalCode ->
+                        if (address.isNotBlank()) {
+                            query = address
+                        } else if (postalCode.isNotBlank()) {
+                            query = postalCode
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 

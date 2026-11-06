@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.view.ui
 
-import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -12,8 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,10 +67,12 @@ import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
-import java.util.Calendar
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 /**
  * Create Screen for creating a new campsite and associated lottery.
@@ -83,7 +83,8 @@ import java.util.UUID
 @Composable
 fun CreateScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers,
+    showMap: Boolean = true
 ) {
     val context = LocalContext.current
 
@@ -150,8 +151,11 @@ fun CreateScreen(
             tags = tags.toList(),
             imageIds = selectedImageUris.map { it.toString() }
         )
+        val scope = CoroutineScope(Dispatchers.IO)
 
-        controllers.campsites.addCampsite(newCampsite)
+        scope.launch {
+            controllers.campsites.addCampsite(newCampsite)
+        }
 
         val newLottery = Lottery(
             lotteryId = UUID.randomUUID().toString(),
@@ -161,11 +165,14 @@ fun CreateScreen(
             waitlistCapacity = (numberOfSpots.filter { it.isDigit() }.toIntOrNull() ?: 10) * 2
         )
 
-        controllers.lotteries.addLottery(newLottery)
+        scope.launch {
+            controllers.lotteries.addLottery(newLottery)
+        }
         navController.navigate("home")
     }
 
     Scaffold(
+        modifier = Modifier.testTag("screen_create"),
         bottomBar = {
             BottomNavigationBar(
                 navController
@@ -225,7 +232,8 @@ fun CreateScreen(
                             FormInputField(
                                 value = campsiteName,
                                 onValueChange = { campsiteName = it },
-                                placeholder = "Enter campsite name"
+                                placeholder = "Enter campsite name",
+                                modifier = Modifier.testTag("create_name")
                             )
 
                             FormLabel("Description *")
@@ -241,7 +249,8 @@ fun CreateScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min=120.dp)
-                                    .animateContentSize(),
+                                    .animateContentSize()
+                                    .testTag("create_description"),
                                 minLines = 5,
                                 maxLines = 10,
                                 shape = RoundedCornerShape(16.dp),
@@ -461,33 +470,37 @@ fun CreateScreen(
                                 }
                             )
 
-                            ClickableMap(
-                                height = 220,
-                                onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
-                                    latitude = coordinates.latitude
-                                    longitude = coordinates.longitude
-                                    if (fetchedAddress.isNotBlank()) {
-                                        address = fetchedAddress
-                                        searchLocation = fetchedAddress
+                            if (showMap) {
+                                ClickableMap(
+                                    height = 220,
+                                    onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
+                                        latitude = coordinates.latitude
+                                        longitude = coordinates.longitude
+                                        if (fetchedAddress.isNotBlank()) {
+                                            address = fetchedAddress
+                                            searchLocation = fetchedAddress
+                                        }
+                                        if (fetchedPostalCode.isNotBlank()) {
+                                            postalCode = fetchedPostalCode
+                                        }
                                     }
-                                    if (fetchedPostalCode.isNotBlank()) {
-                                        postalCode = fetchedPostalCode
-                                    }
-                                }
-                            )
+                                )
+                            }
 
                             FormLabel("Address")
                             FormInputField(
                                 value = address,
                                 onValueChange = { address = it },
-                                placeholder = "Enter street address"
+                                placeholder = "Enter street address",
+                                modifier = Modifier.testTag("create_address")
                             )
 
                             FormLabel("Postal Code")
                             FormInputField(
                                 value = postalCode,
                                 onValueChange = { postalCode = it },
-                                placeholder = "Enter postal code"
+                                placeholder = "Enter postal code",
+                                modifier = Modifier.testTag("create_postal_code")
                             )
 
                             Spacer(modifier = Modifier.height(12.dp))
