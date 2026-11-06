@@ -22,6 +22,8 @@
 
 ## References
 
-Google. (n.d.). *Maps SDK for Android overview*. Google for Developers. https://developers.google.com/maps/documentation/android-sdk/overview
+Google. (n.d.). *Maps SDK for Android overview*. Google for Developers.\
+https://developers.google.com/maps/documentation/android-sdk/overview
 
-Selcuk, B. (2022, October 8). *Android device ID in Kotlin language* [Video]. YouTube. https://www.youtube.com/watch?v=W5yYiZ45u9I
+Selcuk, B. (2022, October 8). *Android device ID in Kotlin language* [Video]. YouTube.\
+https://www.youtube.com/watch?v=W5yYiZ45u9I
