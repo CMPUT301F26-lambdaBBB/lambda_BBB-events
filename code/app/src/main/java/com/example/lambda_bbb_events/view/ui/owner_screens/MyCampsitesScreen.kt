@@ -25,12 +25,15 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyCampsitesScreen(navController: NavController, controllers: AppControllers) {
     val context = LocalContext.current
-    val user: User = controllers.users.user
-    val myCampsites: List<Campsite> = controllers.campsites.getCampsitesByOwner(user.deviceId)
+    val user: User? = controllers.users.currentUser
+    val myCampsites: List<Campsite> = controllers.campsites.getCampsitesByOwner(user?.deviceId ?: "")
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = {
@@ -54,10 +57,11 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
             ) {
                 Button(
                     onClick = {
-                        controllers.users.becomeOwner()
-                        navController.navigate("create_campsite")
-                    },
-                    modifier = Modifier.weight(1f)
+                        scope.launch {
+                            controllers.users.becomeOwner()
+                            navController.navigate("create_campsite")
+                        }
+                    }
                 ) {
                     Text("+ Create Campsite")
                 }

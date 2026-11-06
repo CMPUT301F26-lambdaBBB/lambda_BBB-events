@@ -33,6 +33,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // copied from bob's create screen composable function
+
+/**
+ * Displays an interactive editor for managing a list of tags.
+ *
+ * Existing tags are displayed as removable chips in a
+ * wrapping layout. Users can remove tags or select
+ * "Add Tags" to enter a new tag name.
+ *
+ * @param tags The current list of tags to display.
+ * @param onAddTag Callback invoked with the new tag name
+ * when a valid tag is added.
+ * @param onRemoveTag Callback invoked with the tag name
+ * when a tag's remove icon is clicked.
+ * @param modifier Modifier intended to customize the
+ * editor's layout. Currently unused by the implementation.
+ */
 @Composable
 fun TagEditor(
     tags: List<String>,
@@ -46,7 +62,7 @@ fun TagEditor(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         for (tag in tags) {
             TagChip(
@@ -115,6 +131,16 @@ fun TagEditor(
     }
 }
 
+/**
+ * Displays an individual tag as a removable chip.
+ *
+ * The chip contains the tag name and a close icon
+ * that allows the user to remove the tag.
+ *
+ * @param tagText The text displayed inside the tag chip.
+ * @param onRemove Callback invoked when the close icon
+ * is clicked.
+ */
 @Composable
 private fun TagChip(tagText: String, onRemove: () -> Unit) {
     Surface(

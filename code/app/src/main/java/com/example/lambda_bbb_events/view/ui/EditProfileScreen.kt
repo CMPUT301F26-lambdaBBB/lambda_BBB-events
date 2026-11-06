@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditProfileScreen(
@@ -40,6 +42,8 @@ fun EditProfileScreen(
     var email by remember { mutableStateOf(user.email) }
     var phone by remember { mutableStateOf(user.phone) }
     var showCreationError by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -87,11 +91,14 @@ fun EditProfileScreen(
 
         Button(
             onClick = {
-                val successful = controllers.users.updateEntrant(name.trim(), email.trim(), phone.trim())
-                if (successful) {
-                    navController.navigate("profile")
-                } else {
-                    showCreationError = true
+                scope.launch {
+                    val successful =
+                        controllers.users.updateEntrant(name.trim(), email.trim(), phone.trim())
+                    if (successful) {
+                        navController.navigate("profile")
+                    } else {
+                        showCreationError = true
+                    }
                 }
             },
             modifier = Modifier

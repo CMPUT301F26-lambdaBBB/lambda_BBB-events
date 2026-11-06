@@ -25,6 +25,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+/**
+ * Displays the main bottom navigation bar through the entire application.
+ *
+ * Provides navigation between five main sections:
+ * - **Home**: Navigates to the home screen.
+ * - **Explore**: Navigates to the campsite exploration map.
+ * - **Bookings**: Navigates to the active bookings screen.
+ * - **Create**: Navigates to the user's campsite management screen.
+ * - **Profile**: Navigates to the user's profile screen.
+ * The currently selected section is highlighted.
+ *
+ * @param navController The [NavController] responsible for
+ * navigating between screens and tracking the current route.
+ */
+
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val backStackEntry by navController.currentBackStackEntryAsState()

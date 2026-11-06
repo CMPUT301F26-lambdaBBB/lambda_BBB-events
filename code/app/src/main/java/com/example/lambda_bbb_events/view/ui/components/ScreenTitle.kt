@@ -18,6 +18,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+/**
+ * Displays a customizable title bar for application screens.
+ *
+ * The back button returns to the previous
+ * screen using the navigation back stack. The notification
+ * button navigates to the notifications screen.
+ *
+ * @param title Text displayed as the screen heading.
+ * @param navController The [NavController] used to navigate
+ * between screens and return to the previous screen.
+ * @param modifier Modifier used to customize the title bar's
+ * layout and appearance.
+ * @param showBack Whether to display the back button.
+ * Defaults to false.
+ * @param showNotifications Whether to display the
+ * notifications button. Defaults to true.
+ */
 @Composable
 fun ScreenTitle(
     title: String,
