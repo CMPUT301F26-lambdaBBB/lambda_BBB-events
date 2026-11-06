@@ -48,7 +48,9 @@ class CampsiteRepository {
      * @param campsite The campsite to add.
      */
     suspend fun addCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId).set(campsite).await()
+        campsitesRef.document(campsite.campsiteId)
+            .set(campsite)
+            .await()
     }
 
     /**
@@ -57,7 +59,9 @@ class CampsiteRepository {
      * @param campsite The campsite to be deleted.
      */
     suspend fun deleteCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId).delete().await()
+        campsitesRef.document(campsite.campsiteId)
+            .delete()
+            .await()
     }
 
     /**

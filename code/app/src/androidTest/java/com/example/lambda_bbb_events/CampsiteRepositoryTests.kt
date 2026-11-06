@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events
 
-import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import junit.framework.TestCase.assertEquals
@@ -33,34 +32,51 @@ class CampsiteRepositoryTests {
 
     @Test
     fun updateCampsiteWithNewDetails() = runTest {
-        val campsite = Campsite("Test Campsite",
-            "Test Location")
-        val newCampsite = Campsite("Updated Test Campsite",
-            "Updated Test Location")
-        val campsiteRepository = CampsiteRepository()
-        campsiteRepository.addCampsite(campsite)
-        campsiteRepository.updateCampsite(newCampsite)
-        assertEquals(newCampsite, campsiteRepository.get(campsite.campsiteId))
-        campsiteRepository.deleteCampsite(newCampsite)
-    }
+        val campsite = Campsite(
+            campsiteId = "Test Campsite",
+            ownerId = "Test Location"
+        )
 
+        val updatedCampsite = campsite.copy(
+            ownerId = "Updated Test Location"
+        )
+
+        val repository = CampsiteRepository()
+
+        repository.addCampsite(campsite)
+        repository.updateCampsite(updatedCampsite)
+
+        assertEquals(
+            updatedCampsite,
+            repository.get(campsite.campsiteId)
+        )
+
+        repository.deleteCampsite(updatedCampsite)
+    }
     @Test
     fun checkCampsitesReceivedAreValidByOwner() = runTest {
+        val ownerId = "owner-${System.currentTimeMillis()}"
+
         val ownerCampsites = listOf(
-            Campsite("Yuta Man Site 1", "Yokai Toyota"),
-            Campsite("Test Man Site 2", "Yokai Toyota"),
-            Campsite("Test Man Site 3", "Yokai Toyota")
+            Campsite("Yuta Man Site 1", ownerId),
+            Campsite("Test Man Site 2", ownerId),
+            Campsite("Test Man Site 3", ownerId)
         )
-        val campsiteRepository = CampsiteRepository()
 
-        for (campsite in ownerCampsites) {
-            campsiteRepository.addCampsite(campsite)
+        val repository = CampsiteRepository()
+
+        ownerCampsites.forEach {
+            repository.addCampsite(it)
         }
-        assertEquals(ownerCampsites, CampsiteRepository().getCampsitesByOwner("Yokai Toyota"))
 
-        for (campsite in ownerCampsites) {
-            val campsiteRepository = CampsiteRepository()
-            campsiteRepository.deleteCampsite(campsite)
+        val result = repository.getCampsitesByOwner(ownerId)
+
+        ownerCampsites.forEach {
+            assertTrue(result.contains(it))
+        }
+
+        ownerCampsites.forEach {
+            repository.deleteCampsite(it)
         }
     }
 
@@ -79,7 +95,6 @@ class CampsiteRepositoryTests {
         assertTrue(CampsiteRepository().getCampsitesByOwner("Yutah").isEmpty())
 
         for (campsite in ownerCampsites) {
-            val campsiteRepository = CampsiteRepository()
             campsiteRepository.deleteCampsite(campsite)
         }
     }
@@ -114,7 +129,6 @@ class CampsiteRepositoryTests {
         }
 
         for (campsite in ownerCampsites) {
-            val campsiteRepository = CampsiteRepository()
             campsiteRepository.deleteCampsite(campsite)
         }
     }
