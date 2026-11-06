@@ -17,6 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a single-line text field for entering form information.
+ *
+ * @param value The current text displayed in the field.
+ * @param onValueChange Callback invoked when the user edits the text.
+ * @param placeholder Text displayed when the field is empty.
+ * @param modifier Modifier used to customize the text field layout.
+ */
+
 @Composable
 fun FormTextField(
     value: String,
@@ -42,6 +51,19 @@ fun FormTextField(
         )
     )
 }
+
+/**
+ * Displays a single-line form text field with a title above it.
+ *
+ * Uses [FormTextField] to display the editable input field.
+ *
+ * @param title Text displayed above the input field.
+ * @param value The current text displayed in the field.
+ * @param onValueChange Callback invoked when the user edits the text.
+ * @param placeholder Text displayed when the field is empty.
+ * @param modifier Modifier passed to the underlying text field.
+ * @param titleTag Test tag used to identify the title in UI tests.
+ */
 
 @Composable
 fun FormTextFieldWithTitle(
@@ -72,6 +94,16 @@ fun FormTextFieldWithTitle(
         )
     }
 }
+
+/**
+ * Displays a multi-line text field for entering longer form responses.
+ *
+ * @param value The current text displayed in the field.
+ * @param onValueChange Callback invoked when the user edits the text.
+ * @param placeholder Text displayed when the field is empty.
+ * @param modifier Modifier intended to customize the text field layout.
+ * Currently unused by the implementation.
+ */
 
 @Composable
 fun FormTextFieldMultiLine(

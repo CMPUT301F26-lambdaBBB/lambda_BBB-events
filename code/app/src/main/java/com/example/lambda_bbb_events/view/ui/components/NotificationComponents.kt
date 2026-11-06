@@ -17,6 +17,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a clickable row representing a notification setting or option.
+ *
+ *
+ * @param title The main text displayed in the notification row.
+ * @param subtitle Additional descriptive text displayed below the title.
+ * @param onClick Callback invoked when the user clicks the row.
+ * @param modifier Modifier used to customize the row's layout and appearance.
+ * @param leadingIcon Composable function that displays the icon
+ * at the beginning of the row.
+ */
+
 @Composable
 fun NotificationRow(
     title: String,
@@ -50,6 +62,14 @@ fun NotificationRow(
         )
     }
 }
+
+/**
+ * Displays a section heading for grouping notification options.
+ *
+ * @param title Text displayed as the section heading.
+ * @param modifier Modifier used to customize the heading's
+ * layout and appearance.
+ */
 
 @Composable
 fun NotificationSectionHeader(title: String, modifier: Modifier = Modifier) {
