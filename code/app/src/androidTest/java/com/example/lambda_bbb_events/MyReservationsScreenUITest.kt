@@ -9,9 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
+import io.mockk.mockk
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,13 +28,14 @@ class MyReservationsScreenUITest {
     fun setup() {
         composeTestRule.setContent {
             val navController = rememberNavController()
+            val controllers = mockk<AppControllers>(relaxed = true)
 
             NavHost(
                 navController = navController,
                 startDestination = "active_bookings"
             ) {
                 composable("active_bookings") {
-                    ActiveBookingsScreen(navController)
+                    ActiveBookingsScreen(navController, controllers)
                 }
 
                 composable("past_bookings") {
@@ -40,7 +43,7 @@ class MyReservationsScreenUITest {
                 }
 
                 composable("lottery_bookings") {
-                    LotteryBookingsScreen(navController)
+                    LotteryBookingsScreen(navController, controllers)
                 }
             }
         }

@@ -12,5 +12,6 @@ package com.example.lambda_bbb_events.controller
 class AppControllers (
     val users: UserController,
     val campsites: CampsiteController,
-    val lotteries: LotteryController
+    val lotteries: LotteryController,
+    val reservations: ReservationController
 )
