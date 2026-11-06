@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ fun EditProfileScreen(
             value = name,
             onValueChange = { name = it },
             placeholder = "Yuta",
+            modifier = Modifier.testTag("edit_profile_name")
         )
 
         FormTextFieldWithTitle(
@@ -81,6 +83,7 @@ fun EditProfileScreen(
             value = email,
             onValueChange = { email = it },
             placeholder = "yuta@hotmail.com",
+            modifier = Modifier.testTag("edit_profile_email")
         )
 
         FormTextFieldWithTitle(
@@ -88,6 +91,7 @@ fun EditProfileScreen(
             value = phone,
             onValueChange = { phone = it },
             placeholder = "+1",
+            modifier = Modifier.testTag("edit_profile_phone")
         )
 
         Spacer(Modifier.height(64.dp))
