@@ -18,7 +18,7 @@ class UserController(
     val deviceId: String
 ) {
     val currentUser: User? // null if user not found in database
-        get() = userRepository.getUser(deviceId)
+        get() = userRepository.getCachedUser(deviceId)
 
     // use this var for signed in user. only use inside the main app when a user exists
     // so we dont need to consider null exceptions
@@ -34,7 +34,7 @@ class UserController(
      * @return `true` if the profile was created, `false` if any one of `name`, `email`,
      * `phone` is blank.
      */
-    fun createEntrant(name: String, email: String, phone: String): Boolean {
+    suspend fun createEntrant(name: String, email: String, phone: String): Boolean {
         if (currentUser != null || !isValidProfile(name, email, phone)) return false
 
         userRepository.addUser(
@@ -54,7 +54,7 @@ class UserController(
      * @return `true` if the profile was updated, `false` if any one of `name`, `email`,
      * `phone` is blank.
      */
-    fun updateEntrant(name: String, email: String, phone: String): Boolean {
+    suspend fun updateEntrant(name: String, email: String, phone: String): Boolean {
         if (currentUser == null || !isValidProfile(name, email, phone)) return false
 
         userRepository.updateUser(
@@ -73,7 +73,7 @@ class UserController(
      *
      * @param allow `true` if user wants notifications on, `false` otherwise.
      */
-    fun setAllowNotifications(allow: Boolean) {
+    suspend fun setAllowNotifications(allow: Boolean) {
         val user = user
         userRepository.setAllowNotifications(user, allow)
     }
@@ -117,12 +117,8 @@ class UserController(
      *
      * @return `true` if the user can now own campsites, `false` if there is no signed-in user.
      */
-    fun becomeOwner(): Boolean {
-        val user = currentUser
-
-        if (user == null) {
-            return false
-        }
+    suspend fun becomeOwner(): Boolean {
+        val user = currentUser ?: return false
 
         // only entrants need converting
         if (user is Entrant) {

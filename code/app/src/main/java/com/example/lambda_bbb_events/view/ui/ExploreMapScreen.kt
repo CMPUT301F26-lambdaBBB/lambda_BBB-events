@@ -43,7 +43,7 @@ import com.example.lambda_bbb_events.view.ui.components.VerticalCardSection
  * @param controllers Manages campsite searches and filters.
  */
 @Composable
-fun ExploreMapScreen(navController: NavController, controllers: AppControllers) {
+fun ExploreMapScreen(navController: NavController, controllers: AppControllers, showMap: Boolean = true) {
     var query by remember { mutableStateOf("") }
     var openFilter by remember { mutableStateOf(false) }
 
@@ -68,7 +68,7 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                     controllers.campsites.search(query)
                     navController.navigate("explore_default")
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("exploreSearchInput")
             )
 
             AssistChip(
@@ -87,17 +87,19 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers) 
                 shape = RoundedCornerShape(100.dp)
             )
 
-            // Clickable Google Map: when tapped, updates the search bar query with the address
-            ClickableMap(
-                height = 300,
-                onLocationSelected = { coordinates, address, postalCode ->
-                    if (address.isNotBlank()) {
-                        query = address
-                    } else if (postalCode.isNotBlank()) {
-                        query = postalCode
+            if (showMap) {
+                // Clickable Google Map: when tapped, updates the search bar query with the address
+                ClickableMap(
+                    height = 300,
+                    onLocationSelected = { coordinates, address, postalCode ->
+                        if (address.isNotBlank()) {
+                            query = address
+                        } else if (postalCode.isNotBlank()) {
+                            query = postalCode
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 

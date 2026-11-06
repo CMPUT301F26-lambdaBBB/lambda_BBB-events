@@ -67,9 +67,12 @@ import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
+import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 /**
  * Create Screen for creating a new campsite and associated lottery.
@@ -92,7 +95,8 @@ import java.util.UUID
 @Composable
 fun CreateScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers,
+    showMap: Boolean = true
 ) {
     val context = LocalContext.current
 
@@ -163,8 +167,11 @@ fun CreateScreen(
             tags = tags.toList(),
             imageIds = selectedImageUris.map { it.toString() }
         )
+        val scope = CoroutineScope(Dispatchers.IO)
 
-        controllers.campsites.addCampsite(newCampsite)
+        scope.launch {
+            controllers.campsites.addCampsite(newCampsite)
+        }
 
         val newLottery = Lottery(
             lotteryId = UUID.randomUUID().toString(),
@@ -174,7 +181,9 @@ fun CreateScreen(
             waitlistCapacity = (numberOfSpots.filter { it.isDigit() }.toIntOrNull() ?: 10) * 2
         )
 
-        controllers.lotteries.addLottery(newLottery)
+        scope.launch {
+            controllers.lotteries.addLottery(newLottery)
+        }
         navController.navigate("home")
     }
 
@@ -239,7 +248,8 @@ fun CreateScreen(
                             FormInputField(
                                 value = campsiteName,
                                 onValueChange = { campsiteName = it },
-                                placeholder = "Enter campsite name"
+                                placeholder = "Enter campsite name",
+                                modifier = Modifier.testTag("create_name")
                             )
 
                             FormLabel("Description *")
@@ -255,7 +265,8 @@ fun CreateScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min=120.dp)
-                                    .animateContentSize(),
+                                    .animateContentSize()
+                                    .testTag("create_description"),
                                 minLines = 5,
                                 maxLines = 10,
                                 shape = RoundedCornerShape(16.dp),
@@ -475,33 +486,37 @@ fun CreateScreen(
                                 }
                             )
 
-                            ClickableMap(
-                                height = 220,
-                                onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
-                                    latitude = coordinates.latitude
-                                    longitude = coordinates.longitude
-                                    if (fetchedAddress.isNotBlank()) {
-                                        address = fetchedAddress
-                                        searchLocation = fetchedAddress
+                            if (showMap) {
+                                ClickableMap(
+                                    height = 220,
+                                    onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
+                                        latitude = coordinates.latitude
+                                        longitude = coordinates.longitude
+                                        if (fetchedAddress.isNotBlank()) {
+                                            address = fetchedAddress
+                                            searchLocation = fetchedAddress
+                                        }
+                                        if (fetchedPostalCode.isNotBlank()) {
+                                            postalCode = fetchedPostalCode
+                                        }
                                     }
-                                    if (fetchedPostalCode.isNotBlank()) {
-                                        postalCode = fetchedPostalCode
-                                    }
-                                }
-                            )
+                                )
+                            }
 
                             FormLabel("Address")
                             FormInputField(
                                 value = address,
                                 onValueChange = { address = it },
-                                placeholder = "Enter street address"
+                                placeholder = "Enter street address",
+                                modifier = Modifier.testTag("create_address")
                             )
 
                             FormLabel("Postal Code")
                             FormInputField(
                                 value = postalCode,
                                 onValueChange = { postalCode = it },
-                                placeholder = "Enter postal code"
+                                placeholder = "Enter postal code",
+                                modifier = Modifier.testTag("create_postal_code")
                             )
 
                             Spacer(modifier = Modifier.height(12.dp))

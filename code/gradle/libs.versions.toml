@@ -12,6 +12,7 @@ navigationCompose = "2.10.2"
 foundation = "1.12.1"
 playServicesMaps = "20.1.0"
 material3 = "1.4.0"
+room3Compiler = "3.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +34,7 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3Compiler" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

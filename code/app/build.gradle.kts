@@ -1,4 +1,18 @@
-val mapsApiKey: String = project.findProperty("MAPS_API_KEY") as String? ?: ""
+import java.util.Properties
+
+val properties: Properties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    properties.load(localPropertiesFile.inputStream())
+}
+
+val apiKey =
+properties.getProperty("GOOGLE_MAPS_TEST_KEY")
+    ?: properties.getProperty("MAPS_API_KEY")
+    ?: System.getenv("GOOGLE_MAPS_TEST_KEY")
+    ?: System.getenv("MAPS_API_KEY")
+    ?: throw GradleException("Maps API key not found")
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,7 +35,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        manifestPlaceholders["MAPS_API_KEY"] = apiKey
 
     }
 
@@ -71,4 +85,7 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.google.maps.android:maps-compose:4.3.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.17")
 }

@@ -79,7 +79,7 @@ fun CampsiteCheckAvailabilityScreen(
 
     val canConfirm = startDate != null &&
             endDate != null &&
-            !endDate!!.isBefore(startDate) &&
+            !endDate.isBefore(startDate) &&
             validPeople != null &&
             validPeople in 1..campsite.maxOccupancy
 

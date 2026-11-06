@@ -20,19 +20,19 @@ class ReservationRepository {
                 return@addSnapshotListener
             }
 
-            _reservations.clear()
+            val newReservations = snapshot?.documents?.mapNotNull { document ->
+                document.toObject(Reservation::class.java)
+            } ?: emptyList()
 
-            snapshot?.documents?.forEach { document ->
-                val reservation = document.toObject(Reservation::class.java)
-                if (reservation != null) {
-                    _reservations.add(reservation)
-                }
+            synchronized(_reservations) {
+                _reservations.clear()
+                _reservations.addAll(newReservations)
             }
         }
     }
 
     val reservations: List<Reservation>
-        get() = _reservations
+        get() = synchronized(_reservations) { _reservations.toList() }
 
     /**
      * Adds a new reservation to the Firestore database.
@@ -69,14 +69,8 @@ class ReservationRepository {
      * @return The [Reservation] object with the specified reservationId if it exists. `null` otherwise.
      */
     fun getReservation(reservationId: String): Reservation? {
-        // there's probably a faster way to do this but i dont understand all the stuff i read in google
-        // someone pls rewrite this, this is temporary
-        for (reservation in _reservations) {
-            if (reservation.reservationId == reservationId) {
-                return reservation
-            }
-        }
-        return null
+        val snapshotList = synchronized(_reservations) { _reservations.toList() }
+        return snapshotList.find { it.reservationId == reservationId }
     }
 
     /**
@@ -87,13 +81,8 @@ class ReservationRepository {
      * is returned if no reservation matches the `campsiteId`.
      */
     fun getReservationsForCampsite(campsiteId: String): List<Reservation>{
-        val result: MutableList<Reservation> = mutableListOf()
-        for (reservation in _reservations) {
-            if (reservation.campsiteId == campsiteId) {
-                result.add(reservation)
-            }
-        }
-        return result
+        val snapshotList = synchronized(_reservations) { _reservations.toList() }
+        return snapshotList.filter { it.campsiteId == campsiteId }
     }
 
     /**
@@ -104,12 +93,7 @@ class ReservationRepository {
      * is returned if no reservation matches the `entrantId`.
      */
     fun getReservationsForEntrant(entrantId: String): List<Reservation>{
-        val result: MutableList<Reservation> = mutableListOf()
-        for (reservation in _reservations) {
-            if (reservation.entrantId == entrantId) {
-                result.add(reservation)
-            }
-        }
-        return result
+        val snapshotList = synchronized(_reservations) { _reservations.toList() }
+        return snapshotList.filter { it.entrantId == entrantId }
     }
 }

@@ -1,11 +1,11 @@
 package com.example.lambda_bbb_events
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.remember
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
@@ -14,6 +14,10 @@ import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 /**
@@ -22,6 +26,7 @@ import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
  * using the configured theme.
  */
 class MainActivity : ComponentActivity() {
+    @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,6 +36,10 @@ class MainActivity : ComponentActivity() {
         val userRepository = UserRepository()
         val campsiteRepository = CampsiteRepository()
         val lotteryRepository = LotteryRepository()
+
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            userRepository.refreshUsers()
+        }
 
         val controllers = AppControllers(
             users = UserController(userRepository, deviceId),

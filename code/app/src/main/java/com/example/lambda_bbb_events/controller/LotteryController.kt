@@ -30,7 +30,7 @@ class LotteryController(
      *
      * @param lottery The [Lottery] to add.
      */
-    fun addLottery(lottery: Lottery) {
+    suspend fun addLottery(lottery: Lottery) {
         lotteryRepository.addLottery(lottery)
     }
     /**
@@ -78,7 +78,6 @@ class LotteryController(
             return !isCancelled && !isOver
         }
 
-        // past lottery
         return !isCancelled && isOver
     }
 
