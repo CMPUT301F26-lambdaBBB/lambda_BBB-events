@@ -15,6 +15,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays the current status of a campsite registration.
+ *
+ * @param registrationStatus The current registration status
+ * displayed prominently in the box.
+ * @param message Additional information describing
+ * the registration status.
+ * @param boxColor Background color of the status box.
+ */
 @Composable
 fun RegistrationStatusBox(
     registrationStatus: String,

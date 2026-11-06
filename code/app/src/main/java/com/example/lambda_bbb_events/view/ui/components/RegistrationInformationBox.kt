@@ -21,6 +21,20 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+
+/**
+ * Displays a summary of the selected campsite registration details.
+ *
+ * The information box shows the campsite name, reservation
+ * start date, end date, and number of people included
+ * in the registration.
+ *
+ * @param campsiteName The name of the selected campsite.
+ * @param fromDate The starting date of the reservation.
+ * @param endDate The ending date of the reservation.
+ * @param numPeople The number of people included
+ * in the campsite registration.
+ */
 @Composable
 fun RegistrationInformationBox(
     campsiteName: String,

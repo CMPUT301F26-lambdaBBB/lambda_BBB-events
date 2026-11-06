@@ -10,11 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+/**
+ * Displays a filter button for accessing search filtering options.
+ *
+ * @param onClick Callback invoked when the user clicks
+ * the filter button.
+ */
 @Composable
-fun FilterButton() {
+fun FilterButton( // not used or idk but work in progress or to be removed later
+    onClick: () -> Unit
+) {
     AssistChip(
-        onClick = { /* open filters */ },
+        onClick = onClick,
         label = { Text("Filters", fontWeight = FontWeight.Bold) },
         leadingIcon = {
             Icon(Icons.Outlined.FilterAlt, contentDescription = "Filter", tint = Color.Black)

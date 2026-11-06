@@ -15,6 +15,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
+/**
+ * Displays a customizable search bar for entering search queries.
+ *
+ * @param label Label intended to describe the search field.
+ * Currently unused by the implementation.
+ * @param placeholder Text displayed when the search field is empty.
+ * @param query The current search query entered by the user.
+ * @param onQueryChange Callback invoked when the search query changes.
+ * @param onSearch Callback invoked when the user presses
+ * the search action on the keyboard.
+ * @param modifier Modifier used to customize the search bar's
+ * layout and appearance.
+ */
 @Composable
 fun SearchBar(
     label: String,

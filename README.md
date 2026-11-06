@@ -17,4 +17,5 @@
 - [Scrum Board](https://github.com/orgs/CMPUT301F26-lambdaBBB/projects/1)
 - [Storyboard and UI Mockups(in .png)](https://github.com/CMPUT301F26-lambdaBBB/lambda_BBB-events/wiki/Storyboard-and-UI-Mockups)
 - [CRC Cards](https://github.com/CMPUT301F26-lambdaBBB/lambda_BBB-events/wiki/CRC-Cards)
+- [UML Diagram](https://github.com/CMPUT301F26-lambdaBBB/lambda_BBB-events/wiki/UML-Diagram)
 - [Our Documentation Page](https://cmput301f26-lambdabbb.github.io/lambda_BBB-events/)
