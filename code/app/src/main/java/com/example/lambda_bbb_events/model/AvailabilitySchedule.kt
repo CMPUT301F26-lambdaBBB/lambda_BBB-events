@@ -19,6 +19,7 @@ data class AvailabilitySchedule (
      *
      * @return A set of available dates.
      */
+
     @Exclude
     fun getAvailableLocalDates(): Set<LocalDate> {
         val result = mutableSetOf<LocalDate>()

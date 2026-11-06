@@ -17,17 +17,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ProfileRow
@@ -49,6 +47,7 @@ fun ProfileScreen(navController: NavController, controllers: AppControllers) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .testTag("screen_profile")
         ) {
             ScreenTitle(
                 title = "Profile",

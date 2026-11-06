@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,20 +32,11 @@ fun FormTextField(
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            // to yuta: change these so colors are not hard coded; add colors in ui.theme.Color
-
-            // this is background color of search bar
             focusedContainerColor = Color(0xFFFFFFFF),
             unfocusedContainerColor = Color(0xFFFFFFFF),
-
-            // this is border color of search bar
             unfocusedBorderColor = Color.LightGray,
             focusedBorderColor = Color.Gray,
-
-            // this is your cursor color, the thing that's blinking when u type
             cursorColor = Color.Gray,
-
-            // this is color of the label at the top of the search bar when typing, u can remove if no likey
             focusedLabelColor = Color.Gray,
             unfocusedLabelColor = Color.Gray,
         )
@@ -57,7 +49,8 @@ fun FormTextFieldWithTitle(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    titleTag: String = ""
 ) {
     Column(
         modifier = Modifier
@@ -66,7 +59,7 @@ fun FormTextFieldWithTitle(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
+            modifier = Modifier.align(Alignment.Start).testTag(titleTag)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -95,20 +88,11 @@ fun FormTextFieldMultiLine(
         singleLine = false,
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            // to yuta: change these so colors are not hard coded; add colors in ui.theme.Color
-
-            // this is background color of search bar
             focusedContainerColor = Color(0xFFFFFFFF),
             unfocusedContainerColor = Color(0xFFFFFFFF),
-
-            // this is border color of search bar
             unfocusedBorderColor = Color.LightGray,
             focusedBorderColor = Color.Gray,
-
-            // this is your cursor color, the thing that's blinking when u type
             cursorColor = Color.Gray,
-
-            // this is color of the label at the top of the search bar when typing, u can remove if no likey
             focusedLabelColor = Color.Gray,
             unfocusedLabelColor = Color.Gray,
         )

@@ -1,6 +1,7 @@
 package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -32,6 +34,7 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
     var openFilter by remember {mutableStateOf(false)}
 
     Scaffold(
+        modifier = Modifier.testTag("screen_home"),
         bottomBar = {
             BottomNavigationBar(
                 navController
@@ -59,7 +62,7 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
                         controllers.campsites.search(query)
                         navController.navigate("explore_default")
                     },
-                    modifier = Modifier.fillMaxWidth(0.85f)
+                    modifier = Modifier.fillMaxWidth(0.85f).testTag("searchInput")
                 )
 
                 FilterIconButton(
@@ -71,17 +74,21 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            HorizontalCardSection(
-                "Recently Viewed",
-                onSeeAll = { /* do something */ })
-            HorizontalCardSection(
-                "Featured Campsites",
-                onSeeAll = { /* do something */ })
+            Box (modifier = Modifier.testTag("recentlyViewedSection")) {
+                HorizontalCardSection(
+                    "Recently Viewed",
+                    onSeeAll = { /* do something */ }
+                )
+            }
 
-
+            Box (modifier = Modifier.testTag("featuredCampsitesSection")) {
+                HorizontalCardSection(
+                    "Featured Campsites",
+                    onSeeAll = { /* do something */ }
+                )
+            }
         }
     }
-
 
     if (openFilter) {
         HomeCampsiteFilter(

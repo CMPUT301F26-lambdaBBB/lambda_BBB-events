@@ -3,10 +3,13 @@ package com.example.lambda_bbb_events.controller
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.google.firebase.Timestamp
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Controller for [Campsite]-related operations.
@@ -14,8 +17,14 @@ import com.example.lambda_bbb_events.model.roles.CampsiteOwner
  * @property campsiteRepository The repository for [Campsite].
  */
 class CampsiteController(
-    private val campsiteRepository: CampsiteRepository
+    val campsiteRepository: CampsiteRepository
 ) {
+    /**
+     * Adds a new campsite to the repository and Firestore database.
+     */
+    suspend fun addCampsite(campsite: Campsite) {
+        campsiteRepository.addCampsite(campsite)
+    }
     var searchQuery by mutableStateOf("")
 
     // I have filtered Campsites and non-filtered Campsites
@@ -70,7 +79,7 @@ class CampsiteController(
      * @param tags The new tags separated by commas.
      * @return `true` if the campsite was updated successfully, `false` otherwise.
      */
-    fun updateCampsite(
+    suspend fun updateCampsite(
         campsiteId: String,
         name: String,
         address: String,
@@ -174,14 +183,18 @@ class CampsiteController(
         maxGuests: Int,
         minRating: Double?
     ) {
-        campsiteRepository.filterCampsites(
-            startDate = startDate,
-            endDate = endDate,
-            location = location,
-            minGuests = minGuests,
-            maxGuests = maxGuests,
-            minRating = minRating
-        )
+        val scope = CoroutineScope(Dispatchers.IO)
+
+        scope.launch {
+            campsiteRepository.filterCampsites(
+                startDate,
+                endDate,
+                location,
+                minGuests,
+                maxGuests,
+                minRating
+            )
+        }
     }
 
     fun clearFilters() {

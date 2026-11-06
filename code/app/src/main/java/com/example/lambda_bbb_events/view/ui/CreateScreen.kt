@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.view.ui
 
-import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -12,8 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,36 +57,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.repository.CampsiteRepository
-import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ClickableMap
+import com.example.lambda_bbb_events.view.ui.components.PopUpShowDatePicker
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
-import java.util.Calendar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 /**
  * Create Screen for creating a new campsite and associated lottery.
  *
  * @param navController The navigation controller for navigating between screens.
- * @param campsiteRepository The repository for saving campsites.
- * @param lotteryRepository The repository for saving lotteries.
- * @param userController Optional user controller to obtain campsite owner details.
+ * @param controllers AppControllers holding campsites, lotteries, and user data.
  */
 @Composable
 fun CreateScreen(
     navController: NavController,
-    campsiteRepository: CampsiteRepository = remember { CampsiteRepository() },
-    lotteryRepository: LotteryRepository = remember { LotteryRepository() },
-    userController: UserController? = null
+    controllers: AppControllers,
+    showMap: Boolean = true
 ) {
+    val context = LocalContext.current
+
     // status variables, 1-> basic info, 2-> location, 3-> lottery
     var currentStep by remember { mutableStateOf(0) }
 
@@ -132,32 +130,13 @@ fun CreateScreen(
     val spotsOptions = listOf("5", "10", "15", "20", "25", "50", "100")
     val eligibilityOptions = listOf("All Entrants", "Verified Only", "First-time Entrants")
 
-    val context = LocalContext.current
-
-    /**
-     * Show a date picker dialog.
-     *
-     * @param onDateSelected A lambda function that is called when a date is selected.
-     */
-    fun showDatePicker(onDateSelected: (String) -> Unit) {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                onDateSelected("$year-${month + 1}-$dayOfMonth")
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
 
     /**
      * Save the campsite and associated lottery to the repository
      */
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()
-        val ownerDeviceId = userController?.user?.deviceId ?: ""
+        val ownerDeviceId = controllers.users.user.deviceId
 
         val newCampsite = Campsite(
             campsiteId = generatedCampsiteId,
@@ -172,8 +151,11 @@ fun CreateScreen(
             tags = tags.toList(),
             imageIds = selectedImageUris.map { it.toString() }
         )
+        val scope = CoroutineScope(Dispatchers.IO)
 
-        campsiteRepository.addCampsite(newCampsite)
+        scope.launch {
+            controllers.campsites.addCampsite(newCampsite)
+        }
 
         val newLottery = Lottery(
             lotteryId = UUID.randomUUID().toString(),
@@ -183,11 +165,14 @@ fun CreateScreen(
             waitlistCapacity = (numberOfSpots.filter { it.isDigit() }.toIntOrNull() ?: 10) * 2
         )
 
-        lotteryRepository.addLottery(newLottery)
+        scope.launch {
+            controllers.lotteries.addLottery(newLottery)
+        }
         navController.navigate("home")
     }
 
     Scaffold(
+        modifier = Modifier.testTag("screen_create"),
         bottomBar = {
             BottomNavigationBar(
                 navController
@@ -247,7 +232,8 @@ fun CreateScreen(
                             FormInputField(
                                 value = campsiteName,
                                 onValueChange = { campsiteName = it },
-                                placeholder = "Enter campsite name"
+                                placeholder = "Enter campsite name",
+                                modifier = Modifier.testTag("create_name")
                             )
 
                             FormLabel("Description *")
@@ -263,7 +249,8 @@ fun CreateScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min=120.dp)
-                                    .animateContentSize(),
+                                    .animateContentSize()
+                                    .testTag("create_description"),
                                 minLines = 5,
                                 maxLines = 10,
                                 shape = RoundedCornerShape(16.dp),
@@ -483,33 +470,37 @@ fun CreateScreen(
                                 }
                             )
 
-                            ClickableMap(
-                                height = 220,
-                                onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
-                                    latitude = coordinates.latitude
-                                    longitude = coordinates.longitude
-                                    if (fetchedAddress.isNotBlank()) {
-                                        address = fetchedAddress
-                                        searchLocation = fetchedAddress
+                            if (showMap) {
+                                ClickableMap(
+                                    height = 220,
+                                    onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
+                                        latitude = coordinates.latitude
+                                        longitude = coordinates.longitude
+                                        if (fetchedAddress.isNotBlank()) {
+                                            address = fetchedAddress
+                                            searchLocation = fetchedAddress
+                                        }
+                                        if (fetchedPostalCode.isNotBlank()) {
+                                            postalCode = fetchedPostalCode
+                                        }
                                     }
-                                    if (fetchedPostalCode.isNotBlank()) {
-                                        postalCode = fetchedPostalCode
-                                    }
-                                }
-                            )
+                                )
+                            }
 
                             FormLabel("Address")
                             FormInputField(
                                 value = address,
                                 onValueChange = { address = it },
-                                placeholder = "Enter street address"
+                                placeholder = "Enter street address",
+                                modifier = Modifier.testTag("create_address")
                             )
 
                             FormLabel("Postal Code")
                             FormInputField(
                                 value = postalCode,
                                 onValueChange = { postalCode = it },
-                                placeholder = "Enter postal code"
+                                placeholder = "Enter postal code",
+                                modifier = Modifier.testTag("create_postal_code")
                             )
 
                             Spacer(modifier = Modifier.height(12.dp))
@@ -556,19 +547,19 @@ fun CreateScreen(
                             FormLabel("Lottery Date *")
                             DateField(
                                 value = lotteryDate,
-                                onClick = { showDatePicker { lotteryDate = it } }
+                                onClick = { PopUpShowDatePicker(context) { lotteryDate = it } }
                             )
 
                             FormLabel("Start Registration *")
                             DateField(
                                 value = startRegistration,
-                                onClick = { showDatePicker { startRegistration = it } }
+                                onClick = { PopUpShowDatePicker(context) { startRegistration = it } }
                             )
 
                             FormLabel("End Registration *")
                             DateField(
                                 value = endRegistration,
-                                onClick = { showDatePicker { endRegistration = it } }
+                                onClick = { PopUpShowDatePicker(context) { endRegistration = it } }
                             )
 
                             Row(

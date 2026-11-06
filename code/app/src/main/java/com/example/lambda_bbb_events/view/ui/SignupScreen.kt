@@ -10,12 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,8 +20,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -38,7 +33,10 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 @Composable
 fun SignupScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers? = null,
+    onCreateEntrant: (String, String, String) -> Boolean = { name, email, phone ->
+        requireNotNull(controllers).users.createEntrant(name, email, phone)
+    }
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -46,7 +44,7 @@ fun SignupScreen(
     var showCreationError by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("signupScreen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -76,6 +74,8 @@ fun SignupScreen(
             value = name,
             onValueChange = { name = it },
             placeholder = "Yuta",
+            modifier = Modifier.testTag("nameInput"),
+            titleTag = "nameLabel"
         )
 
         FormTextFieldWithTitle(
@@ -83,6 +83,8 @@ fun SignupScreen(
             value = email,
             onValueChange = { email = it },
             placeholder = "yuta@hotmail.com",
+            modifier = Modifier.testTag("emailInput"),
+            titleTag = "emailLabel"
         )
 
         FormTextFieldWithTitle(
@@ -90,20 +92,23 @@ fun SignupScreen(
             value = phone,
             onValueChange = { phone = it },
             placeholder = "+1",
+            modifier = Modifier.testTag("phonenumberInput"),
+            titleTag = "phonenumberLabel"
         )
 
         Spacer(Modifier.height(64.dp))
 
         Button(
             onClick = {
-                val successful = controllers.users.createEntrant(name.trim(), email.trim(), phone.trim())
+                val successful = onCreateEntrant(name.trim(), email.trim(), phone.trim())
                 if (!successful) {
                     showCreationError = true
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .height(52.dp)
+                .testTag("continueButton"),
             shape = RoundedCornerShape(8.dp),
         ) {
             Text("Continue", fontWeight = FontWeight.Bold)
