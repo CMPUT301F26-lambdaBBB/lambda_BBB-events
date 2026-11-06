@@ -46,41 +46,10 @@ import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.SubTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
+
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
-import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.SubTitle
-import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Hiking
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.ui.unit.sp
+
 import com.example.lambda_bbb_events.model.ReservationStatus
 
 @Composable
@@ -95,7 +64,7 @@ fun ActiveBookingsScreen(navController: NavController, controllers: AppControlle
 
 
         val reservationRepo = ReservationRepository()
-//        val res_all = reservationRepo.reservations  // res_all is empty
+//        val res_all = reservationRepo.reservations  // res_all is empty, hardcoded for nwo
         val reservations: List<Reservation> = reservationRepo.getReservationsForEntrant( controllers.users.user.deviceId)
 
 
@@ -266,18 +235,18 @@ fun VerticalCampsiteCard(modifier: Modifier, reservation: Reservation){
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // RESERVATION DETAILS
+                // small rows
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     DetailRow(Icons.Default.Check, "Confirmed")
-                    DetailRow(Icons.Default.LocationOn, "Wesley Lake, AB")
+                    DetailRow(Icons.Default.LocationOn, campsite?.address ?: "Unknown Address")
                     DetailRow(Icons.Default.Home, "Tent")
-                    DetailRow(Icons.Default.Hiking, "Wesley Lake, AB")
-                    DetailRow(Icons.Default.CalendarToday, "Wesley Lake, AB")
+                    DetailRow(Icons.Default.Hiking, "${campsite?.latitude}, ${campsite?.longitude}")
+                    DetailRow(Icons.Default.CalendarToday, reservation?.startDate ?: "Unknown Date")
                 }
 
-                // RIGHT ARROW
+
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = "View reservation",
