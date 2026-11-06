@@ -2,13 +2,14 @@ package com.example.lambda_bbb_events
 
 import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.repository.MessageRepository
+import com.google.firebase.Timestamp
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import com.google.firebase.Timestamp
+
 import java.util.UUID
 
 class MessageRepositoryTest {
@@ -49,7 +50,7 @@ class MessageRepositoryTest {
             timestamp = Timestamp.now()
         )
 
-        // 1. Add to DBa
+        // 1. Add to DB
         repository.addMessage(message)
 
         // 2. Wait for the SnapshotListener to update the local list
@@ -109,9 +110,10 @@ class MessageRepositoryTest {
         waitForCondition { repository.messages.any { it.messageId == messageId } }
 
         // Update the message
+        // Update the message manually
         val updatedMessage = Message(
             messageId = originalMessage.messageId,
-            content = "Updated text!",
+            content = "Updated text!", // The new value
             senderId = originalMessage.senderId,
             recipientId = originalMessage.recipientId,
             timestamp = originalMessage.timestamp
@@ -142,14 +144,14 @@ class MessageRepositoryTest {
             content = "Older message",
             senderId = "sender-1",
             recipientId = recipientId,
-            timestamp = Timestamp(1L, 0)
+            timestamp = Timestamp(0,100000)
         )
         val msg2 = Message(
             messageId = "msg-2-${UUID.randomUUID()}",
             content = "Newer message",
             senderId = "sender-1",
             recipientId = recipientId,
-            timestamp = Timestamp(2L, 0)
+            timestamp = Timestamp(0, 200000)
         )
 
         repository.addMessage(msg1)
