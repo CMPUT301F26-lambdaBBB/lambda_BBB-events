@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Reservation
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
 
 /*
  * Manages reservation data and cached records using Firestore.
@@ -44,8 +45,8 @@ class ReservationRepository {
      *
      * @param reservation The reservation to add.
      */
-    fun addReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).set(reservation)
+    suspend fun addReservation(reservation: Reservation) {
+        reservationsRef.document(reservation.reservationId).set(reservation).await()
     }
 
     /**
@@ -53,8 +54,8 @@ class ReservationRepository {
      *
      * @param reservation The reservation to be deleted.
      */
-    fun deleteReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).delete()
+    suspend fun deleteReservation(reservation: Reservation) {
+        reservationsRef.document(reservation.reservationId).delete().await()
     }
 
 
@@ -63,8 +64,8 @@ class ReservationRepository {
      *
      * @param updatedReservation The reservation data to save.
      */
-    fun updateReservation(updatedReservation: Reservation) {
-        reservationsRef.document(updatedReservation.reservationId).set(updatedReservation)
+    suspend fun updateReservation(updatedReservation: Reservation) {
+        reservationsRef.document(updatedReservation.reservationId).set(updatedReservation).await()
     }
 
     /**
