@@ -29,6 +29,7 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsS
 import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.RegistrationStatusScreen
+import com.example.lambda_bbb_events.view.ui.RuleConfirmScreen
 import com.example.lambda_bbb_events.view.ui.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
@@ -124,6 +125,23 @@ private fun MainApp(controllers: AppControllers) {
                 val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
 
                 RegistrationStatusScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    campsiteId = campsiteId,
+                    fromDate = fromDate,
+                    endDate = endDate,
+                    numPeople = numPeople
+                )
+            }
+            composable(
+                route = "rule_confirm/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
+                RuleConfirmScreen(
                     navController = navController,
                     controllers = controllers,
                     campsiteId = campsiteId,

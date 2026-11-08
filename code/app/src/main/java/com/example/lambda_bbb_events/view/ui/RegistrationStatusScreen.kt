@@ -58,14 +58,6 @@ fun RegistrationStatusScreen(
         mutableStateOf("")
     }
 
-    var isJoining by remember(campsiteId, entrantId) {
-        mutableStateOf(false)
-    }
-
-    var hasJoined by remember(campsiteId, entrantId) {
-        mutableStateOf(false)
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,44 +87,16 @@ fun RegistrationStatusScreen(
         Button(
             onClick = {
                 if (lottery != null) {
-                    isJoining = true
-                    message = ""
-
-                    controllers.lotteries.joinLotteryEntry(
-                        lotteryId = lottery.lotteryId,
-                        entrantId = controllers.users.deviceId,
-                        numberOfGuests = numPeople
-                    ) { success, resultMessage ->
-
-                        isJoining = false
-
-                        if (success) {
-                            navController.navigate(
-                                "lottery_entered/$campsiteId/$fromDate/$endDate/$numPeople"
-                            ) {
-                                popUpTo(
-                                    "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
-                                ) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        } else {
-                            message = resultMessage
-                        }
-                    }
+                    navController.navigate(
+                        "rule_confirm/$campsiteId/$fromDate/$endDate/$numPeople"
+                    )
                 }
             },
             enabled = lottery != null &&
                     lottery.isRegistrationOpen() &&
-                    !lottery.isFull() &&
-                    !isJoining &&
-                    !hasJoined
+                    !lottery.isFull()
         ) {
-            Text(
-                if (isJoining) "Joining..."
-                else "Join Lottery"
-            )
+            Text("Join Lottery")
         }
 
         if (lottery == null) {
