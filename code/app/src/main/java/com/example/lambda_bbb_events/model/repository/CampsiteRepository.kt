@@ -73,7 +73,7 @@ class CampsiteRepository(enableListener: Boolean = true) {
     }
 
     /**
-     * Deletes a campsite from the Firestore database.
+     * Deletes a campsite from the Firestore database
      *
      * @param campsite The campsite to be deleted.
      */
