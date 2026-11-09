@@ -35,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.SectionTitle
-import com.example.lambda_bbb_events.view.ui.components.RatingSummary
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
+import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 
 /*
  * Displays campsite details and provides management actions

@@ -12,9 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
-import com.example.lambda_bbb_events.view.ui.CampsiteCheckAvailabilityScreen
-import com.example.lambda_bbb_events.view.ui.RegistrationStatusScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.RegistrationStatusScreen
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Rule

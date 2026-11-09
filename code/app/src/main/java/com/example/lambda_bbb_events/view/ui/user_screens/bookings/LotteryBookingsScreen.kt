@@ -1,0 +1,72 @@
+package com.example.lambda_bbb_events.view.ui.user_screens.bookings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.common.SubTitle
+import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
+
+/*
+ * Defines the lottery bookings screen, allowing navigation between
+ *  reservation categories and viewing of lottery entries.
+ *
+ * TODO: Retrieve and display the user's lottery entries.
+ */
+
+
+/**
+ * Displays the user's lottery bookings screen.
+ *
+ * Provides navigation between active, past, and lottery
+ * reservations, along with a section for lottery entries.
+ *
+ * @param navController Handles screen navigation.
+ */
+@Composable
+fun LotteryBookingsScreen(navController: NavController, controllers: AppControllers) {
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                navController
+            )
+        }
+    ){ innerPadding ->
+
+        Column(
+        modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("lottery_bookings")
+        ) {
+            ScreenTitle(
+                title = "My Reservations",
+                navController = navController
+            )
+            BookingsTypeBar(navController)
+            Spacer(modifier = Modifier.height(25.dp))
+            SubTitle(title = "In Lottery")
+            Spacer(modifier = Modifier.height(25.dp))
+
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+
+//                items(reservations.size) { index ->
+//                    VerticalCampsiteCard(res_all[index])
+//                }
+            }
+        }
+    }
+}

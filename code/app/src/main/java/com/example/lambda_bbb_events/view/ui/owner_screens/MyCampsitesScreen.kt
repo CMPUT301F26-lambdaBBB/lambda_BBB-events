@@ -22,9 +22,9 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.view.ui.components.BottomNavigationBar
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.VerticalCampsiteCard
+import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCampsiteCard
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
