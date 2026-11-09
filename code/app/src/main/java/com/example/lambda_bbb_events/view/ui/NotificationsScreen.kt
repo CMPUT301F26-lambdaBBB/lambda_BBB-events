@@ -27,7 +27,12 @@ import com.example.lambda_bbb_events.view.ui.components.NotificationSectionHeade
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlin.repeat
 
-
+/*
+ * Displays notification  organized in people and notification categories.
+ *
+ * TODO: Replace placeholder people and categories with actual data.
+ * TODO: Implement notification preference management actions.
+ */
 
 /**
  * Displays the application's notification management screen.

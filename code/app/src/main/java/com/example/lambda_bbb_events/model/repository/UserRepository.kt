@@ -15,6 +15,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Manages user data and cached profiles using Firestore.
+ */
+
 /**
  * Handles the data in the Firestore database for the [User] class.
  */
@@ -25,9 +29,10 @@ class UserRepository {
     private val userMutex = Mutex()
     private val _users = mutableStateMapOf<String, User>()
 
-
+    /** Whether the initial user data has finished loading successfully. */
     var usersFullyLoaded by mutableStateOf(false)
 
+    /** Cached user profiles. */
     val users: List<User>
         get() = _users.values.toList()
 
@@ -60,11 +65,11 @@ class UserRepository {
     }
 
 
+
     /**
-     * Overwrites an existing user in the Firestore database with updated data.
+     * Saves user data to Firestore, creating the document if absent.
      *
-     * @param user The user to be updated. Must have the same `userId`
-     * as the original document.
+     * @param user The user data to save, identified by deviceId.
      */
     suspend fun updateUser(user: User) {
         usersRef.document(user.deviceId)
@@ -97,11 +102,12 @@ class UserRepository {
      */
     fun getCachedUser(deviceId: String): User? = _users[deviceId]
 
+
     /**
-     * Gets a [User] object from the database given its deviceId.
+     * Retrieves a user from the local cache.
      *
-     * @param deviceId The `deviceId` to search for.
-     * @return The [User] object with the specified deviceId if it exists. `null` otherwise.
+     * @param deviceId The user's device ID.
+     * @return The cached user, or null.
      */
     suspend fun getUser(deviceId: String): User? {
         val document = usersRef.document(deviceId)
@@ -131,8 +137,9 @@ class UserRepository {
         }
     }
 
+
     /**
-     * Refreshes the list of users from the database.
+     * Refreshes cached users from Firestore.
      */
     suspend fun refreshUsers() = userMutex.withLock {
         val snapshot = usersRef.get().await()

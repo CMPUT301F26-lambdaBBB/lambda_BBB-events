@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
@@ -30,6 +32,10 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlinx.coroutines.launch
+
+/*
+ * Provides a screen for editing the current user's profile
+ */
 
 /**
  * Allows users to edit their profile information.
@@ -55,7 +61,7 @@ fun EditProfileScreen(
     val scope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -119,7 +125,7 @@ fun EditProfileScreen(
         }
 
         if (showCreationError) {
-            Text("Unable to create account. Please review your information.")
+            Text("Unable to update profile. Please review your information.")
         }
     }
 }

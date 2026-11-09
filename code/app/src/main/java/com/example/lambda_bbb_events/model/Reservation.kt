@@ -1,7 +1,10 @@
 package com.example.lambda_bbb_events.model
 
 import com.google.firebase.firestore.Exclude
-import java.time.LocalDate
+
+/*
+ * Defines campsite reservations and its details
+ */
 
 /**
  * The current status of a campsite reservation.
@@ -20,6 +23,7 @@ enum class ReservationStatus {
  * @property reservationId The unique ID of the reservation.
  * @property campsiteId The ID of the reserved campsite.
  * @property entrantId The device ID of the entrant who made the reservation.
+ * @property ownerId The device ID of the campsite owner.
  * @property startDate The start date of the reservation.
  * @property endDate The end date of the reservation.
  * @property guests The number of guests in the reservation.
@@ -38,6 +42,12 @@ data class Reservation(
     val status: ReservationStatus = ReservationStatus.PENDING,
     val ruleConfirmed: Boolean = false, // entrant accepted campsite rules and policies
 ) {
+    /**
+     * Checks whether the reservation is pending or confirmed.
+     *
+     * @return `true` if the reservation is pending or confirmed,
+     * `false` otherwise.
+     */
     @Exclude
     fun isActive(): Boolean {
         return status == ReservationStatus.PENDING || status == ReservationStatus.CONFIRMED

@@ -38,6 +38,12 @@ import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.TagEditor
 import kotlinx.coroutines.launch
 
+/*
+ * Provides a screen for editing campsite details.
+ * Allows owners to save changes or cancel editing.
+ *
+ * TODO: Implement campsite photo viewing and management.
+ */
 
 /**
  * Allows users to edit campsite details and tags.

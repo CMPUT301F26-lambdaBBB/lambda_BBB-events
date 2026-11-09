@@ -74,6 +74,13 @@ import kotlinx.coroutines.Dispatchers
 import java.util.UUID
 import kotlinx.coroutines.launch
 
+/*
+ * Provides form for creating campsites and lotteries,
+ *
+ * TODO: Save and validate the selected lottery dates and settings.
+ * TODO: selected photos to stay instead of only storing in local
+ */
+
 /**
  * Create Screen for creating a new campsite and associated lottery.
  *
@@ -91,6 +98,9 @@ import kotlinx.coroutines.launch
  *
  * @param navController The navigation controller for navigating between screens.
  * @param controllers AppControllers holding campsites, lotteries, and user data.
+ * @param showMap Whether to display the interactive location map.
+ * Defaults to true.
+
  */
 @Composable
 fun CreateScreen(
@@ -143,12 +153,12 @@ fun CreateScreen(
     val eligibilityOptions = listOf("All Entrants", "Verified Only", "First-time Entrants")
 
 
+
     /**
-     * Creates and saves a campsite, its associated lottery
-     * and generates a unique id to assign owner to the creating user.
+     * Creates a campsite and an associated lottery using generated IDs.
      *
-     * Creates an associated lottery with the selected number
-     * of winners and a waitlist capacity twice that number.
+     * Assigns the current user as the owner and sets the lottery's
+     * waitlist capacity to twice its number of winners.
      */
     fun saveCampsiteAndLottery() {
         val generatedCampsiteId = UUID.randomUUID().toString()

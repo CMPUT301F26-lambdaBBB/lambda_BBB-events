@@ -1,5 +1,13 @@
 package com.example.lambda_bbb_events.model
 
+/*
+ * Defines user model roles
+ */
+
+
+/**
+ * Defines the roles available to users in the application.
+ */
 enum class UserRole {
     ENTRANT,
     OWNER,
@@ -14,6 +22,7 @@ enum class UserRole {
  * @property email The user's email address, not visible to others.
  * @property phone The user's phone number, not visible to others.
  * @property profilePictureImageId The user's profile picture imageId.
+ * @property role The user's assigned role in the application.
  * @property notificationsEnabled Whether the user wants to receive notifications.
  */
 open class User (

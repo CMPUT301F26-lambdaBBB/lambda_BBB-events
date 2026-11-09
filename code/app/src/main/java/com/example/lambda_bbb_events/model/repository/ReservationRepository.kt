@@ -4,6 +4,11 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Reservation
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
+
+/*
+ * Manages reservation data and cached records using Firestore.
+ */
 
 /**
  * Handles the data in the Firestore database for the [Reservation] class.
@@ -31,6 +36,7 @@ class ReservationRepository {
         }
     }
 
+    /** Cached reservations synchronized with Firestore. */
     val reservations: List<Reservation>
         get() = synchronized(_reservations) { _reservations.toList() }
 
@@ -39,8 +45,8 @@ class ReservationRepository {
      *
      * @param reservation The reservation to add.
      */
-    fun addReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).set(reservation)
+    suspend fun addReservation(reservation: Reservation) {
+        reservationsRef.document(reservation.reservationId).set(reservation).await()
     }
 
     /**
@@ -48,18 +54,18 @@ class ReservationRepository {
      *
      * @param reservation The reservation to be deleted.
      */
-    fun deleteReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).delete()
+    suspend fun deleteReservation(reservation: Reservation) {
+        reservationsRef.document(reservation.reservationId).delete().await()
     }
 
+
     /**
-     * Overwrites an existing reservation in the Firestore database with updated data.
+     * Saves a reservation to Firestore, creating it if absent.
      *
-     * @param updatedReservation The reservation to be updated. Must have the same `reservationId`
-     * as the original document.
+     * @param updatedReservation The reservation data to save.
      */
-    fun updateReservation(updatedReservation: Reservation) {
-        reservationsRef.document(updatedReservation.reservationId).set(updatedReservation)
+    suspend fun updateReservation(updatedReservation: Reservation) {
+        reservationsRef.document(updatedReservation.reservationId).set(updatedReservation).await()
     }
 
     /**

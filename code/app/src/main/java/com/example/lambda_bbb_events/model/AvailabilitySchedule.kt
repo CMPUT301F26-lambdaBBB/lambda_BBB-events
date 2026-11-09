@@ -3,6 +3,11 @@ package com.example.lambda_bbb_events.model
 import com.google.firebase.firestore.Exclude
 import java.time.LocalDate
 
+/*
+ * Manages campsite availability and booked dates
+ * using ISO date strings for Firestore compatibility.
+ */
+
 /**
  * Represents the availability schedule for a set of dates.
  *
@@ -89,8 +94,10 @@ data class AvailabilitySchedule (
         return result.sorted()
     }
 
+
     /**
-     * Marks the dates in the list as booked.
+     * Marks specified dates as booked if they are available.
+     * Dates outside the availability schedule are ignored.
      *
      * @param dates The dates to mark as booked.
      */

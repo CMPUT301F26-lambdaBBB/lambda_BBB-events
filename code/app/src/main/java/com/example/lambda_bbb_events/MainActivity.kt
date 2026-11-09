@@ -9,9 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
+import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
+import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +21,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+/*
+ * Defines the application's main Android activity.
+ * Initializes repositories and controllers, retrieves
+ * the device identifier, and launches the Compose UI.
+ *
+ * TODO: Handle user data loading failures.
+ */
 
 /**
  * Initializes the repositories and controllers, retrieves
@@ -40,6 +49,7 @@ class MainActivity : ComponentActivity() {
         val userRepository = UserRepository()
         val campsiteRepository = CampsiteRepository()
         val lotteryRepository = LotteryRepository()
+        val reservationRepository = ReservationRepository()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -48,7 +58,8 @@ class MainActivity : ComponentActivity() {
         val controllers = AppControllers(
             users = UserController(userRepository, deviceId),
             campsites = CampsiteController(campsiteRepository),
-            lotteries = LotteryController(lotteryRepository)
+            lotteries = LotteryController(lotteryRepository),
+            reservations = ReservationController(reservationRepository)
         )
 
         setContent {

@@ -1,6 +1,7 @@
 package com.example.lambda_bbb_events.view.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,18 +33,26 @@ import com.example.lambda_bbb_events.view.ui.components.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
 import kotlinx.coroutines.launch
 
+/*
+ * Provides the signup screen for creating a new entrant account.
+ *
+ * TODO: Replace the logo placeholder when a final logo is added.
+ * TODO: Add loading and error handling during account creation.
+ */
 
 /**
  * Displays the account registration screen.
  *
- * Requires user's name, email, and phone number,
- * then attempts to create an entrant account.
+ * Requires the user's name, email, and phone number
+ * and attempts to create an entrant account.
  * Displays an error message if registration fails.
  *
  * @param navController The [NavController] used for navigation.
- * @param controllers The [AppControllers] used to create the account.
+ * @param controllers Optional [AppControllers] used for account
+ * creation when no custom callback is provided.
  * @param onCreateEntrant Callback that submits user information
  * and returns whether account creation succeeded.
+ * Defaults to using the user controller.
  */
 @Composable
 fun SignupScreen(
@@ -60,9 +71,10 @@ fun SignupScreen(
     var showCreationError by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     Column(
-        modifier = Modifier.fillMaxSize().testTag("signupScreen"),
+        modifier = Modifier.fillMaxSize().verticalScroll(scrollState).testTag("signupScreen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

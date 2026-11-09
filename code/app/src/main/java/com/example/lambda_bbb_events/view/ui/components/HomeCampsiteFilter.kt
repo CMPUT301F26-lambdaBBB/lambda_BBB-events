@@ -2,7 +2,9 @@ package com.example.lambda_bbb_events.view.ui.components
 
 import RangePicker
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,12 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
 
+/*
+ * Provides filtering campsites by date, location, guest capacity, and minimum rating.
+ *
+ * content might not scrollable on smaller screens.
+ *
+ */
 
 /**
  * Displays a bottom sheet for filtering campsites.
@@ -68,6 +76,7 @@ fun HomeCampsiteFilter(
     ) {
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {

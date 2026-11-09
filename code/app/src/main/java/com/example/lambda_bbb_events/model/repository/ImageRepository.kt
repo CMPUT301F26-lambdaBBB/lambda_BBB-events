@@ -5,9 +5,17 @@ import com.example.lambda_bbb_events.model.Image
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
+/*
+ * Stores and synchronizes image data using Firestore.
+ */
+
 
 /**
  * Handles the data in the Firestore database for the [Image] class.
+ *
+ * @param db The Firestore database instance.
  */
 class ImageRepository(
     private val db: FirebaseFirestore = Firebase.firestore
@@ -32,6 +40,7 @@ class ImageRepository(
         }
     }
 
+    /** Cached images synchronized with Firestore. */
     val images: List<Image>
         get() = _images
 
@@ -40,8 +49,8 @@ class ImageRepository(
      *
      * @param image The image to add.
      */
-    fun addImage(image: Image) {
-        imagesRef.document(image.imageId).set(image)
+    suspend fun addImage(image: Image) {
+        imagesRef.document(image.imageId).set(image).await()
     }
 
     /**
@@ -49,8 +58,8 @@ class ImageRepository(
      *
      * @param image The image to be deleted.
      */
-    fun deleteImage(image: Image) {
-        imagesRef.document(image.imageId).delete()
+    suspend fun deleteImage(image: Image) {
+        imagesRef.document(image.imageId).delete().await()
     }
 
     /**
@@ -59,7 +68,7 @@ class ImageRepository(
      * @param updatedImage The image to be updated. Must have the same `imageId`
      * as the original document.
      */
-    fun updateImage(updatedImage: Image) {
-        imagesRef.document(updatedImage.imageId).set(updatedImage)
+    suspend fun updateImage(updatedImage: Image) {
+        imagesRef.document(updatedImage.imageId).set(updatedImage).await()
     }
 }

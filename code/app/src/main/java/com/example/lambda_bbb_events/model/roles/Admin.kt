@@ -1,11 +1,15 @@
 package com.example.lambda_bbb_events.model.roles
 
-import com.example.lambda_bbb_events.model.Image
 import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.model.UserRole
+//import com.example.lambda_bbb_events.model.Image //maybe used later
+
+/*
+ * Defines admin within the user model.
+ */
 
 /**
- * Moderators are users who can review logs and remove users, campsites, and images.
+ * Admins are users who can review logs and remove users, campsites, and images.
  *
  * @property deviceId The unique ID of the user's device.
  * @property name The user's real name, may be visible to other users.

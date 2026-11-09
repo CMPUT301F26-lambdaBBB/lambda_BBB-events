@@ -2,7 +2,12 @@ package com.example.lambda_bbb_events.view.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// can which ui color is used on later
+/*
+ * Defines reusable colors for the application's UI theme.
+ * finalize global color palette later
+ */
+
+// can which ui color is used on
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

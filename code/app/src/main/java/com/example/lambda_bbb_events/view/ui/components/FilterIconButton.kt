@@ -14,6 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+
+/*
+ * Defines a reusable icon button for opening search filters.
+ */
+
 /**
  * Displays an icon button for opening filtering options.
  *

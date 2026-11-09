@@ -1,5 +1,9 @@
 package com.example.lambda_bbb_events.model
 
+/*
+ * Defines campsite information to represent a listing for campsite
+ */
+
 /**
  * Represents a campsite listing.
  *
@@ -18,6 +22,7 @@ package com.example.lambda_bbb_events.model
  * @property rating The mean rating of the campsite.
  * @property ratingCount The number of ratings of the campsite.
  * @property availability The campsite's availability schedule.
+ * @property active Whether the campsite listing is active.
  */
 data class Campsite(
     val campsiteId: String = "",

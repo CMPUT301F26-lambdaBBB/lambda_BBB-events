@@ -1,13 +1,17 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.LotteryStatus
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import java.util.Date
 
+
+/*
+ * Manages lottery operations and filtering through the repository pattern.
+ */
+
 /**
- * The filters for a list of lotteries.
+ * Define filters for retrieving lotteries by lottery status.
  */
 enum class LotteryFilter {
     ALL,        // all lotteries
@@ -17,9 +21,9 @@ enum class LotteryFilter {
 }
 
 /**
- * Controller for [Lottery]-related operations.
+ * Handles lottery creation, retrieval, and registration.
  *
- * @property lotteryRepository The repository for [Lottery].
+ * @property lotteryRepository Repository for lottery data.
  */
 class LotteryController(
     val lotteryRepository: LotteryRepository

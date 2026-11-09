@@ -21,6 +21,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import java.time.LocalDate
 import java.util.Locale
+
+/*
+ * Provides a date input field with automatic formatting
+ * and an Android calendar date picker.
+ */
+
 /**
  * Displays an editable date field with a calendar date picker.
  *

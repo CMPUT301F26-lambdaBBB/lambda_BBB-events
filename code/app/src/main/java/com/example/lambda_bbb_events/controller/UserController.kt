@@ -6,6 +6,12 @@ import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import com.example.lambda_bbb_events.model.roles.Entrant
 
+/*
+ * Manages user profiles, roles, and notification settings
+ * through the repository.
+ *
+ */
+
 /**
  * Controller for user-related operations.
  *
@@ -17,22 +23,29 @@ class UserController(
     val userRepository: UserRepository,
     val deviceId: String
 ) {
+    /** The current user, or null if not found. */
     val currentUser: User? // null if user not found in database
         get() = userRepository.getCachedUser(deviceId)
 
     // use this var for signed in user. only use inside the main app when a user exists
     // so we dont need to consider null exceptions
+    /** The signed-in user; throws if none exists. */
     val user: User
         get() = currentUser ?: error("No signed-in user")
 
+    /** Whether user data has finished loading. */
     val usersFullyLoaded: Boolean
         get() = userRepository.usersFullyLoaded
 
+
     /**
-     * Creates an Entrant user.
+     * Creates an entrant profile if none exists.
      *
-     * @return `true` if the profile was created, `false` if any one of `name`, `email`,
-     * `phone` is blank.
+     * @param name The user's name.
+     * @param email The user's email address.
+     * @param phone The user's phone number.
+     * @return True if creation was submitted; false if invalid
+     * or a user already exists.
      */
     suspend fun createEntrant(name: String, email: String, phone: String): Boolean {
         if (currentUser != null || !isValidProfile(name, email, phone)) return false
@@ -48,11 +61,15 @@ class UserController(
         return true
     }
 
+
     /**
-     * Updates an Entrant user information.
+     * Updates the current user's profile information.
      *
-     * @return `true` if the profile was updated, `false` if any one of `name`, `email`,
-     * `phone` is blank.
+     * @param name The updated name.
+     * @param email The updated email address.
+     * @param phone The updated phone number.
+     * @return True if the update was submitted; false if
+     * the input is invalid or no user exists.
      */
     suspend fun updateEntrant(name: String, email: String, phone: String): Boolean {
         if (currentUser == null || !isValidProfile(name, email, phone)) return false

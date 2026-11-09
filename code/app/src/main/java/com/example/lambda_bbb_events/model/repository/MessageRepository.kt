@@ -4,6 +4,11 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
+
+/*
+ * Manages message data and synchronizes it with Firestore.
+ */
 
 /**
  *  Handle the data in the Firestore database for the [Message] class.
@@ -31,6 +36,7 @@ class MessageRepository {
         }
     }
 
+    /** Cached messages synchronized with Firestore. */
     val messages : List<Message>
         get() = _messages
 
@@ -39,8 +45,8 @@ class MessageRepository {
      *
      * @param message The message to add.
      */
-    fun addMessage(message: Message) {
-        messagesRef.document(message.messageId).set(message)
+    suspend fun addMessage(message: Message) {
+        messagesRef.document(message.messageId).set(message).await()
     }
 
     /**
@@ -48,17 +54,17 @@ class MessageRepository {
      *
      * @param message The message to be deleted.
      */
-    fun deleteMessage(message: Message) {
-        messagesRef.document(message.messageId).delete()
+    suspend fun deleteMessage(message: Message) {
+        messagesRef.document(message.messageId).delete().await()
     }
 
+
     /**
-     * Overwrites an existing message in the Firestore database with updated data.
+     * Saves a message to Firestore, creating it if absent.
      *
-     * @param updatedMessage The message to be updated. Must have the same `messageId`
-     * as the original document.
+     * @param updatedMessage The message data to save.
      */
-    fun updateMessage(updatedMessage: Message) {
-        messagesRef.document(updatedMessage.messageId).set(updatedMessage)
+    suspend fun updateMessage(updatedMessage: Message) {
+        messagesRef.document(updatedMessage.messageId).set(updatedMessage).await()
     }
 }

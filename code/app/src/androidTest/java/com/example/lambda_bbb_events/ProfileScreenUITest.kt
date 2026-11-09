@@ -5,9 +5,11 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.printToLog
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -142,6 +144,7 @@ class ProfileScreenUITest {
             .performTextReplacement("7809876543")
 
         composeTestRule.onNodeWithText("Save Changes")
+            .performScrollTo()
             .performClick()
 
         coVerify(exactly = 1) {
@@ -165,11 +168,16 @@ class ProfileScreenUITest {
         composeTestRule.onNodeWithText("Edit Profile")
             .performClick()
 
+        composeTestRule
+            .onNodeWithText("Save Changes")
+            .performScrollTo()
+            .assertIsDisplayed()
+
         composeTestRule.onNodeWithText("Save Changes")
             .performClick()
 
         composeTestRule.onNodeWithText(
-            "Unable to create account. Please review your information."
-        ).assertIsDisplayed()
+            "Unable to update profile. Please review your information."
+        ).performScrollTo().assertIsDisplayed()
     }
 }

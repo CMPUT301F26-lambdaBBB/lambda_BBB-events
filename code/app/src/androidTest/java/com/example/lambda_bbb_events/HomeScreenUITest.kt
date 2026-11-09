@@ -1,5 +1,8 @@
+package com.example.lambda_bbb_events
+
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -46,7 +49,7 @@ class HomeScreenUITest {
             .performTextInput("University")
 
         composeTestRule.onNodeWithTag("searchInput")
-            .assertTextEquals("University")
+            .assertTextContains("University")
     }
 
     @Test

@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.controller
 
 import androidx.compose.runtime.getValue
@@ -10,6 +11,12 @@ import com.google.firebase.Timestamp
 import com.example.lambda_bbb_events.model.roles.CampsiteOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+/*
+ * Manages campsite operations, searching, and filtering
+ * through the repository.
+ *
+ */
+
 
 /**
  * Controller for [Campsite]-related operations.
@@ -20,16 +27,22 @@ class CampsiteController(
     val campsiteRepository: CampsiteRepository
 ) {
     /**
-     * Adds a new campsite to the repository and Firestore database.
+     * Adds a campsite to the repository.
+     *
+     * @param campsite The campsite to add.
      */
     suspend fun addCampsite(campsite: Campsite) {
         campsiteRepository.addCampsite(campsite)
     }
+    /** The current campsite search query. */
     var searchQuery by mutableStateOf("")
 
+
+    /** All campsites retrieved from the repository. */
     val campsites: List<Campsite>
         get() = campsiteRepository.campsites
 
+    /** Campsites available after applying Explore filters. */
     val exploreCampsites: List<Campsite>
         get() = if (campsiteRepository.isExploreFiltered) {
             campsiteRepository.filteredCampsites
@@ -37,12 +50,15 @@ class CampsiteController(
             campsiteRepository.campsites
         }
 
+    /** Whether campsite filtering is in progress. */
     val isFiltering: Boolean
         get() = campsiteRepository.isFiltering
 
+    /** The current filtering error, or null if none exists. */
     val filterError: String?
         get() = campsiteRepository.filterError
 
+    /** Whether Explore filters are currently applied. */
     val isExploreFiltered: Boolean
         get() = campsiteRepository.isExploreFiltered
 
@@ -59,7 +75,7 @@ class CampsiteController(
     /**
      * Gets a list [Campsite] made by a user.
      *
-     * @param ownerId The [CampsiteOwner] that made the campsites.
+     * @param ownerId The ID of the campsite owner.
      * @return A list of [Campsite] associated with the owner.
      */
     fun getCampsitesByOwner(ownerId: String): List<Campsite> {
@@ -75,7 +91,7 @@ class CampsiteController(
      * @param maxOccupancyText The new max occupancy.
      * @param description The new description.
      * @param rulesPolicies The new rules and policies.
-     * @param tags The new tags separated by commas.
+     * @param tags The updated list of campsite tags.
      * @return `true` if the campsite was updated successfully, `false` otherwise.
      */
     suspend fun updateCampsite(

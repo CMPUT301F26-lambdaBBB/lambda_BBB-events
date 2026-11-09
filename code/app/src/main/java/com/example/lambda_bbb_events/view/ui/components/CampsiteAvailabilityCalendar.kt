@@ -21,6 +21,11 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+/*
+ * Defines an interactive calendar for selecting campsite booking dates.
+ * Displays available, unavailable, and selected dates.
+ */
+
 private val availableColor = Color.White
 private val bookedColor = Color(0xFFF9D3DF)
 private val selectedColor = Color(0xFF89F5A3)

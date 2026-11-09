@@ -12,10 +12,19 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
-/**
- * Handles the data in the Firestore database for the [Campsite] class.
+/*
+ * Manages campsite data and filtering in Firestore.
+ * TODO: Complete date-filtered results handling.
  */
-class CampsiteRepository {
+
+
+
+/**
+ * Manages campsite storage, retrieval, and filtering in Firestore.
+ *
+ * @param enableListener Whether to listen for live database updates.
+ */
+class CampsiteRepository(enableListener: Boolean = true) {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
 
@@ -23,23 +32,27 @@ class CampsiteRepository {
     private val _filteredCampsites = mutableStateListOf<Campsite>()
     private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
+
     init {
-        listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
+        if (enableListener) {
+            listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
 
-            _campsites.clear()
+                _campsites.clear()
 
-            snapshot?.documents?.forEach { document ->
-                val campsite = document.toObject(Campsite::class.java)
-                if (campsite != null) {
-                    _campsites.add(campsite)
+                snapshot?.documents?.forEach { document ->
+                    val campsite = document.toObject(Campsite::class.java)
+                    if (campsite != null) {
+                        _campsites.add(campsite)
+                    }
                 }
             }
         }
     }
 
+    /** Cached campsite listings. */
     val campsites: List<Campsite>
         get() = _campsites
 
@@ -60,7 +73,7 @@ class CampsiteRepository {
     }
 
     /**
-     * Deletes a campsite from the Firestore database.
+     * Deletes a campsite from the Firestore database
      *
      * @param campsite The campsite to be deleted.
      */
@@ -126,15 +139,19 @@ class CampsiteRepository {
         return result
     }
 
+    /** Campsites matching the applied filters. */
     val filteredCampsites: List<Campsite>
         get() = _filteredCampsites
 
+    /** Whether Explore filtering is enabled. */
     var isExploreFiltered by mutableStateOf(false)
         private set
 
+    /** Whether a filter request is running. */
     var isFiltering by mutableStateOf(false)
         private set
 
+    /** The latest filter error, or null. */
     var filterError by mutableStateOf<String?>(null)
         private set
 
@@ -263,11 +280,11 @@ class CampsiteRepository {
                 val availableCampsites = matchingCampsites.filterNot {
                     it.campsiteId in occupiedIds
                 }
+                complete(availableCampsites)
 
-
-            } else {
-                complete(matchingCampsites)
-            }
+                }
+                else { complete(matchingCampsites)
+                }
 
         } catch (error: Exception) {
             fail(error)
@@ -288,6 +305,9 @@ class CampsiteRepository {
         _filteredCampsites.clear()
     }
 
+    /**
+     * Removes the Firestore snapshot listener.
+     */
     fun close() {
         listenerRegistration?.remove()
         listenerRegistration = null

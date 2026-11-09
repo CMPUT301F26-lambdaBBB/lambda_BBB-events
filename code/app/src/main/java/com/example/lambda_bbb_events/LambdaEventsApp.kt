@@ -29,14 +29,22 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsS
 import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
 import com.example.lambda_bbb_events.view.ui.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.RegistrationStatusScreen
+import com.example.lambda_bbb_events.view.ui.RuleConfirmScreen
 import com.example.lambda_bbb_events.view.ui.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import java.time.LocalDate
 
+/*
+ * Displays loading and signup states before opening the
+ * main application, and defines navigation routes for
+ * campsite browsing, reservations, lotteries, and profiles.
+ *
+ * layout issues on smaller screens could be an issue.
+ */
 
 /**
- * Main entry point for the application
+ * Root composable that controls application startup.
  *
  * Displays a loading indicator while user data loads,
  * then opens either the signup screen or the main application
@@ -91,9 +99,9 @@ private fun MainApp(controllers: AppControllers) {
         ) {
             composable("signup") { SignupScreen(navController, controllers) }
             composable("home") { HomeScreen(navController, controllers) }
-            composable("active_bookings") { ActiveBookingsScreen(navController) }
+            composable("active_bookings") { ActiveBookingsScreen(navController, controllers) }
             composable("past_bookings") { PastBookingsScreen(navController) }
-            composable("lottery_bookings") { LotteryBookingsScreen(navController) }
+            composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
@@ -117,6 +125,23 @@ private fun MainApp(controllers: AppControllers) {
                 val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
 
                 RegistrationStatusScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    campsiteId = campsiteId,
+                    fromDate = fromDate,
+                    endDate = endDate,
+                    numPeople = numPeople
+                )
+            }
+            composable(
+                route = "rule_confirm/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
+                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
+                val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
+                RuleConfirmScreen(
                     navController = navController,
                     controllers = controllers,
                     campsiteId = campsiteId,
