@@ -10,7 +10,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.LotteryStatus
-import com.example.lambda_bbb_events.view.ui.RuleConfirmScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScreen
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

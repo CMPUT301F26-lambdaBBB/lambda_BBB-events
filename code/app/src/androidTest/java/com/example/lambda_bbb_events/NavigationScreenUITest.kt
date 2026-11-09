@@ -13,9 +13,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.HomeScreen
-import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
-import com.example.lambda_bbb_events.view.ui.ProfileScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
 import io.mockk.mockk
 import org.junit.Before
@@ -23,7 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.navigation.NavHostController
-import com.example.lambda_bbb_events.view.ui.ExploreMapScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
 
 @RunWith(AndroidJUnit4::class)
 class NavigationScreenUITest {

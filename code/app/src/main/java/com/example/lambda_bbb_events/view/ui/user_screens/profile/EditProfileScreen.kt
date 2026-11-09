@@ -1,0 +1,131 @@
+package com.example.lambda_bbb_events.view.ui.user_screens.profile
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import kotlinx.coroutines.launch
+
+/*
+ * Provides a screen for editing the current user's profile
+ */
+
+/**
+ * Allows users to edit their profile information.
+ *
+ * Displays editable name, email, and phone fields.
+ * Saves changes and displays an error if the update fails.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Retrieves and updates user information.
+ */
+@Composable
+fun EditProfileScreen(
+    navController: NavController,
+    controllers: AppControllers
+) {
+    val user: User = controllers.users.user
+
+    var name by remember { mutableStateOf(user.name) }
+    var email by remember { mutableStateOf(user.email) }
+    var phone by remember { mutableStateOf(user.phone) }
+    var showCreationError by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ScreenTitle("Edit Profile", navController, showNotifications = false)
+
+        Spacer(Modifier.height(16.dp))
+
+        // placeholder: profile picture goes here
+        Icon(
+            Icons.Default.AccountCircle,
+            contentDescription = null,
+            modifier = Modifier.size(165.dp)
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        FormTextFieldWithTitle(
+            title = "Name",
+            value = name,
+            onValueChange = { name = it },
+            placeholder = "Yuta",
+            modifier = Modifier.testTag("edit_profile_name")
+        )
+
+        FormTextFieldWithTitle(
+            title = "Email",
+            value = email,
+            onValueChange = { email = it },
+            placeholder = "yuta@hotmail.com",
+            modifier = Modifier.testTag("edit_profile_email")
+        )
+
+        FormTextFieldWithTitle(
+            title = "Phone Number",
+            value = phone,
+            onValueChange = { phone = it },
+            placeholder = "+1",
+            modifier = Modifier.testTag("edit_profile_phone")
+        )
+
+        Spacer(Modifier.height(64.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    val successful =
+                        controllers.users.updateEntrant(name.trim(), email.trim(), phone.trim())
+                    if (successful) {
+                        navController.navigate("profile")
+                    } else {
+                        showCreationError = true
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text("Save Changes", fontWeight = FontWeight.Bold)
+        }
+
+        if (showCreationError) {
+            Text("Unable to update profile. Please review your information.")
+        }
+    }
+}
