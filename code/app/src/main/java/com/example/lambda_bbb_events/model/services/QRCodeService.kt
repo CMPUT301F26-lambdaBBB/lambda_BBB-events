@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.model
+package com.example.lambda_bbb_events.model.services
 
 import android.content.Context
 import android.graphics.Bitmap

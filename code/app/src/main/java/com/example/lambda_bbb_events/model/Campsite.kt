@@ -1,5 +1,7 @@
 package com.example.lambda_bbb_events.model
 
+import com.example.lambda_bbb_events.model.AvailabilitySchedule
+
 /*
  * Defines campsite information to represent a listing for campsite
  */
