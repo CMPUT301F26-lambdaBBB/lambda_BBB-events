@@ -22,6 +22,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.util.Locale
 
 
@@ -47,7 +48,7 @@ fun ClickableMap(
 ) {
     val context = LocalContext.current
     var selectedPosition by remember { mutableStateOf(initialLocation) }
-    val markerState = rememberMarkerState(position = selectedPosition)
+    val markerState = rememberUpdatedMarkerState(position = selectedPosition)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialLocation, 13f)
     }
