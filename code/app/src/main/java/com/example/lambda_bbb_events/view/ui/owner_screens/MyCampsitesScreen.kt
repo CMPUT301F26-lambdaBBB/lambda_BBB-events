@@ -66,36 +66,31 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
                 title = "My Campsites",
                 navController = navController
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            controllers.users.becomeOwner()
-                            navController.navigate("create_campsite")
-                        }
+            Button(
+                onClick = {
+                    scope.launch {
+                        controllers.users.becomeOwner()
+                        navController.navigate("create_campsite")
                     }
-                ) {
-                    Text("+ Create Campsite")
-                }
-                Button(
-                    onClick = {
-                        val firstCampsiteId = myCampsites.firstOrNull()?.campsiteId ?: ""
-                        if (firstCampsiteId.isNotEmpty()) {
-                            navController.navigate("manage_lottery/$firstCampsiteId")
-                        } else {
-                            Toast.makeText(context, "No campsite is created yet", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Manage Lottery")
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("+ Create Campsite")
             }
+            Button(
+                onClick = {
+                    val firstCampsiteId = myCampsites.firstOrNull()?.campsiteId ?: ""
+                    if (firstCampsiteId.isNotEmpty()) {
+                        navController.navigate("manage_lottery/$firstCampsiteId")
+                    } else {
+                        Toast.makeText(context, "No campsite is created yet", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manage Lottery")
+            }
+
 
             Spacer(modifier = Modifier.height(20.dp))
 
