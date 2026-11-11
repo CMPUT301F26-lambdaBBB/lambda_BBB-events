@@ -1,5 +1,7 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,8 +32,8 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 
 /*
- * Defines the ome screen, has campsite
- * searching, filtering, and featured listing sections.
+ * Defines the home screen with campsite searching,
+ * filtering, and featured listing sections.
  *
  * TODO: Display actual recently viewed and featured campsites.
  * TODO: Implement the See All actions for both sections.
@@ -46,40 +49,52 @@ import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
  * @param controllers Manages campsite searches and filters.
  */
 @Composable
-fun HomeScreen(navController: NavController, controllers: AppControllers) {
+fun HomeScreen(
+    navController: NavController,
+    controllers: AppControllers
+) {
     var query by remember { mutableStateOf("") }
-    var openFilter by remember {mutableStateOf(false)}
+    var openFilter by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            BottomNavigationBar(
-                navController
-            )
+            BottomNavigationBar(navController)
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Home",
                 navController = navController
             )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 SearchBar(
                     label = "Search Campsites",
                     placeholder = "Search campsites...",
                     query = query,
-                    onQueryChange = { query = it },
+                    onQueryChange = {
+                        query = it
+                    },
                     onSearch = {
                         controllers.campsites.search(query)
                         navController.navigate("explore_default")
                     },
-                    modifier = Modifier.fillMaxWidth(0.85f).testTag("searchInput")
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .testTag("searchInput")
                 )
 
                 FilterIconButton(
@@ -89,19 +104,28 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
                 )
             }
 
+
             Spacer(modifier = Modifier.height(25.dp))
 
-            Box (modifier = Modifier.testTag("recentlyViewedSection")) {
+            Box(
+                modifier = Modifier.testTag("recentlyViewedSection")
+            ) {
                 HorizontalCardSection(
-                    "Recently Viewed",
-                    onSeeAll = { /* do something */ }
+                    title = "Recently Viewed",
+                    onSeeAll = {
+                        // TODO: Implement See All navigation.
+                    }
                 )
             }
 
-            Box (modifier = Modifier.testTag("featuredCampsitesSection")) {
+            Box(
+                modifier = Modifier.testTag("featuredCampsitesSection")
+            ) {
                 HorizontalCardSection(
-                    "Featured Campsites",
-                    onSeeAll = { /* do something */ }
+                    title = "Featured Campsites",
+                    onSeeAll = {
+                        // TODO: Implement See All navigation.
+                    }
                 )
             }
         }
@@ -121,5 +145,4 @@ fun HomeScreen(navController: NavController, controllers: AppControllers) {
             }
         )
     }
-
 }

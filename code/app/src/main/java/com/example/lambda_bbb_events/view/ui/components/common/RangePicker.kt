@@ -1,21 +1,29 @@
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /*
- * Defines a reusable range slider for selecting minimum and maximum numerical values.
+ * Defines a reusable range slider for selecting
+ * minimum and maximum numerical values.
  */
 
 /**
- * Displays a range slider for numbers from a minimum to maximum range
+ * Displays a range slider for numbers from a minimum to maximum range.
  *
- * Users can drag the nodes at the start and the end to adjust the range
+ * Users can drag the nodes at the start and end to adjust the range.
  *
  * @param value The currently selected range.
  * @param onValueChange Callback invoked when the range changes.
@@ -39,8 +47,17 @@ fun RangePicker(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Range")
-            Text("${value.start.toInt()}-${value.endInclusive.toInt()}")
+            Text(
+                text = "Range",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Text(
+                text = "${value.start.toInt()}-${value.endInclusive.toInt()}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
 
         RangeSlider(
@@ -50,15 +67,20 @@ fun RangePicker(
             modifier = Modifier.fillMaxWidth(),
 
             colors = SliderDefaults.colors(
-                activeTrackColor = Color.LightGray,
-                inactiveTrackColor = Color.LightGray
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                activeTickColor = MaterialTheme.colorScheme.onPrimary,
+                inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
 
             startThumb = {
                 Box(
                     modifier = Modifier
                         .size(20.dp)
-                        .background(Color.DarkGray, CircleShape)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
                 )
             },
 
@@ -66,7 +88,10 @@ fun RangePicker(
                 Box(
                     modifier = Modifier
                         .size(20.dp)
-                        .background(Color.DarkGray, CircleShape)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
                 )
             }
         )

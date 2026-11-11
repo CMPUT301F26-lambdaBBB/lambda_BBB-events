@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.filter
 
 import RangePicker
@@ -9,11 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.view.ui.components.rating.PickRatingStars
 import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
@@ -26,10 +24,8 @@ import java.util.TimeZone
 import kotlin.math.roundToInt
 
 /*
- * Provides filtering campsites by date, location, guest capacity, and minimum rating.
- *
- * content might not scrollable on smaller screens.
- *
+ * Provides filtering campsites by date, location,
+ * guest capacity, and minimum rating.
  */
 
 /**
@@ -58,12 +54,14 @@ fun HomeCampsiteFilter(
     val startTimestamp = remember(fromDate) {
         parseFilterDate(fromDate)
     }
+
     val endTimestamp = remember(toDate) {
         parseFilterDate(toDate)
     }
 
     val datesValid = when {
         fromDate.isBlank() && toDate.isBlank() -> true
+
         startTimestamp != null && endTimestamp != null ->
             startTimestamp < endTimestamp
 
@@ -76,25 +74,30 @@ fun HomeCampsiteFilter(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             Text(
                 text = "Filters",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 12.dp)
             )
 
-            HorizontalDivider(color = Color.LightGray)
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
+            // Date range
             FilterHeader(
                 title = "Date Range",
                 onReset = {
@@ -111,23 +114,43 @@ fun HomeCampsiteFilter(
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("From")
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "From",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                     DatePickerField(
                         value = fromDate,
-                        onValueChange = { fromDate = it },
-                        modifier = Modifier.fillMaxWidth().testTag("fromDateInput")
+                        onValueChange = {
+                            fromDate = it
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("fromDateInput")
                     )
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "To")
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "To",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                     DatePickerField(
                         value = toDate,
-                        onValueChange = { toDate = it },
-                        modifier = Modifier.fillMaxWidth().testTag("toDateInput")
+                        onValueChange = {
+                            toDate = it
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("toDateInput")
                     )
                 }
             }
@@ -135,66 +158,99 @@ fun HomeCampsiteFilter(
             if (!datesValid) {
                 Text(
                     text = "Please select a valid date range.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.testTag("dateRangeError")
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color.LightGray)
 
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Location
             FilterHeader(
                 title = "Location",
-                onReset = { location = "" },
+                onReset = {
+                    location = ""
+                },
                 titleTag = "locationLabel",
                 resetTag = "locationResetButton"
             )
 
             FormTextField(
                 value = location,
-                onValueChange = { location = it },
+                onValueChange = {
+                    location = it
+                },
                 placeholder = "Search",
-                modifier = Modifier.fillMaxWidth().testTag("locationInput")
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("locationInput")
             )
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color.LightGray)
 
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Number of guests
             FilterHeader(
                 title = "Number of Guests",
-                onReset = { guestRange = 0f..100f },
+                onReset = {
+                    guestRange = 0f..100f
+                },
                 titleTag = "guestsLabel",
                 resetTag = "guestResetButton"
             )
 
             RangePicker(
                 value = guestRange,
-                onValueChange = { guestRange = it },
+                onValueChange = {
+                    guestRange = it
+                },
                 min = 0f,
                 max = 100f,
-                modifier = Modifier.fillMaxWidth().testTag("guestRangeInput")
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("guestRangeInput")
             )
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color.LightGray)
 
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Rating
             FilterHeader(
                 title = "Rating",
-                onReset = { rating = 0 },
+                onReset = {
+                    rating = 0
+                },
                 titleTag = "ratingLabel",
                 resetTag = "ratingResetButton"
             )
 
             PickRatingStars(
                 rating = rating,
-                onRatingChange = { rating = it }
+                onRatingChange = {
+                    rating = it
+                }
             )
 
-
             Spacer(modifier = Modifier.height(20.dp))
-            HorizontalDivider(color = Color.LightGray)
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Apply filters
             Button(
                 onClick = {
                     campsiteController.applyFilters(
@@ -216,14 +272,21 @@ fun HomeCampsiteFilter(
                     .height(52.dp)
                     .testTag("showResultsButton"),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.LightGray,
-                    contentColor = Color.Black,
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.Gray
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.12f
+                    ),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.38f
+                    )
                 ),
                 shape = RoundedCornerShape(30.dp)
             ) {
-                Text("Show Results")
+                Text(
+                    text = "Show Results",
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -239,7 +302,6 @@ fun HomeCampsiteFilter(
  * @param titleTag Test tag used to identify the section heading.
  * @param resetTag Test tag used to identify the reset button.
  */
-
 @Composable
 private fun FilterHeader(
     title: String,
@@ -254,7 +316,8 @@ private fun FilterHeader(
     ) {
         Text(
             text = title,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .weight(1f)
                 .testTag(titleTag)
@@ -264,7 +327,11 @@ private fun FilterHeader(
             onClick = onReset,
             modifier = Modifier.testTag(resetTag)
         ) {
-            Text("Reset")
+            Text(
+                text = "Reset",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -280,7 +347,6 @@ private fun FilterHeader(
  * @return The parsed [Timestamp], or null if parsing fails
  * or the input is blank.
  */
-
 private fun parseFilterDate(value: String): Timestamp? {
     if (value.isBlank()) return null
 

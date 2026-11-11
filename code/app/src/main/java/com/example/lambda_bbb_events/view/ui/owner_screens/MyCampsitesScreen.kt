@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
 import android.widget.Toast
@@ -12,12 +13,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
@@ -25,15 +30,13 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCampsiteCard
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-
 
 /*
  * Displays campsites owned by the current user and provides
  * navigation for creating campsites and managing lotteries.
  *
- * owner registration before campsite creation might need some work
+ * Owner registration before campsite creation might need some work.
  */
 
 /**
@@ -46,31 +49,43 @@ import kotlinx.coroutines.launch
  * @param controllers Retrieves campsite data and manages owner permissions.
  */
 @Composable
-fun MyCampsitesScreen(navController: NavController, controllers: AppControllers) {
+fun MyCampsitesScreen(
+    navController: NavController,
+    controllers: AppControllers
+) {
     val context = LocalContext.current
     val user: User? = controllers.users.currentUser
-    val myCampsites: List<Campsite> = controllers.campsites.getCampsitesByOwner(user?.deviceId ?: "")
+
+    val myCampsites: List<Campsite> =
+        controllers.campsites.getCampsitesByOwner(
+            user?.deviceId ?: ""
+        )
+
     val scope = rememberCoroutineScope()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         bottomBar = {
-            BottomNavigationBar(
-                navController
-            )
+            BottomNavigationBar(navController)
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             ScreenTitle(
                 title = "My Campsites",
                 navController = navController
             )
+
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
                     onClick = {
@@ -78,27 +93,51 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
                             controllers.users.becomeOwner()
                             navController.navigate("create_campsite")
                         }
-                    }
+                    },
+                    modifier = Modifier.weight(1.3f)
                 ) {
-                    Text("+ Create Campsite")
+                    Text(
+                        text = "+ Create Campsite",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontSize = 12.sp,
+                        maxLines = 1
+                    )
                 }
-                Button(
+
+                OutlinedButton(
                     onClick = {
-                        val firstCampsiteId = myCampsites.firstOrNull()?.campsiteId ?: ""
+                        val firstCampsiteId =
+                            myCampsites.firstOrNull()?.campsiteId ?: ""
+
                         if (firstCampsiteId.isNotEmpty()) {
-                            navController.navigate("manage_lottery/$firstCampsiteId")
+                            navController.navigate(
+                                "manage_lottery/$firstCampsiteId"
+                            )
                         } else {
-                            Toast.makeText(context, "No campsite is created yet", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "No campsite is created yet",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Manage Lottery")
+                    Text(
+                        text = "Manage Lottery",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontSize = 12.sp,
+                        maxLines = 1
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
 
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            // Campsites owned by the current user
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -106,7 +145,11 @@ fun MyCampsitesScreen(navController: NavController, controllers: AppControllers)
                 items(myCampsites) { campsite ->
                     VerticalCampsiteCard(
                         campsite = campsite,
-                        onClick = { navController.navigate("owner_campsite_details/${campsite.campsiteId}") }
+                        onClick = {
+                            navController.navigate(
+                                "owner_campsite_details/${campsite.campsiteId}"
+                            )
+                        }
                     )
                 }
             }

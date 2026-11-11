@@ -1,7 +1,10 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,7 +14,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationInformationBox
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
-import com.example.lambda_bbb_events.view.ui.theme.Pink40
+import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import java.time.LocalDate
 
 /*
@@ -21,16 +24,12 @@ import java.time.LocalDate
  * TODO: Display a message when lottery registration is closed.
  */
 
-
 /**
  * Displays the campsite registration status and lottery entry options.
  *
  * Shows the selected reservation details and allows users
  * to join an available lottery. Checks whether registration
  * is open and whether the lottery is full.
- *
- * Successful entries navigate to the lottery confirmation
- * screen, while failed entries display an error message.
  *
  * @param navController The [NavController] used for navigation.
  * @param controllers The [AppControllers] used to access campsite,
@@ -56,6 +55,8 @@ fun RegistrationStatusScreen(
 
     val entrantId = controllers.users.deviceId
 
+    val statusColors = MaterialTheme.bookingStatusColors
+
     var message by remember(campsiteId, entrantId) {
         mutableStateOf("")
     }
@@ -63,6 +64,7 @@ fun RegistrationStatusScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -74,8 +76,8 @@ fun RegistrationStatusScreen(
 
         RegistrationStatusBox(
             registrationStatus = "Lottery Required",
-            message = "Join Lottery to win the Ticket to the campsite",
-            boxColor = Pink40
+            message = "Join the lottery for a chance to reserve this campsite.",
+            boxColor = statusColors.pendingBackground
         )
 
         RegistrationInformationBox(
@@ -84,7 +86,6 @@ fun RegistrationStatusScreen(
             endDate = endDate,
             numPeople = numPeople
         )
-
 
         Button(
             onClick = {
@@ -98,17 +99,32 @@ fun RegistrationStatusScreen(
                     lottery.isRegistrationOpen() &&
                     !lottery.isFull()
         ) {
-            Text("Join Lottery")
+            Text(
+                text = "Join Lottery",
+                style = MaterialTheme.typography.labelLarge
+            )
         }
 
         if (lottery == null) {
-            Text("No open lottery available")
+            Text(
+                text = "No open lottery available",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         } else if (lottery.isFull()) {
-            Text("Lottery waitlist is full")
+            Text(
+                text = "Lottery waitlist is full",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         if (message.isNotEmpty()) {
-            Text(message)
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

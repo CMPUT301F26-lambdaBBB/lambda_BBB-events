@@ -1,5 +1,7 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,17 +12,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationInformationBox
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import java.time.LocalDate
 
 /*
  * Displays the lottery entry confirmation screen,
- * including campsite information and reservation information
+ * including campsite and reservation information.
  */
 
 /**
@@ -47,9 +49,12 @@ fun LotteryEnteredScreen(
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
+    val statusColors = MaterialTheme.bookingStatusColors
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -61,13 +66,13 @@ fun LotteryEnteredScreen(
 
         Spacer(modifier = Modifier.height(64.dp))
 
-        // Green success circle
+        // Success indicator using theme colors
         Box(
             modifier = Modifier
                 .size(180.dp)
                 .border(
                     width = 6.dp,
-                    color = Color(0xFFD5F9DE),
+                    color = statusColors.availableBackground,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -75,7 +80,7 @@ fun LotteryEnteredScreen(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "Successfully entered",
-                tint = Color(0xFF00A51B),
+                tint = statusColors.available,
                 modifier = Modifier.size(120.dp)
             )
         }
@@ -101,12 +106,12 @@ fun LotteryEnteredScreen(
                 }
             },
             modifier = Modifier.width(200.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8B2BD8)
-            )
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Text("Go Home")
+            Text(
+                text = "Go Home",
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }

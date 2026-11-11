@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.common
 
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -6,17 +7,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 /*
- * Defines a reusable search bar
+ * Defines a reusable search bar using the application's
+ * Material 3 theme.
  */
 
 /**
@@ -42,36 +44,68 @@ fun SearchBar(
 ) {
     OutlinedTextField(
         value = query,
-        onValueChange = { query ->
-            onQueryChange(query)
+        onValueChange = { newQuery ->
+            onQueryChange(newQuery)
         },
-        label = { Text(label) },
-        placeholder = { Text(placeholder) },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        placeholder = {
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
         modifier = modifier,
         leadingIcon = {
-            Icon(imageVector = Icons.Outlined.Search, contentDescription = "Search Icon")
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search Icon"
+            )
         },
+        textStyle = MaterialTheme.typography.bodyLarge,
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
+
         colors = OutlinedTextFieldDefaults.colors(
-            // to yuta: change these so colors are not hard coded; add colors in ui.theme.Color
+            // Search bar background
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
 
-            // this is background color of search bar
-            focusedContainerColor = Color(0xFFF2F2F2),
-            unfocusedContainerColor = Color(0xFFF2F2F2),
+            // Input text
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
 
-            // this is border color of search bar
-            unfocusedBorderColor = Color.LightGray,
-            focusedBorderColor = Color.Gray,
+            // Search bar border
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 
-            // this is your cursor color, the thing that's blinking when u type
-            cursorColor = Color.Gray,
+            // Cursor
+            cursorColor = MaterialTheme.colorScheme.primary,
 
-            // this is color of the label at the top of the search bar when typing, u can remove if no likey
-            focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray,
+            // Floating label
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+            // Placeholder
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+            // Search icon
+            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onSearch() })
+
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                onSearch()
+            }
+        )
     )
 }

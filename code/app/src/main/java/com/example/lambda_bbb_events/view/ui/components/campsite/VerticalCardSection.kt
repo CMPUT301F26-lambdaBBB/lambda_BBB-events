@@ -8,20 +8,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 
 /*
  * Defines a vertically scrollable section of campsite cards
- * and function to press "See All" to view more campsites
+ * and a "See All" action to view more campsites.
  */
 
 /**
@@ -31,8 +29,7 @@ import com.example.lambda_bbb_events.model.Campsite
  *
  * @param title The heading displayed above the campsite list.
  * @param campsites The list of [Campsite] objects to display.
- * @param onCampsiteClick Callback invoked with the selected
- * campsite when a card is clicked.
+ * @param onCampsiteClick Callback invoked with the selected campsite.
  * @param onSeeAll Callback invoked when "See All" is clicked.
  * @param modifier Modifier used to customize the section layout.
  */
@@ -42,40 +39,46 @@ fun VerticalCardSection(
     campsites: List<Campsite>,
     onCampsiteClick: (Campsite) -> Unit,
     onSeeAll: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier.padding(bottom = 25.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                title,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
+
             Text(
                 text = "See All",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF5a4ef5),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .testTag("seeAllButton")
                     .clickable {
-                    onSeeAll()
-                }
+                        onSeeAll()
+                    }
             )
         }
+
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(campsites) { campsite ->
-                VerticalCampsiteCard(campsite, onClick = { onCampsiteClick(campsite) })
+                VerticalCampsiteCard(
+                    campsite = campsite,
+                    onClick = {
+                        onCampsiteClick(campsite)
+                    }
+                )
             }
         }
     }

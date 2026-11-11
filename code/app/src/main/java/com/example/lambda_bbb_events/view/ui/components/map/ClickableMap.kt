@@ -64,7 +64,7 @@ fun ClickableMap(
             onMapClick = { latLng ->
                 selectedPosition = latLng
                 markerState.position = latLng
-                
+
                 // Reverse geocode coordinates to retrieve address and postal code
                 fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->
                     onLocationSelected(latLng, fetchedAddress, fetchedPostalCode)
