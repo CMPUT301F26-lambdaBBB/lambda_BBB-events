@@ -150,7 +150,7 @@ fun CreateLotteryScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cancel", color = Color.Black)
+                    Text("Cancel")
                 }
 
                 Button(
@@ -180,10 +180,6 @@ fun CreateLotteryScreen(
                         .weight(1f)
                         .height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1C1C1E),
-                        contentColor = Color.White
-                    )
                 ) {
                     Text("Create lottery")
                 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,8 +52,8 @@ fun DateRangeCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .border(1.dp, Color(0xFFE5E5E5), cardShape)
-            .background(Color.White)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, cardShape)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(12.dp)
     ) {
         Row(
@@ -69,7 +70,8 @@ fun DateRangeCard(
             Text(
                 text = "Reset",
                 fontSize = 12.sp,
-                color = Color(0xFF5a4ef5),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     onStartDateChange("")
                     onEndDateChange("")
