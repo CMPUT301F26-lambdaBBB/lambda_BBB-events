@@ -93,7 +93,7 @@ fun FormTextFieldWithTitle(
     ) {
         Text(
             text = title,
-            fontSize = 20.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.Start).testTag(titleTag)
         )
