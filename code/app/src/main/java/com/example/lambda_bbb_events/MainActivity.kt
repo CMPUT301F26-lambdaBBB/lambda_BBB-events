@@ -11,10 +11,12 @@ import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +52,7 @@ class MainActivity : ComponentActivity() {
         val campsiteRepository = CampsiteRepository()
         val lotteryRepository = LotteryRepository()
         val reservationRepository = ReservationRepository()
+        val waitlistEntryRepository = WaitlistEntryRepository()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -59,7 +62,8 @@ class MainActivity : ComponentActivity() {
             users = UserController(userRepository, deviceId),
             campsites = CampsiteController(campsiteRepository),
             lotteries = LotteryController(lotteryRepository),
-            reservations = ReservationController(reservationRepository)
+            reservations = ReservationController(reservationRepository),
+            waitlistEntries = WaitlistEntryController(waitlistEntryRepository)
         )
 
         setContent {

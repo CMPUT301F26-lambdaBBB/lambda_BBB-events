@@ -116,7 +116,7 @@ fun OwnerLotteryCard(
 /**
  * A calendar icon next to a label and a date range.
  *
- * @param label The text above the dates, like "Registration:".
+ * @param label The text above the dates (e.g. "Registration:").
  * @param dates The date range text.
  */
 @Composable
@@ -131,8 +131,20 @@ fun PeriodRow(label: String, dates: String) {
             modifier = Modifier.size(20.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy((2).dp)) {
-            Text(text = label, fontSize = 12.sp, lineHeight = 14.sp, color = Color.Gray)
-            Text(text = dates, fontSize = 14.sp, lineHeight = 18.sp)
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = dates,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -189,7 +201,7 @@ fun PhasePill(phase: LotteryPhase) {
  * @param end The end date.
  * @return The range as a string.
  */
-private fun formatDateRange(start: Date, end: Date): String {
+fun formatDateRange(start: Date, end: Date): String {
     val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
 
     return "${formatter.format(start)} - ${formatter.format(end)}"

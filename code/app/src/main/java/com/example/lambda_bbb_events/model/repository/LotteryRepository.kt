@@ -81,14 +81,8 @@ class LotteryRepository {
      * @return The [Lottery] object with the specified lotteryId if it exists. `null` otherwise.
      */
     suspend fun getLottery(lotteryId: String): Lottery? {
-        // there's probably a faster way to do this but i dont understand all the stuff i read in google
-        // someone pls rewrite this, this is temporary
-        for (lottery in _lotteries) {
-            if (lottery.lotteryId == lotteryId) {
-                return lottery
-            }
-        }
-        return null
+        return lotteriesRef.document(lotteryId).get().await()
+            .toObject(Lottery::class.java)
     }
 
     /**
