@@ -27,7 +27,7 @@ import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.lottery.LotteryCard
+import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 
 /*
  * Defines the campsite owner's lottery management screen.
@@ -268,7 +268,7 @@ private fun LotterySection(
     SectionTitle(title)
 
     for (lottery in lotteries) {
-        LotteryCard(
+        OwnerLotteryCard(
             lotteryNumber = allLotteries.indexOf(lottery) + 1,
             lottery = lottery,
             phase = controllers.lotteries.getPhase(lottery),

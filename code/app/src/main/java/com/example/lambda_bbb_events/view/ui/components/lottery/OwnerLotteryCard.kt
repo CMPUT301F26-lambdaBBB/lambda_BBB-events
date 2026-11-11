@@ -43,7 +43,7 @@ import java.util.Locale
  * @param onClick Called when the card is clicked.
  */
 @Composable
-fun LotteryCard(
+fun OwnerLotteryCard(
     lotteryNumber: Int,
     lottery: Lottery,
     phase: LotteryPhase,
@@ -120,7 +120,7 @@ fun LotteryCard(
  * @param dates The date range text.
  */
 @Composable
-private fun PeriodRow(label: String, dates: String) {
+fun PeriodRow(label: String, dates: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -144,7 +144,7 @@ private fun PeriodRow(label: String, dates: String) {
  * @param phase The phase to show.
  */
 @Composable
-private fun PhasePill(phase: LotteryPhase) {
+fun PhasePill(phase: LotteryPhase) {
     val backgroundColor: Color
     val textColor: Color
 

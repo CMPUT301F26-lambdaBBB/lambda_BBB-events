@@ -109,14 +109,14 @@ class WaitlistEntryRepository {
     /**
      * Gets all [WaitlistEntry] of a specific entrant.
      *
-     * @param entrant The entrant to get entries for.
+     * @param entrantId The entrant device ID to get entries for.
      * @return The list of entries made by the entrant.
      */
-    fun getEntriesForEntrant(entrant: Entrant): List<WaitlistEntry> {
+    fun getEntriesForEntrant(entrantId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
         for (entry in _waitlistEntries) {
-            if (entry.entrantId == entrant.deviceId) {
+            if (entry.entrantId == entrantId) {
                 result.add(entry)
             }
         }
