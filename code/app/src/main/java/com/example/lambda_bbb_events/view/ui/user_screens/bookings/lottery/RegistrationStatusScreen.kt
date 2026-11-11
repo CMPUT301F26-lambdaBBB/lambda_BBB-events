@@ -4,7 +4,6 @@ package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -17,7 +16,6 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationInformationBox
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import kotlinx.coroutines.launch

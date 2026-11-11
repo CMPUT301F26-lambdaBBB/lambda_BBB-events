@@ -28,12 +28,13 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun FilterIconButton(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier
-            .size(56.dp)
+        modifier = modifier
+            .size(48.dp)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline,
