@@ -21,4 +21,15 @@ class WaitlistEntryController(
         val entries = waitlistEntryRepository.getEntriesForEntrant(entrantId)
         return entries.sortedByDescending { it.joinedAt }
     }
+
+    /**
+     * Gets a waitlist entry by its unique entry ID.
+     *
+     * @param entryId The ID of the waitlist entry.
+     * @return The matching entry, or null if not found.
+     */
+    fun getEntryById(entryId: String): WaitlistEntry? {
+        return waitlistEntryRepository.waitlistEntries
+            .firstOrNull { it.entryId == entryId }
+    }
 }

@@ -54,6 +54,23 @@ fun CampsiteDetailsScreen(
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
+    val entrantId = controllers.users.deviceId
+
+    val lottery = controllers.lotteries
+        .getOpenLotteryForCampsite(campsiteId)
+
+    val existingEntry = if (lottery != null) {
+        controllers.waitlistEntries
+            .getEntriesForEntrant(entrantId)
+            .firstOrNull { entry ->
+                entry.lotteryId == lottery.lotteryId
+            }
+    } else {
+        null
+    }
+
+    val hasEnteredLottery = existingEntry != null
+
     if (campsite == null) {
         Box(
             modifier = Modifier
@@ -248,9 +265,15 @@ fun CampsiteDetailsScreen(
 
                 Button(
                     onClick = {
-                        navController.navigate(
-                            "campsite_check_availability/${campsite.campsiteId}"
-                        )
+                        if (hasEnteredLottery) {
+                            navController.navigate(
+                                "registrationStatus/${existingEntry!!.entryId}"
+                            )
+                        } else {
+                            navController.navigate(
+                                "campsite_check_availability/$campsiteId"
+                            )
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -258,7 +281,11 @@ fun CampsiteDetailsScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "Check Availability",
+                        text = if (hasEnteredLottery) {
+                            "Registration Status"
+                        } else {
+                            "Check Availability"
+                        },
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
