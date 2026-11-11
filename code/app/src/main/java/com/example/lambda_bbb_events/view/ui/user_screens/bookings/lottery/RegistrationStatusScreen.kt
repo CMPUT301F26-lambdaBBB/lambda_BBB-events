@@ -11,60 +11,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationInformationBox
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import java.time.LocalDate
 
-/*
- * Displays campsite registration information and allows
- * users to enter an open lottery if available.
- *
- * TODO: Display a message when lottery registration is closed.
- */
-
 /**
- * Displays the campsite registration status and lottery entry options.
+ * Displays the registration status of a waitlist entry.
  *
- * Shows the selected reservation details and allows users
- * to join an available lottery. Checks whether registration
- * is open and whether the lottery is full.
+ * Retrieves the waitlist entry using its unique ID and displays
+ * its current status, corresponding message, and registration details.
+ * The displayed information reflects the entry's status in Firestore.
  *
  * @param navController The [NavController] used for navigation.
- * @param controllers The [AppControllers] used to access campsite,
- * lottery, and user information.
- * @param campsiteId The ID of the selected campsite.
- * @param fromDate The reservation start date.
- * @param endDate The reservation end date.
- * @param numPeople The number of guests included in the entry.
+ * @param controllers The [AppControllers] used to access waitlist entry information.
+ * @param entryId The unique ID of the waitlist entry.
  */
 @Composable
 fun RegistrationStatusScreen(
     navController: NavController,
     controllers: AppControllers,
-    campsiteId: String,
-    fromDate: LocalDate,
-    endDate: LocalDate,
-    numPeople: Int
+    entryId: String
 ) {
-    val campsite = controllers.campsites.getCampsite(campsiteId)
-
-    val lottery = controllers.lotteries
-        .getOpenLotteryForCampsite(campsiteId)
-
-    val entrantId = controllers.users.deviceId
-
+    val entry = controllers.waitlistEntries.getEntryById(entryId)
     val statusColors = MaterialTheme.bookingStatusColors
-
-    var message by remember(campsiteId, entrantId) {
-        mutableStateOf("")
-    }
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(colorScheme.background)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -74,56 +52,57 @@ fun RegistrationStatusScreen(
             showBack = true
         )
 
-        RegistrationStatusBox(
-            registrationStatus = "Lottery Required",
-            message = "Join the lottery for a chance to reserve this campsite.",
-            boxColor = statusColors.pendingBackground
-        )
-
-        RegistrationInformationBox(
-            campsiteName = campsite?.campsiteName ?: "Unknown Campsite",
-            fromDate = fromDate,
-            endDate = endDate,
-            numPeople = numPeople
-        )
-
-        Button(
-            onClick = {
-                if (lottery != null) {
-                    navController.navigate(
-                        "rule_confirm/$campsiteId/$fromDate/$endDate/$numPeople"
-                    )
-                }
-            },
-            enabled = lottery != null &&
-                    lottery.isRegistrationOpen() &&
-                    !lottery.isFull()
-        ) {
+        if (entry == null) {
             Text(
-                text = "Join Lottery",
-                style = MaterialTheme.typography.labelLarge
+                text = "Loading registration information...",
+                style = MaterialTheme.typography.bodyMedium
             )
-        }
+        } else {
+            val registrationStatus = when (entry.status) {
+                WaitlistStatus.IN_WAITLIST -> "In Waitlist"
+                WaitlistStatus.WON -> "Lottery Won"
+                WaitlistStatus.LOST -> "Lottery Lost"
+                WaitlistStatus.ACCEPTED -> "Reservation Accepted"
+                WaitlistStatus.DECLINED -> "Reservation Declined"
+            }
 
-        if (lottery == null) {
-            Text(
-                text = "No open lottery available",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else if (lottery.isFull()) {
-            Text(
-                text = "Lottery waitlist is full",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
+            val registrationMessage = when (entry.status) {
+                WaitlistStatus.IN_WAITLIST ->
+                    "You have successfully joined the lottery. Waiting for results."
 
-        if (message.isNotEmpty()) {
+                WaitlistStatus.WON ->
+                    "Congratulations! You have won the lottery. Please accept or decline."
+
+                WaitlistStatus.LOST ->
+                    "Unfortunately, you were not selected in the lottery."
+
+                WaitlistStatus.ACCEPTED ->
+                    "You have accepted your lottery win."
+
+                WaitlistStatus.DECLINED ->
+                    "You have declined your lottery win."
+            }
+
+            val statusColor = when (entry.status) {
+                WaitlistStatus.IN_WAITLIST ->
+                    statusColors.pendingBackground
+
+                WaitlistStatus.WON, WaitlistStatus.ACCEPTED ->
+                    colorScheme.primaryContainer
+
+                WaitlistStatus.LOST, WaitlistStatus.DECLINED ->
+                    colorScheme.errorContainer
+            }
+
+            RegistrationStatusBox(
+                registrationStatus = registrationStatus,
+                message = registrationMessage,
+                boxColor = statusColor
+            )
+
             Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                text = "Number of Guests: ${entry.numberOfGuests}",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

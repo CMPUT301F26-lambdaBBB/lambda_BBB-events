@@ -35,6 +35,7 @@ import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
 import java.time.LocalDate
 
 /*
@@ -126,15 +127,36 @@ private fun MainApp(controllers: AppControllers) {
                 val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
                 OwnerLotteryDetailsScreen(navController, controllers, lotteryId)
             }
-            composable(
-                route = "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
-            ) { backStackEntry ->
-                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
-                val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
-                val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
-                val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+            composable("registrationStatus/{entryId}") { backStackEntry ->
+                val entryId =
+                    backStackEntry.arguments?.getString("entryId") ?: ""
 
                 RegistrationStatusScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    entryId = entryId
+                )
+            }
+
+            composable(
+                route = "lotteryAvailability/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
+
+                val campsiteId =
+                    backStackEntry.arguments?.getString("campsiteId") ?: ""
+
+                val fromDate = LocalDate.parse(
+                    backStackEntry.arguments?.getString("fromDate")
+                )
+
+                val endDate = LocalDate.parse(
+                    backStackEntry.arguments?.getString("endDate")
+                )
+
+                val numPeople =
+                    backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
+                LotteryAvailabilityScreen(
                     navController = navController,
                     controllers = controllers,
                     campsiteId = campsiteId,
@@ -143,6 +165,7 @@ private fun MainApp(controllers: AppControllers) {
                     numPeople = numPeople
                 )
             }
+
             composable(
                 route = "rule_confirm/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
             ) { backStackEntry ->
