@@ -32,4 +32,13 @@ class WaitlistEntryController(
         return waitlistEntryRepository.waitlistEntries
             .firstOrNull { it.entryId == entryId }
     }
+
+    /**
+     * Removes an entrant from a lottery waitlist.
+     *
+     * @param entry The waitlist entry to remove.
+     */
+    suspend fun leaveWaitlist(entry: WaitlistEntry) {
+        waitlistEntryRepository.deleteWaitlistEntry(entry)
+    }
 }
