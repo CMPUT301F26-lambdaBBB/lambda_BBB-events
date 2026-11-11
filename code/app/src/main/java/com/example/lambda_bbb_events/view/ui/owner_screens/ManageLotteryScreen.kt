@@ -35,14 +35,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
+import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.lottery.LotteryCard
 
 /*
  * Defines the campsite owner's lottery management screen.
  *
  * TODO: Implement the View Booked Dates and Create Lottery buttons.
- * TODO: Replace placeholder lottery sections with lottery data.
  * TODO: Display the campsite's actual image.
  */
 
@@ -63,15 +64,17 @@ fun OwnerManageLotteryScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
-    val activeLotteriesCount = controllers.lotteries.getLotteriesForCampsite(
-        campsiteId,
-        LotteryFilter.ACTIVE
-    ).size
 
     if (campsite == null) {
         Text("Campsite not found")
         return
     }
+
+    val allLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.ALL)
+    val activeLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.ACTIVE)
+    val pastLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.PAST)
+    val cancelledLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.CANCELLED)
+    val activeLotteriesCount = activeLotteries.size
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -185,83 +188,50 @@ fun OwnerManageLotteryScreen(
                     Text("+ Create Lottery")
                 }
 
-                HorizontalDivider()
-
-                SectionTitle("Active Lotteries")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("upcoming")
-                }
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("lalalalala")
+                if (allLotteries.isEmpty()) {
+                    HorizontalDivider()
+                    Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
                 }
 
-                HorizontalDivider()
-
-                SectionTitle("Past Lotteries")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("pssst")
-                }
-
-                HorizontalDivider()
-
-                SectionTitle("Cancelled Lotteries")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("im a can")
-                }
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("canada")
-                }
+                LotterySection("Active Lotteries", activeLotteries, allLotteries, controllers)
+                LotterySection("Past Lotteries", pastLotteries, allLotteries, controllers)
+                LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, controllers)
 
                 Spacer(modifier = Modifier.height(50.dp))
             }
         }
+    }
+}
+
+/**
+ * Each lottery has a divider, title, and card with info in it. Nothing is shown when the
+ * list is empty, meaning a section is only shown if it has at least one lottery.
+ *
+ * @param title The section title, like "Active Lotteries".
+ * @param lotteries The lotteries in this section.
+ * @param allLotteries Every lottery of the campsite in order, used to number the cards.
+ * @param controllers The app's controllers, used to get each lottery's phase.
+ */
+@Composable
+private fun LotterySection(
+    title: String,
+    lotteries: List<Lottery>,
+    allLotteries: List<Lottery>,
+    controllers: AppControllers
+) {
+    if (lotteries.isEmpty()) {
+        return
+    }
+
+    HorizontalDivider()
+    SectionTitle(title)
+
+    for (lottery in lotteries) {
+        LotteryCard(
+            lotteryNumber = allLotteries.indexOf(lottery) + 1,
+            lottery = lottery,
+            phase = controllers.lotteries.getPhase(lottery),
+            onClick = { /* TODO: open the lottery's details and waitlist (US 02.09.01) */ }
+        )
     }
 }

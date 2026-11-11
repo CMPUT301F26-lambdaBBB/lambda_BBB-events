@@ -51,8 +51,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
- * Screen where a campsite owner lists one of their campsites in a lottery
- * (US 02.04.01, 02.04.03, 02.04.04 and 02.04.05).
+ * Screen where a campsite owner can create a lottery for their campsite.
  *
  * @param navController The navigation controller.
  * @param controllers The app's controllers.

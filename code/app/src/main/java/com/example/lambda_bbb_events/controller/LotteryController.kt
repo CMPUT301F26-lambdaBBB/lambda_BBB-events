@@ -18,9 +18,24 @@ import java.util.UUID
  */
 enum class LotteryFilter {
     ALL,        // all lotteries
-    ACTIVE,     // the registration period still active
-    PAST,       // the registration period has ended
+    ACTIVE,     // the registration and/or booking period still active
+    PAST,       // the booking period has ended
     CANCELLED   // cancelled by the owner
+}
+
+/**
+ * The phase of a lottery.
+ *
+ * @property label The text shown to the user.
+ */
+enum class LotteryPhase(val label: String) {
+    UPCOMING("Upcoming"),                   // registration has not started
+    REGISTRATION_OPEN("Registration open"), // entrants can join the waitlist
+    AWAITING_DRAW("Awaiting draw"),         // registration ended, winners not drawn yet
+    WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
+    BOOKING_OPEN("Booking open"),           // winners can book
+    ENDED("Ended"),                         // booking period ended
+    CANCELLED("Cancelled")                  // cancelled by the owner
 }
 
 /**
@@ -169,6 +184,42 @@ class LotteryController(
     }
 
     /**
+     * Gets where a lottery is in its timeline, using its current status and
+     * registration and booking dates.
+     *
+     * @param lottery The lottery to check.
+     * @return The [LotteryPhase] of the lottery right now.
+     */
+    fun getPhase(lottery: Lottery): LotteryPhase {
+        val today = Date()
+
+        if (lottery.status == LotteryStatus.CANCELLED) {
+            return LotteryPhase.CANCELLED
+        }
+
+        if (today.before(lottery.registrationStart)) {
+            return LotteryPhase.UPCOMING
+        }
+
+        if (!today.after(lottery.registrationEnd)) {
+            return LotteryPhase.REGISTRATION_OPEN
+        }
+
+        if (today.before(lottery.bookingStart)) {
+            if (lottery.status == LotteryStatus.DRAWN) {
+                return LotteryPhase.WINNERS_DRAWN
+            }
+            return LotteryPhase.AWAITING_DRAW
+        }
+
+        if (!today.after(lottery.bookingEnd)) {
+            return LotteryPhase.BOOKING_OPEN
+        }
+
+        return LotteryPhase.ENDED
+    }
+
+    /**
      * Checks if a lottery matches a filter.
      *
      * @param lottery The lottery to check.
@@ -176,22 +227,21 @@ class LotteryController(
      * @return `true` if the lottery matches the filter, `false` otherwise.
      */
     private fun matchesFilter(lottery: Lottery, filter: LotteryFilter): Boolean {
-        val isCancelled = lottery.status == LotteryStatus.CANCELLED
-        val isOver = lottery.bookingEnd.before(Date())
+        val phase = getPhase(lottery)
 
         if (filter == LotteryFilter.ALL) {
             return true
         }
 
         if (filter == LotteryFilter.CANCELLED) {
-            return isCancelled
+            return phase == LotteryPhase.CANCELLED
         }
 
-        if (filter == LotteryFilter.ACTIVE) {
-            return !isCancelled && !isOver
+        if (filter == LotteryFilter.PAST) {
+            return phase == LotteryPhase.ENDED
         }
 
-        return !isCancelled && isOver
+        return phase != LotteryPhase.ENDED && phase != LotteryPhase.CANCELLED
     }
 
 

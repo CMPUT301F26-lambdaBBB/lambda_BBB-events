@@ -21,18 +21,18 @@ import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 
 /**
- * A card with a title, a "Reset" link, and two date fields side by side.
+ * A card asking users to select a date range.
  *
- * The card does not store the dates. The screen owns them and changes them in
- * [onStartDateChange] and [onEndDateChange].
+ * The card doesn't store date data but only changes them in [onStartDateChange]
+ * and [onEndDateChange].
  *
- * @param title The title shown at the top of the card, like "Registration Period".
+ * @param title The title shown at the top of the card.
  * @param startDate The first date as text in yyyy-MM-dd format. Empty if not picked.
  * @param endDate The second date as text in yyyy-MM-dd format. Empty if not picked.
  * @param onStartDateChange Called when the first date changes. Reset calls it with "".
  * @param onEndDateChange Called when the second date changes. Reset calls it with "".
- * @param startLabel The label above the first field.
- * @param endLabel The label above the second field.
+ * @param startLabel The label above the first field. Defaults to "From".
+ * @param endLabel The label above the second field. Defaults to "To".
  */
 @Composable
 fun DateRangeCard(
