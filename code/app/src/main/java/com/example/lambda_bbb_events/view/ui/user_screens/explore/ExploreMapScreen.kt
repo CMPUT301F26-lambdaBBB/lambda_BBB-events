@@ -1,5 +1,7 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +12,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,8 +39,8 @@ import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCardSec
  * searching and filtering.
  *
  * TODO: Filter nearby campsites based on the selected
- *  map location instead of displaying all campsites.
- * TODO: Implement use of coordinate parameter
+ * map location instead of displaying all campsites.
+ * TODO: Implement use of coordinate parameter.
  */
 
 /**
@@ -52,32 +56,46 @@ import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCardSec
  * Defaults to true.
  */
 @Composable
-fun ExploreMapScreen(navController: NavController, controllers: AppControllers, showMap: Boolean = true) {
+fun ExploreMapScreen(
+    navController: NavController,
+    controllers: AppControllers,
+    showMap: Boolean = true
+) {
     var query by remember { mutableStateOf("") }
     var openFilter by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(navController)
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).testTag("screen_explore")
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .testTag("screen_explore")
         ) {
             ScreenTitle(
                 title = "Explore",
                 navController = navController
             )
+
             SearchBar(
                 label = "Search Campsites",
                 placeholder = "Search campsites...",
                 query = query,
-                onQueryChange = { query = it },
+                onQueryChange = {
+                    query = it
+                },
                 onSearch = {
                     controllers.campsites.search(query)
                     navController.navigate("explore_default")
                 },
-                modifier = Modifier.fillMaxWidth().testTag("exploreSearchInput")
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("exploreSearchInput")
             )
 
             AssistChip(
@@ -85,15 +103,24 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
                     openFilter = true
                 },
                 label = {
-                    Text("Filters")
+                    Text(
+                        text = "Filters",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 },
                 leadingIcon = {
                     Icon(
-                        Icons.Outlined.FilterAlt,
-                        contentDescription = "Filter"
+                        imageVector = Icons.Outlined.FilterAlt,
+                        contentDescription = "Filter",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
-                shape = RoundedCornerShape(100.dp)
+                shape = RoundedCornerShape(100.dp),
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
 
             /**
@@ -104,10 +131,12 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
              * https://developers.google.com/maps/documentation/android-sdk/overview
              */
             if (showMap) {
-                // Clickable Google Maps: when tapped, updates the search bar query with the address
+                // Clicking Google Maps updates the search query.
                 ClickableMap(
                     height = 300,
-                    onLocationSelected = { coordinates, address, postalCode -> // Implement coordi
+                    onLocationSelected = { coordinates, address, postalCode ->
+                        // TODO: Use coordinates to filter nearby campsites.
+
                         if (address.isNotBlank()) {
                             query = address
                         } else if (postalCode.isNotBlank()) {
@@ -122,7 +151,11 @@ fun ExploreMapScreen(navController: NavController, controllers: AppControllers, 
             VerticalCardSection(
                 title = "Nearby Campsites",
                 campsites = controllers.campsites.campsites,
-                onCampsiteClick = { navController.navigate("campsite_details/${it.campsiteId}") },
+                onCampsiteClick = {
+                    navController.navigate(
+                        "campsite_details/${it.campsiteId}"
+                    )
+                },
                 onSeeAll = {
                     controllers.campsites.search("")
                     navController.navigate("explore_default")

@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.campsite
 
 import androidx.compose.foundation.BorderStroke
@@ -19,20 +20,19 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 /*
  * Defines a horizontal card for displaying campsite information.
@@ -45,15 +45,21 @@ import androidx.compose.runtime.setValue
  */
 @Composable
 fun HorizontalCampsiteCard() {
-    // display the campsite info here someone thx xoxo
     Box(
-        Modifier
+        modifier = Modifier
             .width(220.dp)
             .height(220.dp)
-            .background(color = Color.Gray, RoundedCornerShape(12.dp)),
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(12.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Text("SOMETHING stuff here")
+        Text(
+            text = "SOMETHING stuff here",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -72,7 +78,7 @@ fun TagEditor(
     tags: List<String>,
     onAddTag: (String) -> Unit,
     onRemoveTag: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var isAddingTag by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
@@ -85,32 +91,41 @@ fun TagEditor(
         for (tag in tags) {
             TagChip(
                 tagText = tag,
-                onRemove = { onRemoveTag(tag) }
+                onRemove = {
+                    onRemoveTag(tag)
+                }
             )
         }
 
-        // chip that opens the new tag box
+        // Chip that opens the new tag input
         Surface(
-            onClick = { isAddingTag = !isAddingTag },
+            onClick = {
+                isAddingTag = !isAddingTag
+            },
             shape = RoundedCornerShape(16.dp),
-            color = Color(0xFFE8F5E9)
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.padding(
+                    horizontal = 12.dp,
+                    vertical = 6.dp
+                )
             ) {
                 Icon(
-                    Icons.Default.Add,
+                    imageVector = Icons.Default.Add,
                     contentDescription = null,
-                    tint = Color(0xFF2E7D32),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(16.dp)
                 )
+
                 Spacer(modifier = Modifier.width(4.dp))
+
                 Text(
-                    "Add Tags",
-                    color = Color(0xFF2E7D32),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
+                    text = "Add Tags",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -118,23 +133,42 @@ fun TagEditor(
 
     if (isAddingTag) {
         Row(
+            modifier = modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedTextField(
                 value = newTagText,
-                onValueChange = { newTagText = it },
-                placeholder = { Text("New tag name", color = Color.Gray) },
+                onValueChange = {
+                    newTagText = it
+                },
+                placeholder = {
+                    Text(
+                        text = "New tag name",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                textStyle = MaterialTheme.typography.bodyMedium,
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
 
             Button(
                 onClick = {
                     val newTag = newTagText.trim()
 
-                    // skip empty tags and tags that are already there
+                    // Skip empty or duplicate tags
                     if (newTag.isNotEmpty() && !tags.contains(newTag)) {
                         onAddTag(newTag)
                         newTagText = ""
@@ -143,7 +177,10 @@ fun TagEditor(
                 },
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Add")
+                Text(
+                    text = "Add",
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
     }
@@ -156,29 +193,46 @@ fun TagEditor(
  * that allows the user to remove the tag.
  *
  * @param tagText The text displayed inside the tag chip.
- * @param onRemove Callback invoked when the close icon
- * is clicked.
+ * @param onRemove Callback invoked when the close icon is clicked.
  */
 @Composable
-private fun TagChip(tagText: String, onRemove: () -> Unit) {
+private fun TagChip(
+    tagText: String,
+    onRemove: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFFAFAFA),
-        border = BorderStroke(1.dp, Color.LightGray)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            modifier = Modifier.padding(
+                horizontal = 12.dp,
+                vertical = 6.dp
+            )
         ) {
-            Text(text = tagText, fontSize = 14.sp)
+            Text(
+                text = tagText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
             Spacer(modifier = Modifier.width(6.dp))
+
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Remove Tag",
                 modifier = Modifier
                     .size(16.dp)
-                    .clickable { onRemove() },
-                tint = Color.Gray
+                    .clickable {
+                        onRemove()
+                    },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

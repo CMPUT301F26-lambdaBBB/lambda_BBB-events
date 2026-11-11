@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.campsite
 
 import androidx.compose.foundation.background
@@ -19,22 +20,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 
-
 /*
- * Defines a clickable campsite card
+ * Defines a clickable campsite card.
  *
  * TODO: Replace the image placeholder with an actual campsite image.
  */
@@ -62,50 +60,64 @@ fun VerticalCampsiteCard(
             .fillMaxWidth()
             .height(130.dp)
             .clip(cardShape)
-            .border(1.dp, Color(0xFFE5E5E5), cardShape)
-            .background(Color.White)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = cardShape
+            )
+            .background(MaterialTheme.colorScheme.surface)
             .clickable { onClick() }
     ) {
-        // image placeholder, replace with the real campsite image later
+        // Image placeholder
         Box(
             modifier = Modifier
                 .width(120.dp)
                 .fillMaxHeight()
-                .background(Color.Gray),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Text("image", color = Color.White)
+            Text(
+                text = "image",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         Column(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxHeight()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(-2.dp, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.spacedBy(
+                (-2).dp,
+                Alignment.CenterVertically
+            )
         ) {
-            // name
+            // Campsite name
             Text(
                 text = campsite.campsiteName,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            // location
+            // Campsite location
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    Icons.Outlined.LocationOn,
+                    imageVector = Icons.Outlined.LocationOn,
                     contentDescription = "Location",
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
                 Text(
                     text = campsite.address,
-                    fontSize = 13.sp,
-                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -113,24 +125,30 @@ fun VerticalCampsiteCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // rating
-            RatingSummary(campsite.rating, campsite.ratingCount)
+            // Campsite rating
+            RatingSummary(
+                campsite.rating,
+                campsite.ratingCount
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // max occupancy
+            // Maximum occupancy
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    Icons.Outlined.Person,
+                    imageVector = Icons.Outlined.Person,
                     contentDescription = "Max occupancy",
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
                 Text(
                     text = "${campsite.maxOccupancy}",
-                    fontSize = 13.sp
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

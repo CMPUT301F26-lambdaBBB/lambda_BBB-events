@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.calendar
 
 import android.app.DatePickerDialog
@@ -7,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -31,6 +33,8 @@ import java.util.Locale
 /*
  * Provides a date input field with automatic formatting
  * and an Android calendar date picker.
+ *
+ * Uses Material 3 theme colors and typography.
  */
 
 /**
@@ -105,26 +109,41 @@ fun DatePickerField(
 
             onValueChange(formattedDate)
         },
+
         placeholder = {
             Text(
                 text = "yyyy-mm-dd",
-                fontSize = 12.sp
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
+
         modifier = modifier,
         singleLine = true,
+        textStyle = MaterialTheme.typography.bodyLarge,
+
         shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedBorderColor = Color(0xFFE5E5E5),
-            focusedBorderColor = Color.Gray,
-            focusedTextColor = Color(0xFF444444),
-            unfocusedTextColor = Color(0xFF444444)
-        ),
+
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number
         ),
+
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+            cursorColor = MaterialTheme.colorScheme.primary,
+
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+
         trailingIcon = {
             IconButton(
                 onClick = {
@@ -158,7 +177,8 @@ fun DatePickerField(
             ) {
                 Icon(
                     imageVector = Icons.Default.CalendarToday,
-                    contentDescription = "Select Date"
+                    contentDescription = "Select Date",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
