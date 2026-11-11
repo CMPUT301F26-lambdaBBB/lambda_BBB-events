@@ -275,14 +275,8 @@ fun CampsiteCheckAvailabilityScreen(
                 val people = validPeople
 
                 if (start != null && end != null && people != null) {
-                    Toast.makeText(
-                        context,
-                        "Selected $start to $end for $people people",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
                     navController.navigate(
-                        "registrationStatus/$campsiteId/$start/$end/$people"
+                        "lotteryAvailability/$campsiteId/$start/$end/$people"
                     )
                 }
             },

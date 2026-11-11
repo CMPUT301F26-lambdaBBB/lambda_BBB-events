@@ -103,7 +103,7 @@ class LotteryController(
             return "The booking period must end after it starts."
         }
 
-        // input check the no of winners
+        // input check the num of winners
         val numberOfWinners = numberOfWinnersString.trim().toIntOrNull()
             ?: return "The number of winners is not a valid number."
         if (numberOfWinners < 1) {
