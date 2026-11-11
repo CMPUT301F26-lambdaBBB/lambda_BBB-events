@@ -24,13 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
+import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.lottery.LotteryCard
 
 /*
  * Defines the campsite owner's lottery management screen.
  *
  * TODO: Implement the View Booked Dates and Create Lottery buttons.
- * TODO: Replace placeholder lottery sections with lottery data.
  * TODO: Display the campsite's actual image.
  */
 
@@ -65,6 +67,12 @@ fun OwnerManageLotteryScreen(
         )
         return
     }
+
+    val allLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.ALL)
+    val activeLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.ACTIVE)
+    val pastLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.PAST)
+    val cancelledLotteries = controllers.lotteries.getLotteriesForCampsite(campsiteId, LotteryFilter.CANCELLED)
+    val activeLotteriesCount = activeLotteries.size
 
     LazyColumn(
         modifier = Modifier
@@ -225,43 +233,27 @@ fun OwnerManageLotteryScreen(
                         )
                     }
 
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { /* TODO */ }
+                ) {
+                    Text("View Booked Dates")
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { navController.navigate("create_lottery/${campsite.campsiteId}") }
+                ) {
+                    Text("+ Create Lottery")
+                }
 
-                    // Active lotteries
-                    Text(
-                        text = "Active Lotteries",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                if (allLotteries.isEmpty()) {
+                    HorizontalDivider()
+                    Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
+                }
 
-                    LotteryPlaceholder("upcoming")
-                    LotteryPlaceholder("lalalalala")
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-
-                    // Past lotteries
-                    Text(
-                        text = "Past Lotteries",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    LotteryPlaceholder("pssst")
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-
-                    // Cancelled lotteries
-                    Text(
-                        text = "Cancelled Lotteries",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                LotterySection("Active Lotteries", activeLotteries, allLotteries, controllers)
+                LotterySection("Past Lotteries", pastLotteries, allLotteries, controllers)
+                LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, controllers)
 
                     LotteryPlaceholder("im a can")
                     LotteryPlaceholder("canada")
@@ -276,31 +268,34 @@ fun OwnerManageLotteryScreen(
 }
 
 /**
- * Displays placeholder content for a lottery entry.
+ * Each lottery has a divider, title, and card with info in it. Nothing is shown when the
+ * list is empty, meaning a section is only shown if it has at least one lottery.
  *
- * Uses Material 3 theme colors until actual lottery
- * information is implemented.
- *
- * @param text Placeholder text to display.
+ * @param title The section title, like "Active Lotteries".
+ * @param lotteries The lotteries in this section.
+ * @param allLotteries Every lottery of the campsite in order, used to number the cards.
+ * @param controllers The app's controllers, used to get each lottery's phase.
  */
 @Composable
-private fun LotteryPlaceholder(
-    text: String
+private fun LotterySection(
+    title: String,
+    lotteries: List<Lottery>,
+    allLotteries: List<Lottery>,
+    controllers: AppControllers
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    if (lotteries.isEmpty()) {
+        return
+    }
+
+    HorizontalDivider()
+    SectionTitle(title)
+
+    for (lottery in lotteries) {
+        LotteryCard(
+            lotteryNumber = allLotteries.indexOf(lottery) + 1,
+            lottery = lottery,
+            phase = controllers.lotteries.getPhase(lottery),
+            onClick = { /* TODO: open the lottery's details and waitlist (US 02.09.01) */ }
         )
     }
 }

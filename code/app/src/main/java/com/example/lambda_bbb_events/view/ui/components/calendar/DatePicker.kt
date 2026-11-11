@@ -19,12 +19,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.time.LocalDate
+import java.time.format.TextStyle
 import java.util.Locale
 
 /*
@@ -161,7 +164,7 @@ fun DatePickerField(
 
                             textFieldValue = TextFieldValue(
                                 text = formattedDate,
-                                selection = TextRange(formattedDate.length)
+                                selection = TextRange(formattedDate.length),
                             )
 
                             onValueChange(formattedDate)
