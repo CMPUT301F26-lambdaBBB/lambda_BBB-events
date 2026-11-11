@@ -3,9 +3,13 @@ package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +20,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationInformationBox
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
@@ -38,6 +43,10 @@ fun RegistrationStatusScreen(
     val entry = controllers.waitlistEntries.getEntryById(entryId)
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
+    val scope = rememberCoroutineScope()
+    var showLeaveDialog by remember { mutableStateOf(false) }
+    var isLeaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -105,5 +114,89 @@ fun RegistrationStatusScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        if (entry?.status == WaitlistStatus.IN_WAITLIST) {
+            OutlinedButton(
+                onClick = {
+                    showLeaveDialog = true
+                },
+                enabled = !isLeaving,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = if (isLeaving) "Leaving..." else "Leave Waitlist",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
+    if (showLeaveDialog && entry != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isLeaving) {
+                    showLeaveDialog = false
+                }
+            },
+            title = {
+                Text("Leave Waitlist?")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to leave this lottery? " +
+                            "Your registration will be removed."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isLeaving,
+                    onClick = {
+                        isLeaving = true
+                        errorMessage = null
+
+                        scope.launch {
+                            try {
+                                controllers.waitlistEntries.leaveWaitlist(entry)
+
+                                showLeaveDialog = false
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                errorMessage =
+                                    e.message ?: "Failed to leave waitlist."
+                                showLeaveDialog = false
+                            } finally {
+                                isLeaving = false
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "Leave",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isLeaving,
+                    onClick = {
+                        showLeaveDialog = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
