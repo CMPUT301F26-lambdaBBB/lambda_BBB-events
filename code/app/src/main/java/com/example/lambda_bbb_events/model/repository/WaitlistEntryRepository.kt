@@ -91,14 +91,14 @@ class WaitlistEntryRepository {
     /**
      * Gets all the [WaitlistEntry] objects of a specified [Lottery].
      *
-     * @param lottery The lottery to get entries from.
+     * @param lotteryId The lottery ID to get entries from.
      * @return The list of entries in the lottery.
      */
-    fun getEntries(lottery: Lottery): List<WaitlistEntry> {
+    fun getEntries(lotteryId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
         for (entry in _waitlistEntries) {
-            if (entry.lotteryId == lottery.lotteryId) {
+            if (entry.lotteryId == lotteryId) {
                 result.add(entry)
             }
         }

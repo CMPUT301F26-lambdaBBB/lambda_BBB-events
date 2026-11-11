@@ -153,4 +153,16 @@ class UserController(
 
         return true
     }
+
+    /**
+     * Gets the name of a user.
+     *
+     * @param deviceId The device ID of the user.
+     * @return The user's name. Returns "Unknown user" if the user does not exist.
+     */
+    suspend fun getUserName(deviceId: String): String {
+        val user = userRepository.getUser(deviceId) ?: return "Unknown user"
+
+        return user.name
+    }
 }

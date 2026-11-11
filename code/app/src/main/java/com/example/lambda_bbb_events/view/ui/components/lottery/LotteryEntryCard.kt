@@ -150,7 +150,7 @@ fun LotteryEntryCard(
  * @param status The status of the entry.
  */
 @Composable
-private fun EntryStatusPill(status: WaitlistStatus, modifier: Modifier = Modifier) {
+fun EntryStatusPill(status: WaitlistStatus, modifier: Modifier = Modifier) {
     val label: String
     val backgroundColor: Color
     val textColor: Color
@@ -204,7 +204,7 @@ private fun EntryStatusPill(status: WaitlistStatus, modifier: Modifier = Modifie
  * @param date The date to format.
  * @return The date as a string.
  */
-private fun formatSingleDate(date: Date): String {
+fun formatSingleDate(date: Date): String {
     val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
 
     return formatter.format(date)
