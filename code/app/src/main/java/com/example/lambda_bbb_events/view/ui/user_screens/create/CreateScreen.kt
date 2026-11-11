@@ -43,6 +43,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -59,9 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
@@ -200,6 +200,7 @@ fun CreateScreen(
 
     Scaffold(
         modifier = Modifier.testTag("screen_create"),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(
                 navController
@@ -220,9 +221,10 @@ fun CreateScreen(
 
             StepStageIndicator(currentStep = currentStep, onStepClick = { currentStep = it })
 
-            Spacer(modifier = Modifier.height(4.dp))
-
+            // Keep the form inside the available space so buttons can scroll
+            // above the bottom navigation bar on smaller devices.
             AnimatedContent(
+                modifier = Modifier.weight(1f),
                 targetState = currentStep,
                 label = "create_screen_animation",
                 transitionSpec = {
@@ -249,7 +251,11 @@ fun CreateScreen(
                 }
             ) { step ->
                 Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     when (step) {
 
@@ -263,6 +269,8 @@ fun CreateScreen(
                                 modifier = Modifier.testTag("create_name")
                             )
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Description *")
                             OutlinedTextField(
                                 value = description,
@@ -270,7 +278,7 @@ fun CreateScreen(
                                 placeholder = {
                                     Text(
                                         "Enter campsite description",
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
                                 modifier = Modifier
@@ -282,13 +290,10 @@ fun CreateScreen(
                                 maxLines = 10,
                                 shape = RoundedCornerShape(16.dp),
                                 singleLine = false,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = Color(0xFFFAFAFA),
-                                    unfocusedContainerColor = Color(0xFFFAFAFA),
-                                    unfocusedBorderColor = Color.LightGray,
-                                    focusedBorderColor = Color.Gray
-                                )
+                                colors = createTextFieldColors()
                             )
+
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             FormLabel("Max Occupancy *")
                             Box {
@@ -307,12 +312,7 @@ fun CreateScreen(
                                         .fillMaxWidth(0.5f)
                                         .clickable { isOccupancyExpanded = true },
                                     shape = RoundedCornerShape(16.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedContainerColor = Color(0xFFFAFAFA),
-                                        unfocusedContainerColor = Color(0xFFFAFAFA),
-                                        unfocusedBorderColor = Color.LightGray,
-                                        focusedBorderColor = Color.Gray
-                                    )
+                                    colors = createTextFieldColors()
                                 )
                                 DropdownMenu(
                                     expanded = isOccupancyExpanded,
@@ -330,6 +330,8 @@ fun CreateScreen(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Tags")
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -342,7 +344,7 @@ fun CreateScreen(
                                 Surface(
                                     onClick = { isAddingTag = !isAddingTag },
                                     shape = RoundedCornerShape(16.dp),
-                                    color = Color(0xFFE8F5E9)
+                                    color = MaterialTheme.colorScheme.primaryContainer
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -351,15 +353,14 @@ fun CreateScreen(
                                         Icon(
                                             Icons.Default.Add,
                                             contentDescription = null,
-                                            tint = Color(0xFF2E7D32),
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
                                             "Add Tags",
-                                            color = Color(0xFF2E7D32),
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            style = MaterialTheme.typography.labelLarge
                                         )
                                     }
                                 }
@@ -391,6 +392,8 @@ fun CreateScreen(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Add Photo")
                             if (selectedImageUris.isNotEmpty()) {
                                 LazyRow(
@@ -401,21 +404,21 @@ fun CreateScreen(
                                         Box {
                                             Surface(
                                                 shape = RoundedCornerShape(12.dp),
-                                                color = Color.LightGray,
+                                                color = MaterialTheme.colorScheme.surfaceVariant,
                                                 modifier = Modifier.size(80.dp)
                                             ) {
                                                 Box(contentAlignment = Alignment.Center) {
                                                     Text(
                                                         "Photo",
-                                                        fontSize = 12.sp,
-                                                        color = Color.DarkGray
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                 }
                                             }
                                             Icon(
                                                 imageVector = Icons.Default.Close,
                                                 contentDescription = "Remove Photo",
-                                                tint = Color.Red,
+                                                tint = MaterialTheme.colorScheme.error,
                                                 modifier = Modifier
                                                     .size(20.dp)
                                                     .align(Alignment.TopEnd)
@@ -436,10 +439,10 @@ fun CreateScreen(
                                         )
                                     },
                                 shape = RoundedCornerShape(16.dp),
-                                color = Color(0xFFFBF4FF),
+                                color = MaterialTheme.colorScheme.primaryContainer,
                                 border = BorderStroke(
                                     1.dp,
-                                    Color(0xFFE1BEE7)
+                                    MaterialTheme.colorScheme.outlineVariant
                                 )
                             ) {
                                 Row(
@@ -451,20 +454,19 @@ fun CreateScreen(
                                 ) {
                                     Text(
                                         if (selectedImageUris.isEmpty()) "+ Add Photo" else "+ Add More Photos (${selectedImageUris.size} selected)",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color.Black
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                     Icon(
                                         Icons.Default.Image,
                                         contentDescription = "Add Photo",
                                         modifier = Modifier.size(32.dp),
-                                        tint = Color.DarkGray
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             Button(
                                 onClick = { currentStep = 1 },
@@ -473,11 +475,11 @@ fun CreateScreen(
                                     .height(52.dp),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF3E5F5),
-                                    contentColor = Color.Black
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
-                                Text("Add Locations →", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("Add Locations →", style = MaterialTheme.typography.labelLarge)
                             }
                             Spacer(modifier = Modifier.height(24.dp))
 
@@ -498,6 +500,7 @@ fun CreateScreen(
                             )
 
                             if (showMap) {
+                                Spacer(modifier = Modifier.height(4.dp))
                                 ClickableMap(
                                     height = 220,
                                     onLocationSelected = { coordinates, fetchedAddress, fetchedPostalCode ->
@@ -514,6 +517,8 @@ fun CreateScreen(
                                 )
                             }
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Address")
                             FormInputField(
                                 value = address,
@@ -521,6 +526,8 @@ fun CreateScreen(
                                 placeholder = "Enter street address",
                                 modifier = Modifier.testTag("create_address")
                             )
+
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             FormLabel("Postal Code")
                             FormInputField(
@@ -530,7 +537,7 @@ fun CreateScreen(
                                 modifier = Modifier.testTag("create_postal_code")
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -543,11 +550,11 @@ fun CreateScreen(
                                         .height(52.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFEEEEEE),
-                                        contentColor = Color.Black
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 ) {
-                                    Text("← Back", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text("← Back", style = MaterialTheme.typography.labelLarge)
                                 }
                                 Button(
                                     onClick = { currentStep = 2 },
@@ -556,14 +563,13 @@ fun CreateScreen(
                                         .height(52.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFF3E5F5),
-                                        contentColor = Color.Black
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
                                     )
                                 ) {
                                     Text(
                                         "Set Lottery →",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
+                                        style = MaterialTheme.typography.labelLarge
                                     )
                                 }
                             }
@@ -577,11 +583,15 @@ fun CreateScreen(
                                 onClick = { PopUpShowDatePicker(context) { lotteryDate = it } }
                             )
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Start Registration *")
                             DateField(
                                 value = startRegistration,
                                 onClick = { PopUpShowDatePicker(context) { startRegistration = it } }
                             )
+
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             FormLabel("End Registration *")
                             DateField(
@@ -589,13 +599,15 @@ fun CreateScreen(
                                 onClick = { PopUpShowDatePicker(context) { endRegistration = it } }
                             )
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     FormLabel("Number of Spots *")
-                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Box {
                                         OutlinedTextField(
                                             value = numberOfSpots,
@@ -614,12 +626,7 @@ fun CreateScreen(
                                                 .fillMaxWidth()
                                                 .clickable { isSpotsExpanded = true },
                                             shape = RoundedCornerShape(16.dp),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedContainerColor = Color(0xFFFAFAFA),
-                                                unfocusedContainerColor = Color(0xFFFAFAFA),
-                                                unfocusedBorderColor = Color.LightGray,
-                                                focusedBorderColor = Color.Gray
-                                            )
+                                            colors = createTextFieldColors()
                                         )
                                         DropdownMenu(
                                             expanded = isSpotsExpanded,
@@ -640,7 +647,7 @@ fun CreateScreen(
 
                                 Column(modifier = Modifier.weight(1f)) {
                                     FormLabel("Eligibility *")
-                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Box {
                                         OutlinedTextField(
                                             value = eligibility,
@@ -659,12 +666,7 @@ fun CreateScreen(
                                                 .fillMaxWidth()
                                                 .clickable { isEligibilityExpanded = true },
                                             shape = RoundedCornerShape(16.dp),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedContainerColor = Color(0xFFFAFAFA),
-                                                unfocusedContainerColor = Color(0xFFFAFAFA),
-                                                unfocusedBorderColor = Color.LightGray,
-                                                focusedBorderColor = Color.Gray
-                                            )
+                                            colors = createTextFieldColors()
                                         )
                                         DropdownMenu(
                                             expanded = isEligibilityExpanded,
@@ -684,11 +686,13 @@ fun CreateScreen(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             FormLabel("Additional Rules")
                             OutlinedTextField(
                                 value = additionalRules,
                                 onValueChange = { additionalRules = it },
-                                placeholder = { Text("Enter additional rules", color = Color.Gray) },
+                                placeholder = { Text("Enter additional rules", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min=120.dp)
@@ -697,15 +701,10 @@ fun CreateScreen(
                                 maxLines = 5,
                                 shape = RoundedCornerShape(16.dp),
                                 singleLine = false,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = Color(0xFFFAFAFA),
-                                    unfocusedContainerColor = Color(0xFFFAFAFA),
-                                    unfocusedBorderColor = Color.LightGray,
-                                    focusedBorderColor = Color.Gray
-                                )
+                                colors = createTextFieldColors()
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -718,11 +717,11 @@ fun CreateScreen(
                                         .height(52.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFEEEEEE),
-                                        contentColor = Color.Black
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 ) {
-                                    Text("← Back", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text("← Back", style = MaterialTheme.typography.labelLarge)
                                 }
                                 Button(
                                     onClick = {
@@ -733,11 +732,11 @@ fun CreateScreen(
                                         .height(52.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFF3E5F5),
-                                        contentColor = Color.Black
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
                                     )
                                 ) {
-                                    Text("Done", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text("Done", style = MaterialTheme.typography.labelLarge)
                                 }
                             }
                             Spacer(modifier = Modifier.height(24.dp))
@@ -745,7 +744,6 @@ fun CreateScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -764,7 +762,7 @@ fun CreateScreen(
 private fun StepStageIndicator(currentStep: Int, onStepClick: (Int) -> Unit) {
     Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFFAFAFA),
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -775,9 +773,9 @@ private fun StepStageIndicator(currentStep: Int, onStepClick: (Int) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             StepPill("Basic Info", isActive = currentStep == 0, onClick = { onStepClick(0) })
-            Text("--->", color = Color.Gray, fontSize = 12.sp)
+            Text("--->", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             StepPill("Location", isActive = currentStep == 1, onClick = { onStepClick(1) })
-            Text("--->", color = Color.Gray, fontSize = 12.sp)
+            Text("--->", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             StepPill("Lottery", isActive = currentStep == 2, onClick = { onStepClick(2) })
         }
     }
@@ -795,14 +793,21 @@ private fun StepStageIndicator(currentStep: Int, onStepClick: (Int) -> Unit) {
 private fun StepPill(text: String, isActive: Boolean, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = if (isActive) Color(0xFFE8DEF8) else Color.Transparent,
+        color = if (isActive) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            Color.Transparent
+        },
         modifier = Modifier.clickable { onClick() }
     ) {
         Text(
             text = text,
-            fontSize = 13.sp,
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-            color = if (isActive) Color.Black else Color.Gray,
+            style = if (isActive) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodySmall,
+            color = if (isActive) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
@@ -817,8 +822,8 @@ private fun StepPill(text: String, isActive: Boolean, onClick: () -> Unit) {
 private fun FormLabel(text: String) {
     Text(
         text = text,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -845,17 +850,12 @@ private fun FormInputField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = Color.Gray) },
+        placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
         leadingIcon = leadingIcon,
         singleLine = true,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedBorderColor = Color.LightGray,
-            focusedBorderColor = Color.Gray
-        )
+        colors = createTextFieldColors()
     )
 }
 
@@ -876,7 +876,7 @@ private fun DateField(value: String, onClick: () -> Unit) {
         value = value,
         onValueChange = {},
         readOnly = true,
-        placeholder = { Text("Select Date", color = Color.Gray) },
+        placeholder = { Text("Select Date", color = MaterialTheme.colorScheme.onSurfaceVariant) },
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
@@ -884,19 +884,14 @@ private fun DateField(value: String, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(20.dp)
                     .clickable { onClick() },
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedContainerColor = Color(0xFFFAFAFA),
-            unfocusedBorderColor = Color.LightGray,
-            focusedBorderColor = Color.Gray
-        )
+        colors = createTextFieldColors()
     )
 }
 
@@ -915,14 +910,18 @@ private fun DateField(value: String, onClick: () -> Unit) {
 private fun TagChip(tagText: String, onDelete: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFFAFAFA),
-        border = BorderStroke(1.dp, Color.LightGray)
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text(text = tagText, fontSize = 14.sp)
+            Text(
+                text = tagText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(modifier = Modifier.width(6.dp))
             Icon(
                 imageVector = Icons.Default.Close,
@@ -930,8 +929,26 @@ private fun TagChip(tagText: String, onDelete: () -> Unit) {
                 modifier = Modifier
                     .size(16.dp)
                     .clickable { onDelete() },
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
+}
+
+/**
+ * Applies the app's Material 3 light/dark colors to form inputs.
+ */
+@Composable
+private fun createTextFieldColors(): TextFieldColors {
+    return OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        cursorColor = MaterialTheme.colorScheme.primary
+    )
 }

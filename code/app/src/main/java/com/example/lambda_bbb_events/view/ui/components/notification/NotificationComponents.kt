@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.notification
 
 import androidx.compose.foundation.clickable
@@ -9,16 +10,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /*
- * Defines reusable notification settings rows for displaying notification options.
+ * Defines reusable notification settings rows
+ * for displaying notification options.
  */
 
 /**
@@ -31,7 +32,6 @@ import androidx.compose.ui.unit.sp
  * @param leadingIcon Composable function that displays the icon
  * at the beginning of the row.
  */
-
 @Composable
 fun NotificationRow(
     title: String,
@@ -49,19 +49,27 @@ fun NotificationRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         leadingIcon()
-        Column(modifier = Modifier.weight(1f)) {
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = title,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
+
             Text(
                 text = subtitle,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = "right_arrow",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -73,12 +81,15 @@ fun NotificationRow(
  * @param modifier Modifier used to customize the heading's
  * layout and appearance.
  */
-
 @Composable
-fun NotificationSectionHeader(title: String, modifier: Modifier = Modifier) {
+fun NotificationSectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = title.uppercase(),
-        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp)

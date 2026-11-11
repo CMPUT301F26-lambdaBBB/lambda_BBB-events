@@ -1,17 +1,9 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +12,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,9 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
@@ -64,33 +55,57 @@ fun CampsiteDetailsScreen(
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
-        Text("Campsite not found")
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Campsite not found",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().testTag("screen_campsite_details"),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .testTag("screen_campsite_details"),
+        contentPadding = PaddingValues(
+            horizontal = 16.dp,
+            vertical = 12.dp
+        )
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 ScreenTitle(
-                    campsite.campsiteName,
-                    navController,
+                    title = campsite.campsiteName,
+                    navController = navController,
                     showBack = true
                 )
 
                 // Image carousel placeholder
                 Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(180.dp)
                         .background(
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("some images here")
+                    Text(
+                        text = "Campsite Images",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 RatingSummary(
@@ -98,108 +113,159 @@ fun CampsiteDetailsScreen(
                     campsite.ratingCount
                 )
 
+                // Campsite location
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Outlined.LocationOn,
+                        imageVector = Icons.Outlined.LocationOn,
                         contentDescription = "Location",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(28.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
                         text = campsite.address,
-                        fontSize = 15.sp
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
+                // Maximum occupancy
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Outlined.Person,
+                        imageVector = Icons.Outlined.Person,
                         contentDescription = "Max People",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(28.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Column(
-                        modifier = Modifier,
-                        verticalArrangement = Arrangement.spacedBy((-8).dp)
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         Text(
                             text = "Max Occupancy",
-                            color = Color.Gray,
-                            fontSize = 11.sp
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
                         Text(
                             text = "${campsite.maxOccupancy} people",
-                            fontSize = 15.sp
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
-
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
+                // Campsite tags
                 SectionTitle("Tags")
+
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     for (tag in campsite.tags) {
-                        DisplayTag(tag, Color(0xfff5f5f5), Color(0xffe5e5e5))
+                        DisplayTag(
+                            text = tag,
+                            bgColor = MaterialTheme.colorScheme.secondaryContainer,
+                            borderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     }
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
-                SectionTitle("Campsite QR Code")
                 // QR code placeholder
+                SectionTitle("Campsite QR Code")
+
                 Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(160.dp)
                         .background(
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("qr code")
+                    Text(
+                        text = "QR Code",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
+                // Campsite description
                 SectionTitle("Description")
-                Text(campsite.description)
 
-                HorizontalDivider()
+                Text(
+                    text = campsite.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-                // google maps placeholder
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+
+                // Google Maps placeholder
                 SectionTitle("Map Location")
+
                 Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(320.dp)
                         .background(
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("gooogel map")
+                    Text(
+                        text = "Google Map",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
                 Button(
-                    onClick = { navController.navigate("campsite_check_availability/${campsite.campsiteId}") },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = {
+                        navController.navigate(
+                            "campsite_check_availability/${campsite.campsiteId}"
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Check Availability")
+                    Text(
+                        text = "Check Availability",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
 
-                // TODO: review section
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // TODO: Implement reviews section.
             }
         }
     }
@@ -213,9 +279,10 @@ fun CampsiteDetailsScreen(
 @Composable
 fun SectionTitle(text: String) {
     Text(
-        text,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold)
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
 }
 
 /**
@@ -233,18 +300,21 @@ fun DisplayTag(
 ) {
     Surface(
         color = bgColor,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.border(
+        border = BorderStroke(
             width = 1.dp,
-            color = borderColor,
-            shape = RoundedCornerShape(16.dp)
+            color = borderColor
         )
     ) {
         Text(
             text = text,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(
+                horizontal = 10.dp,
+                vertical = 4.dp
+            )
         )
     }
 }

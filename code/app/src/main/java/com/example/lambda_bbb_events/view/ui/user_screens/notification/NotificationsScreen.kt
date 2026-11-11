@@ -1,5 +1,7 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.notification
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,22 +15,20 @@ import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.notification.NotificationRow
 import com.example.lambda_bbb_events.view.ui.components.notification.NotificationSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import kotlin.repeat
 
 /*
- * Displays notification  organized in people and notification categories.
+ * Displays notifications organized by people and categories.
  *
  * TODO: Replace placeholder people and categories with actual data.
  * TODO: Implement notification preference management actions.
@@ -43,34 +43,34 @@ import kotlin.repeat
  */
 @Composable
 fun NotificationsScreen(navController: NavController) {
-    // placeholders: replace these lists with actual data (later we'll have user class, you can take names and images there).
-    // for now each inner list is [name, status, Icon/Image].
+
+    // Placeholder people
     val people = listOf(
-        listOf("Midterms", "Muted until tomorrow", Icons.Default.AccountCircle),
-        listOf("Admin", "Unmuted", Icons.Default.AccountCircle),
-        listOf("Yuta", "Unmuted", Icons.Default.AccountCircle)
+        Triple("Midterms", "Muted until tomorrow", Icons.Default.AccountCircle),
+        Triple("Admin", "Unmuted", Icons.Default.AccountCircle),
+        Triple("Yuta", "Unmuted", Icons.Default.AccountCircle)
     )
 
-    // placeholders: replace with actual data, probably will have a class for this.
-    // for now each inner list is [title, status, Icon/Image].
+    // Placeholder notification categories
     val categories = listOf(
-        listOf("Rejection information", "High priority", Icons.Outlined.Info),
-        listOf("Lottery results", "Weekly updates", Icons.Outlined.ConfirmationNumber),
-        listOf("Cancellations", "Weekly updates", Icons.Outlined.Cancel),
-        listOf("Notifications Sent", "Weekly updates", Icons.Outlined.Info)
+        Triple("Rejection information", "High priority", Icons.Outlined.Info),
+        Triple("Lottery results", "Weekly updates", Icons.Outlined.ConfirmationNumber),
+        Triple("Cancellations", "Weekly updates", Icons.Outlined.Cancel),
+        Triple("Notifications Sent", "Weekly updates", Icons.Outlined.Info)
     )
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            BottomNavigationBar(
-                navController
-            )
+            BottomNavigationBar(navController)
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Notification",
@@ -81,48 +81,62 @@ fun NotificationsScreen(navController: NavController) {
 
             Text(
                 text = "Manage alerts from specific people",
-                modifier = Modifier.padding(start = 4.dp, bottom = 16.dp),
-                fontSize = 16.sp
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(
+                    start = 4.dp,
+                    bottom = 16.dp
+                )
             )
 
-            NotificationSectionHeader(
-                "People"
-            )
-            repeat(people.size) { i ->
+            NotificationSectionHeader("People")
+
+            people.forEachIndexed { index, person ->
                 NotificationRow(
-                    people[i][0] as String,
-                    people[i][1] as String,
+                    person.first,
+                    person.second,
                     onClick = {},
-                    leadingIcon = { // change below to image data (later we'll make a class for it)
+                    leadingIcon = {
                         Icon(
-                            people[i][2] as ImageVector,
+                            imageVector = person.third,
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
-                if (i < people.lastIndex) HorizontalDivider()
+
+                if (index < people.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            NotificationSectionHeader(
-                "Categories"
-            )
-            repeat(categories.size) { i ->
+            NotificationSectionHeader("Categories")
+
+            categories.forEachIndexed { index, category ->
                 NotificationRow(
-                    categories[i][0] as String,
-                    categories[i][1] as String,
+                    category.first,
+                    category.second,
                     onClick = {},
                     leadingIcon = {
                         Icon(
-                            categories[i][2] as ImageVector,
+                            imageVector = category.third,
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
-                if (i < categories.lastIndex) HorizontalDivider()
+
+                if (index < categories.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
             }
         }
     }

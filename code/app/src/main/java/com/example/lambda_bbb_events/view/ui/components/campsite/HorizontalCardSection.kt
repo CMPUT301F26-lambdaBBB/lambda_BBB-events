@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /*
  * Defines a horizontally scrollable section of campsite cards
@@ -30,12 +28,10 @@ import androidx.compose.ui.unit.sp
  *
  * @param title The heading displayed above the campsite cards.
  * @param onSeeAll Callback invoked when the user clicks "See All".
- * @param modifier Modifier intended to customize the section layout.
- * Currently unused by the implementation.
+ * @param modifier Modifier used to customize the section layout.
  * @param itemCount Number of campsite cards to display.
  * Defaults to five.
  */
-
 @Composable
 fun HorizontalCardSection(
     title: String,
@@ -44,30 +40,30 @@ fun HorizontalCardSection(
     itemCount: Int = 5
 ) {
     Column(
-        modifier = Modifier.padding(bottom = 25.dp),
+        modifier = modifier.padding(bottom = 25.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                // to yuta: make sure we have consistent text styling, create custom in ui.theme.Type and replace
-                title,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
+
             Text(
                 text = "See All",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF5a4ef5),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     onSeeAll()
                 }
             )
         }
+
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {

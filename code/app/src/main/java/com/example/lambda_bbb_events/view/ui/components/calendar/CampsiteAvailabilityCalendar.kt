@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.components.calendar
 
 import androidx.compose.foundation.BorderStroke
@@ -11,9 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
@@ -22,13 +22,10 @@ import java.util.Locale
 
 /*
  * Defines an interactive calendar for selecting campsite booking dates.
- * Displays available, unavailable, and selected dates.
+ *
+ * Uses Material 3 theme colors to display available,
+ * unavailable, and selected dates in light and dark modes.
  */
-
-private val availableColor = Color.White
-private val bookedColor = Color(0xFFF9D3DF)
-private val selectedColor = Color(0xFF89F5A3)
-
 
 /**
  * Displays an interactive calendar for selecting reservation dates.
@@ -52,9 +49,13 @@ fun CampsiteAvailabilityCalendar(
     modifier: Modifier = Modifier,
     initialMonth: YearMonth = YearMonth.now()
 ) {
-    var displayedMonth by remember { mutableStateOf(initialMonth) }
+    var displayedMonth by remember(initialMonth) {
+        mutableStateOf(initialMonth)
+    }
     var monthExpanded by remember { mutableStateOf(false) }
     var yearExpanded by remember { mutableStateOf(false) }
+
+    val statusColors = MaterialTheme.bookingStatusColors
 
     val firstDay = displayedMonth.atDay(1)
     val firstDayOffset = firstDay.dayOfWeek.value % 7
@@ -70,15 +71,20 @@ fun CampsiteAvailabilityCalendar(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Surface(
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, Color.LightGray),
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            ),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Month and year navigation
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -90,21 +96,32 @@ fun CampsiteAvailabilityCalendar(
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Text("‹", fontSize = 30.sp)
+                        Text(
+                            text = "‹",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
 
+                    // Month dropdown
                     Box {
                         TextButton(
                             onClick = { monthExpanded = true }
                         ) {
                             Text(
-                                displayedMonth.month.getDisplayName(
+                                text = displayedMonth.month.getDisplayName(
                                     TextStyle.SHORT,
                                     Locale.ENGLISH
                                 ),
-                                color = Color.Black
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Text("⌄", color = Color.Black)
+
+                            Text(
+                                text = "⌄",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
 
                         DropdownMenu(
@@ -117,10 +134,11 @@ fun CampsiteAvailabilityCalendar(
                                 DropdownMenuItem(
                                     text = {
                                         Text(
-                                            month.getDisplayName(
+                                            text = month.getDisplayName(
                                                 TextStyle.SHORT,
                                                 Locale.ENGLISH
-                                            )
+                                            ),
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
                                     },
                                     onClick = {
@@ -135,15 +153,22 @@ fun CampsiteAvailabilityCalendar(
                         }
                     }
 
+                    // Year dropdown
                     Box {
                         TextButton(
                             onClick = { yearExpanded = true }
                         ) {
                             Text(
-                                displayedMonth.year.toString(),
-                                color = Color.Black
+                                text = displayedMonth.year.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Text("⌄", color = Color.Black)
+
+                            Text(
+                                text = "⌄",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
 
                         DropdownMenu(
@@ -156,7 +181,12 @@ fun CampsiteAvailabilityCalendar(
 
                             (currentYear - 2..currentYear + 4).forEach { year ->
                                 DropdownMenuItem(
-                                    text = { Text(year.toString()) },
+                                    text = {
+                                        Text(
+                                            text = year.toString(),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    },
                                     onClick = {
                                         displayedMonth = YearMonth.of(
                                             year,
@@ -175,11 +205,18 @@ fun CampsiteAvailabilityCalendar(
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Text("›", fontSize = 30.sp)
+                        Text(
+                            text = "›",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
 
-                Row(modifier = Modifier.fillMaxWidth()) {
+                // Weekday labels
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     listOf(
                         "Su", "Mo", "Tu", "We",
                         "Th", "Fr", "Sa"
@@ -190,15 +227,18 @@ fun CampsiteAvailabilityCalendar(
                         ) {
                             Text(
                                 text = day,
-                                fontSize = 12.sp,
-                                color = Color.Gray
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
 
+                // Calendar date grid
                 calendarDays.chunked(7).forEach { week ->
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         week.forEach { date ->
                             val isCurrentMonth =
                                 YearMonth.from(date) == displayedMonth
@@ -215,12 +255,28 @@ fun CampsiteAvailabilityCalendar(
                                         !isBooked &&
                                         !date.isBefore(LocalDate.now())
 
+                            // Background for each date
                             val backgroundColor = when {
                                 !isCurrentMonth -> Color.Transparent
-                                isBooked -> bookedColor
-                                isSelected -> selectedColor
-                                canSelect -> availableColor
+                                isBooked -> statusColors.bookedBackground
+                                isSelected -> statusColors.selectedBackground
+                                canSelect -> MaterialTheme.colorScheme.surface
                                 else -> Color.Transparent
+                            }
+
+                            // Text color for each date
+                            val textColor = when {
+                                !isCurrentMonth ->
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+
+                                isBooked -> statusColors.booked
+
+                                isSelected -> statusColors.selected
+
+                                !canSelect ->
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+
+                                else -> MaterialTheme.colorScheme.onSurface
                             }
 
                             Box(
@@ -263,16 +319,14 @@ fun CampsiteAvailabilityCalendar(
                             ) {
                                 Text(
                                     text = date.dayOfMonth.toString(),
-                                    fontSize = 15.sp,
-                                    fontWeight = if (isSelected) {
-                                        FontWeight.Bold
+                                    style = if (isSelected) {
+                                        MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                        )
                                     } else {
-                                        FontWeight.Normal
+                                        MaterialTheme.typography.bodyMedium
                                     },
-                                    color = when {
-                                        !isCurrentMonth -> Color.LightGray
-                                        else -> Color.Black
-                                    }
+                                    color = textColor
                                 )
                             }
                         }
@@ -281,12 +335,20 @@ fun CampsiteAvailabilityCalendar(
             }
         }
 
+        // Calendar legend
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CalendarLegend("Booked / unavailable", bookedColor)
-            CalendarLegend("Selected", selectedColor)
+            CalendarLegend(
+                label = "Booked / unavailable",
+                color = statusColors.bookedBackground
+            )
+
+            CalendarLegend(
+                label = "Selected",
+                color = statusColors.selectedBackground
+            )
         }
     }
 }
@@ -316,7 +378,8 @@ private fun CalendarLegend(
 
         Text(
             text = label,
-            fontSize = 11.sp
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

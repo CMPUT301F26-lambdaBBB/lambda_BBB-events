@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import android.widget.Toast
@@ -9,43 +10,31 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.calendar.CampsiteAvailabilityCalendar
+import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.common.SubTitle
+import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import java.time.LocalDate
 import java.time.YearMonth
-import androidx.compose.ui.platform.LocalContext
-import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
-import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 
 /*
  * Allows users to select campsite reservation dates
  * and guest counts before registration.
  *
- * TODO: Integrate the campsite's availability schedule into calendar selection and reservation validation.
+ * TODO: Integrate the campsite's availability schedule
+ * into calendar selection and reservation validation.
  * TODO: Replace the campsite image placeholder.
  */
-
 
 /**
  * Displays campsite information and a form for selecting
@@ -65,25 +54,36 @@ fun CampsiteCheckAvailabilityScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
+
     if (campsite == null) {
-        Text("Loading campsite...")
+        Text(
+            text = "Loading campsite...",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         return
     }
+
     var fromDate by remember(campsiteId) {
         mutableStateOf("")
     }
+
     var toDate by remember(campsiteId) {
         mutableStateOf("")
     }
+
     val startDate = runCatching {
         LocalDate.parse(fromDate)
     }.getOrNull()
+
     val endDate = runCatching {
         LocalDate.parse(toDate)
     }.getOrNull()
+
     var numberOfPeople by remember(campsiteId) {
         mutableStateOf("")
     }
+
     val context = LocalContext.current
     val validPeople = numberOfPeople.toIntOrNull()
 
@@ -96,6 +96,7 @@ fun CampsiteCheckAvailabilityScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -111,19 +112,20 @@ fun CampsiteCheckAvailabilityScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
         ) {
+            // Campsite image placeholder
             Box(
                 modifier = Modifier
                     .size(110.dp)
                     .background(
-                        color = Color.LightGray,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Image",
-                    fontSize = 12.sp,
-                    color = Color.DarkGray
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
@@ -133,8 +135,8 @@ fun CampsiteCheckAvailabilityScreen(
             ) {
                 Text(
                     text = campsite.campsiteName,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -151,13 +153,14 @@ fun CampsiteCheckAvailabilityScreen(
                     Icon(
                         imageVector = Icons.Outlined.LocationOn,
                         contentDescription = "Location",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = campsite.address,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -170,7 +173,8 @@ fun CampsiteCheckAvailabilityScreen(
                     Icon(
                         imageVector = Icons.Outlined.Person,
                         contentDescription = "Max Occupancy",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Column(
@@ -178,15 +182,14 @@ fun CampsiteCheckAvailabilityScreen(
                     ) {
                         Text(
                             text = "Max Occupancy",
-                            fontSize = 10.sp,
-                            lineHeight = 11.sp,
-                            color = Color.Gray
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
                             text = "${campsite.maxOccupancy} people",
-                            fontSize = 12.sp,
-                            lineHeight = 13.sp
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -194,11 +197,15 @@ fun CampsiteCheckAvailabilityScreen(
         }
 
         HorizontalDivider(
-            color = Color.LightGray,
+            color = MaterialTheme.colorScheme.outlineVariant,
             thickness = 1.dp
         )
 
-        SubTitle("Select Availability")
+        Text(
+            text = "Select Availability",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
 
         val unavailableDates = emptySet<LocalDate>()
 
@@ -213,7 +220,11 @@ fun CampsiteCheckAvailabilityScreen(
             }
         )
 
-        Text("From *", fontSize = 14.sp)
+        Text(
+            text = "From *",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         DatePickerField(
             value = fromDate,
@@ -221,7 +232,11 @@ fun CampsiteCheckAvailabilityScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Text("To *", fontSize = 14.sp)
+        Text(
+            text = "To *",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         DatePickerField(
             value = toDate,
@@ -234,7 +249,10 @@ fun CampsiteCheckAvailabilityScreen(
             value = numberOfPeople,
             onValueChange = { newValue ->
                 val maxDigits = campsite.maxOccupancy.toString().length
-                if (newValue.all { it.isDigit() } && newValue.length <= maxDigits
+
+                if (
+                    newValue.all { it.isDigit() } &&
+                    newValue.length <= maxDigits
                 ) {
                     numberOfPeople = newValue
                 }
@@ -243,11 +261,10 @@ fun CampsiteCheckAvailabilityScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-
         Text(
             text = "Max Occupancy: ${campsite.maxOccupancy} people",
-            fontSize = 11.sp,
-            color = Color.Gray,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.End)
         )
 
@@ -273,16 +290,11 @@ fun CampsiteCheckAvailabilityScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = RoundedCornerShape(25.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8529D1),
-                contentColor = Color.White
-            )
+            shape = RoundedCornerShape(25.dp)
         ) {
             Text(
                 text = "Confirm",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.labelLarge
             )
         }
 

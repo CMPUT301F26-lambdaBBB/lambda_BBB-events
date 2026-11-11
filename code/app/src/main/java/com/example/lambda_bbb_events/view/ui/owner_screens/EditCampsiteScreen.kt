@@ -1,3 +1,4 @@
+
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
 import androidx.compose.foundation.background
@@ -26,10 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
@@ -64,157 +62,245 @@ fun EditCampsiteScreen(
     val scope = rememberCoroutineScope()
 
     if (campsite == null) {
-        Text("Campsite not found")
+        Text(
+            text = "Campsite not found",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
+        )
         return
     }
 
-    var name by remember { mutableStateOf(campsite.campsiteName) }
-    var address by remember { mutableStateOf(campsite.address) }
-    var maxOccupancy by remember { mutableStateOf(campsite.maxOccupancy.toString()) }
-    var description by remember { mutableStateOf(campsite.description) }
-    var rulesPolicies by remember { mutableStateOf(campsite.rulesPolicies) }
-    val tags = remember { campsite.tags.toMutableStateList() }
-    var showError by remember { mutableStateOf(false) }
+    var name by remember(campsiteId) {
+        mutableStateOf(campsite.campsiteName)
+    }
+
+    var address by remember(campsiteId) {
+        mutableStateOf(campsite.address)
+    }
+
+    var maxOccupancy by remember(campsiteId) {
+        mutableStateOf(campsite.maxOccupancy.toString())
+    }
+
+    var description by remember(campsiteId) {
+        mutableStateOf(campsite.description)
+    }
+
+    var rulesPolicies by remember(campsiteId) {
+        mutableStateOf(campsite.rulesPolicies)
+    }
+
+    val tags = remember(campsiteId) {
+        campsite.tags.toMutableStateList()
+    }
+
+    var showError by remember(campsiteId) {
+        mutableStateOf(false)
+    }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        ScreenTitle("Edit campsite", navController, showBack = true)
+        ScreenTitle(
+            title = "Edit campsite",
+            navController = navController,
+            showBack = true
+        )
 
-        // the form scrolls, the Cancel and Save buttons stay at the bottom
+        // Scrollable campsite editing form
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             FormTextFieldWithTitle(
                 title = "Campsite name",
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                },
                 placeholder = "Campsite name"
             )
 
-            // photos placeholder
-            Text("Photos", style = MaterialTheme.typography.titleMedium)
+            // Photos placeholder
+            Text(
+                text = "Photos",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .background(Color.Gray, RoundedCornerShape(16.dp)),
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("some images here", color = Color.White)
-            }
-            OutlinedButton(
-                onClick = { /* open the photo manager later */ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Manage photos", color = Color.Black)
-            }
-
-            Text(
-                text = "Address",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            FormTextFieldMultiLine(
-                value = address,
-                onValueChange = { address = it },
-                placeholder = "Address"
-            )
-
-            FormTextFieldWithTitle(
-                title = "Max Occupancy",
-                value = maxOccupancy,
-                onValueChange = { maxOccupancy = it },
-                placeholder = "Number of people"
-            )
-
-            Text(
-                text = "Description",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            FormTextFieldMultiLine(
-                value = description,
-                onValueChange = { description = it },
-                placeholder = "Describe the campsite"
-            )
-
-            FormTextFieldWithTitle(
-                title = "Rules and policies",
-                value = rulesPolicies,
-                onValueChange = { rulesPolicies = it },
-                placeholder = "Rules entrants must follow"
-            )
-
-            Text(
-                text = "Tags",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            TagEditor(
-                tags = tags,
-                onAddTag = { tags.add(it) },
-                onRemoveTag = { tags.remove(it) }
-            )
-
-
-            if (showError) {
                 Text(
-                    text = "Please enter a name, an address, and a max occupancy of at least 1."
+                    text = "Some images here",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    // TODO: Open the photo manager.
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Manage photos",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
-            Row(
+            // Address
+            Text(
+                text = "Address",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            FormTextFieldMultiLine(
+                value = address,
+                onValueChange = {
+                    address = it
+                },
+                placeholder = "Address"
+            )
+
+            // Max occupancy
+            FormTextFieldWithTitle(
+                title = "Max Occupancy",
+                value = maxOccupancy,
+                onValueChange = {
+                    maxOccupancy = it
+                },
+                placeholder = "Number of people"
+            )
+
+            // Description
+            Text(
+                text = "Description",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            FormTextFieldMultiLine(
+                value = description,
+                onValueChange = {
+                    description = it
+                },
+                placeholder = "Describe the campsite"
+            )
+
+            // Rules and policies
+            FormTextFieldWithTitle(
+                title = "Rules and policies",
+                value = rulesPolicies,
+                onValueChange = {
+                    rulesPolicies = it
+                },
+                placeholder = "Rules entrants must follow"
+            )
+
+            // Tags
+            Text(
+                text = "Tags",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            TagEditor(
+                tags = tags,
+                onAddTag = {
+                    tags.add(it)
+                },
+                onRemoveTag = {
+                    tags.remove(it)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Validation error
+        if (showError) {
+            Text(
+                text = "Please enter a name, an address, and a max occupancy of at least 1.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
+        // Fixed bottom buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cancel")
-                }
+                Text(
+                    text = "Cancel",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            val saved = controllers.campsites.updateCampsite(
-                                campsiteId,
-                                name,
-                                address,
-                                maxOccupancy,
-                                description,
-                                rulesPolicies,
-                                tags
-                            )
+            Button(
+                onClick = {
+                    scope.launch {
+                        val saved = controllers.campsites.updateCampsite(
+                            campsiteId,
+                            name,
+                            address,
+                            maxOccupancy,
+                            description,
+                            rulesPolicies,
+                            tags
+                        )
 
-                            if (saved) {
-                                navController.popBackStack()
-                            } else {
-                                showError = true
-                            }
+                        if (saved) {
+                            navController.popBackStack()
+                        } else {
+                            showError = true
                         }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text("Save changes")
-                }
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Save changes",
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
     }
