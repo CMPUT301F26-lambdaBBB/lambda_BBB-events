@@ -47,6 +47,16 @@ class LotteryController(
     val lotteryRepository: LotteryRepository
 ) {
     /**
+     * Gets a [Lottery] given its lotteryId.
+     *
+     * @param lotteryId The `lotteryId` to search for.
+     * @return The [Lottery] with the specified lotteryId if it exists. `null` otherwise.
+     */
+    suspend fun getLottery(lotteryId: String): Lottery? {
+        return lotteryRepository.getLottery(lotteryId)
+    }
+
+    /**
      * Creates a lottery for a campsite. Includes input validation.
      *
      * @param ownerId The device ID of the owner of the lottery.

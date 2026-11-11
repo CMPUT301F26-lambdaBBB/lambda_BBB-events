@@ -27,7 +27,7 @@ import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.lottery.LotteryCard
+import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 
 /*
  * Defines the campsite owner's lottery management screen.
@@ -53,11 +53,6 @@ fun OwnerManageLotteryScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
-
-    val activeLotteriesCount = controllers.lotteries.getLotteriesForCampsite(
-        campsiteId,
-        LotteryFilter.ACTIVE
-    ).size
 
     if (campsite == null) {
         Text(
@@ -224,7 +219,7 @@ fun OwnerManageLotteryScreen(
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            // TODO: Implement create lottery navigation.
+                            navController.navigate("create_lottery/${campsite.campsiteId}")
                         }
                     ) {
                         Text(
@@ -233,34 +228,16 @@ fun OwnerManageLotteryScreen(
                         )
                     }
 
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { /* TODO */ }
-                ) {
-                    Text("View Booked Dates")
-                }
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { navController.navigate("create_lottery/${campsite.campsiteId}") }
-                ) {
-                    Text("+ Create Lottery")
-                }
+                    if (allLotteries.isEmpty()) {
+                        HorizontalDivider()
+                        Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
+                    }
 
-                if (allLotteries.isEmpty()) {
-                    HorizontalDivider()
-                    Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
-                }
+                    LotterySection("Active Lotteries", activeLotteries, allLotteries, controllers)
+                    LotterySection("Past Lotteries", pastLotteries, allLotteries, controllers)
+                    LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, controllers)
 
-                LotterySection("Active Lotteries", activeLotteries, allLotteries, controllers)
-                LotterySection("Past Lotteries", pastLotteries, allLotteries, controllers)
-                LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, controllers)
-
-                    LotteryPlaceholder("im a can")
-                    LotteryPlaceholder("canada")
-
-                    Spacer(
-                        modifier = Modifier.height(50.dp)
-                    )
+                    Spacer(modifier = Modifier.height(50.dp))
                 }
             }
         }
@@ -287,11 +264,11 @@ private fun LotterySection(
         return
     }
 
-    HorizontalDivider()
+    HorizontalDivider(Modifier.padding(top = 5.dp))
     SectionTitle(title)
 
     for (lottery in lotteries) {
-        LotteryCard(
+        OwnerLotteryCard(
             lotteryNumber = allLotteries.indexOf(lottery) + 1,
             lottery = lottery,
             phase = controllers.lotteries.getPhase(lottery),

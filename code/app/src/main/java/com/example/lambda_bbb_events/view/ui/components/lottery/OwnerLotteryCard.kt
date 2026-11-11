@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +43,7 @@ import java.util.Locale
  * @param onClick Called when the card is clicked.
  */
 @Composable
-fun LotteryCard(
+fun OwnerLotteryCard(
     lotteryNumber: Int,
     lottery: Lottery,
     phase: LotteryPhase,
@@ -55,8 +56,8 @@ fun LotteryCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .border(1.dp, Color(0xFFE3DEFA), cardShape)
-            .background(Color(0xFFF8F7FF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, cardShape)
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -113,13 +114,13 @@ fun LotteryCard(
 }
 
 /**
- * A calendar icon next to a label and a date range, on two lines.
+ * A calendar icon next to a label and a date range.
  *
- * @param label The text above the dates, like "Registration:".
+ * @param label The text above the dates (e.g. "Registration:").
  * @param dates The date range text.
  */
 @Composable
-private fun PeriodRow(label: String, dates: String) {
+fun PeriodRow(label: String, dates: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -130,20 +131,32 @@ private fun PeriodRow(label: String, dates: String) {
             modifier = Modifier.size(20.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy((2).dp)) {
-            Text(text = label, fontSize = 12.sp, lineHeight = 14.sp, color = Color.Gray)
-            Text(text = dates, fontSize = 14.sp, lineHeight = 18.sp)
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = dates,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
 
 /**
- * A rounded label showing the phase of a lottery. Open phases are green,
+ * A label showing the phase of a lottery. Open phases are green,
  * cancelled is red, ended is gray, and the waiting phases are pink.
  *
  * @param phase The phase to show.
  */
 @Composable
-private fun PhasePill(phase: LotteryPhase) {
+fun PhasePill(phase: LotteryPhase) {
     val backgroundColor: Color
     val textColor: Color
 
@@ -169,7 +182,7 @@ private fun PhasePill(phase: LotteryPhase) {
     Box(
         modifier = Modifier
             .background(backgroundColor, RoundedCornerShape(20.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 11.dp, vertical = 2.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -188,7 +201,7 @@ private fun PhasePill(phase: LotteryPhase) {
  * @param end The end date.
  * @return The range as a string.
  */
-private fun formatDateRange(start: Date, end: Date): String {
+fun formatDateRange(start: Date, end: Date): String {
     val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
 
     return "${formatter.format(start)} - ${formatter.format(end)}"
