@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 
@@ -11,6 +12,16 @@ import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 class WaitlistEntryController(
     val waitlistEntryRepository: WaitlistEntryRepository
 ) {
+    /**
+     * Gets all the entries on the waitlist of a lottery, sorted by join date.
+     *
+     * @param lotteryId The ID of the lottery.
+     * @return The entries of the lottery.
+     */
+    fun getEntriesForLottery(lotteryId: String): List<WaitlistEntry> {
+        return waitlistEntryRepository.getEntries(lotteryId).sortedByDescending { it.joinedAt }
+    }
+
     /**
      * Gets all the waitlist entries joined by an entrant sorted by newest.
      *

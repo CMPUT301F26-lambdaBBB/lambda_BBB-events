@@ -166,7 +166,7 @@ fun LotteryBookingsScreen(
                                 lottery = lottery,
                                 onClick = {
                                     if (campsite != null) {
-                                        navController.navigate("campsite_details/${campsite.campsiteId}")
+                                        navController.navigate("registrationStatus/${entry.entryId}")
                                     }
                                 }
                             )

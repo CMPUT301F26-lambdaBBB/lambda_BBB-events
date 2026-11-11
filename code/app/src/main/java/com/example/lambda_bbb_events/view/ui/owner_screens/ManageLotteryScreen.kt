@@ -233,9 +233,9 @@ fun OwnerManageLotteryScreen(
                         Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
                     }
 
-                    LotterySection("Active Lotteries", activeLotteries, allLotteries, controllers)
-                    LotterySection("Past Lotteries", pastLotteries, allLotteries, controllers)
-                    LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, controllers)
+                    LotterySection("Active Lotteries", activeLotteries, allLotteries, navController, controllers)
+                    LotterySection("Past Lotteries", pastLotteries, allLotteries, navController, controllers)
+                    LotterySection("Cancelled Lotteries", cancelledLotteries, allLotteries, navController, controllers)
 
                     Spacer(modifier = Modifier.height(50.dp))
                 }
@@ -258,6 +258,7 @@ private fun LotterySection(
     title: String,
     lotteries: List<Lottery>,
     allLotteries: List<Lottery>,
+    navController: NavController,
     controllers: AppControllers
 ) {
     if (lotteries.isEmpty()) {
@@ -272,7 +273,7 @@ private fun LotterySection(
             lotteryNumber = allLotteries.indexOf(lottery) + 1,
             lottery = lottery,
             phase = controllers.lotteries.getPhase(lottery),
-            onClick = { /* TODO: open the lottery's details and waitlist (US 02.09.01) */ }
+            onClick = { navController.navigate("lottery_details/${lottery.lotteryId}") }
         )
     }
 }
