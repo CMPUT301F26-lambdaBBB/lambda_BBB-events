@@ -74,6 +74,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.util.UUID
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /*
  * Provides form for creating campsites and lotteries,
@@ -142,6 +143,8 @@ fun CreateScreen(
     var lotteryDate by remember { mutableStateOf("") }
     var startRegistration by remember { mutableStateOf("") }
     var endRegistration by remember { mutableStateOf("") }
+    var startBooking by remember { mutableStateOf("") }
+    var endBooking by remember { mutableStateOf("") }
     var numberOfSpots by remember { mutableStateOf("10") }
     var isSpotsExpanded by remember { mutableStateOf(false) }
     var eligibility by remember { mutableStateOf("All Entrants") }
@@ -193,7 +196,16 @@ fun CreateScreen(
         )
 
         scope.launch {
-            controllers.lotteries.addLottery(newLottery)
+            controllers.lotteries.createLottery(
+                ownerId = ownerDeviceId,
+                campsiteId = generatedCampsiteId,
+                registrationStart = LocalDate.parse(startRegistration),
+                registrationEnd = LocalDate.parse(endRegistration),
+                bookingStart = LocalDate.parse(startBooking),
+                bookingEnd = LocalDate.parse(endRegistration),
+                numberOfWinnersString = numberOfSpots,
+                waitlistCapacityString = numberOfSpots,
+            )
         }
         navController.navigate("home")
     }
@@ -571,12 +583,6 @@ fun CreateScreen(
                         }
 
                         2 -> {
-                            FormLabel("Lottery Date *")
-                            DateField(
-                                value = lotteryDate,
-                                onClick = { PopUpShowDatePicker(context) { lotteryDate = it } }
-                            )
-
                             FormLabel("Start Registration *")
                             DateField(
                                 value = startRegistration,
@@ -587,6 +593,18 @@ fun CreateScreen(
                             DateField(
                                 value = endRegistration,
                                 onClick = { PopUpShowDatePicker(context) { endRegistration = it } }
+                            )
+
+                            FormLabel("Start Booking *")
+                            DateField(
+                                value = startRegistration,
+                                onClick = { PopUpShowDatePicker(context) { startBooking = it } }
+                            )
+
+                            FormLabel("End Booking *")
+                            DateField(
+                                value = endRegistration,
+                                onClick = { PopUpShowDatePicker(context) { endBooking = it } }
                             )
 
                             Row(

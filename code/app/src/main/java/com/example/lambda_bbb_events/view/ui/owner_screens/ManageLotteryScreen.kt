@@ -180,7 +180,7 @@ fun OwnerManageLotteryScreen(
                 }
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { /* TODO */ }
+                    onClick = { navController.navigate("create_lottery/${campsite.campsiteId}") }
                 ) {
                     Text("+ Create Lottery")
                 }

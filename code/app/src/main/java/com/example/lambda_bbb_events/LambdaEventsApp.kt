@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
@@ -115,6 +116,10 @@ private fun MainApp(controllers: AppControllers) {
             composable("owner_campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
+            }
+            composable("create_lottery/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                CreateLotteryScreen(navController, controllers, campsiteId)
             }
             composable(
                 route = "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
