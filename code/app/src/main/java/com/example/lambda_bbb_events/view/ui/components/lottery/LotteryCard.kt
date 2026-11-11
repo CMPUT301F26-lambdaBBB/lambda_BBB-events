@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,8 +56,8 @@ fun LotteryCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .border(1.dp, Color(0xFFE3DEFA), cardShape)
-            .background(Color(0xFFF8F7FF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, cardShape)
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -113,7 +114,7 @@ fun LotteryCard(
 }
 
 /**
- * A calendar icon next to a label and a date range, on two lines.
+ * A calendar icon next to a label and a date range.
  *
  * @param label The text above the dates, like "Registration:".
  * @param dates The date range text.
@@ -137,7 +138,7 @@ private fun PeriodRow(label: String, dates: String) {
 }
 
 /**
- * A rounded label showing the phase of a lottery. Open phases are green,
+ * A label showing the phase of a lottery. Open phases are green,
  * cancelled is red, ended is gray, and the waiting phases are pink.
  *
  * @param phase The phase to show.
@@ -169,7 +170,7 @@ private fun PhasePill(phase: LotteryPhase) {
     Box(
         modifier = Modifier
             .background(backgroundColor, RoundedCornerShape(20.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 11.dp, vertical = 2.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
