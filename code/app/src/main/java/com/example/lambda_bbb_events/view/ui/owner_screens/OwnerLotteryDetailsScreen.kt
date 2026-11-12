@@ -43,7 +43,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.EntryStatusPill
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 import com.example.lambda_bbb_events.view.ui.components.lottery.formatSingleDate
-import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import kotlinx.coroutines.launch
 
 /*
