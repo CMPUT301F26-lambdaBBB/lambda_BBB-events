@@ -56,12 +56,38 @@ class LotteryRepository {
     }
 
     /**
-     * Deletes a lottery from the Firestore database.
+     * Deletes a lottery from the Firestore database, along with every waitlist entry
+     * for it and every entrant's reference to those entries.
      *
      * @param lottery The lottery to be deleted.
      */
     suspend fun deleteLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).delete().await()
+        // find every waitlist entry that has this lottery id
+        val entriesSnapshot = db.collection("waitlistEntries")
+            .whereEqualTo("lotteryId", lottery.lotteryId)
+            .get()
+            .await()
+
+        val batch = db.batch()
+
+        for (entryDocument in entriesSnapshot.documents) {
+            // remove this entry's ID from the waitlistEntryIds of whichever user has it
+            val usersSnapshot = db.collection("users")
+                .whereArrayContains("waitlistEntryIds", entryDocument.id)
+                .get()
+                .await()
+
+            for (userDoc in usersSnapshot.documents) {
+                batch.update(userDoc.reference, "entryIds",
+                    FieldValue.arrayRemove(entryDocument.id))
+            }
+
+            batch.delete(entryDocument.reference)
+        }
+
+        batch.delete(lotteriesRef.document(lottery.lotteryId))
+
+        batch.commit().await()
     }
 
 
