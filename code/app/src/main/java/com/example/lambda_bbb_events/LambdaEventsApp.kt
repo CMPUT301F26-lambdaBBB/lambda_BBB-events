@@ -33,6 +33,7 @@ import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.Regis
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
@@ -122,6 +123,10 @@ private fun MainApp(controllers: AppControllers) {
             composable("create_lottery/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CreateLotteryScreen(navController, controllers, campsiteId)
+            }
+            composable("edit_lottery/{lotteryId}") { backStackEntry ->
+                val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+                EditLotteryScreen(navController, controllers, lotteryId)
             }
             composable("lottery_details/{lotteryId}") { backStackEntry ->
                 val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""

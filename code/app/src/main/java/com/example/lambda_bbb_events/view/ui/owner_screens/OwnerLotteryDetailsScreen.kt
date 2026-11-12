@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -154,11 +155,24 @@ fun OwnerLotteryDetailsScreen(
 
                 item {
                     OutlinedButton(
-                        onClick = { /* TODO: open the edit lottery screen */ },
-                        enabled = false,
+                        onClick = {
+                            navController.navigate("edit_lottery/${currentLottery.lotteryId}")
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Edit Lottery")
+                    }
+                }
+
+                item {
+                    OutlinedButton(
+                        onClick = { /* TODO: open the edit lottery screen */ },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Delete Lottery")
                     }
                 }
 

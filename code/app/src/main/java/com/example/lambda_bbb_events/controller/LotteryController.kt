@@ -152,6 +152,111 @@ class LotteryController(
     }
 
     /**
+     * Creates a lottery for a campsite. Includes input validation.
+     *
+     * @param ownerId The device ID of the owner of the lottery.
+     * @param campsiteId The ID of the campsite of the lottery.
+     * @param registrationStart The start date of the registration period.
+     * @param registrationEnd The end date of the registration period.
+     * @param bookingStart The start date of the booking period.
+     * @param bookingEnd The end date of the booking period.
+     * @param numberOfWinnersString The number of winners of the lottery (as a string).
+     * @param waitlistCapacityString The maximum number of entries (as a string).
+     * @return `null` if the lottery was created successfully. An error message otherwise.
+     */
+    suspend fun updateLottery(
+        lotteryId: String,
+        ownerId: String,
+        campsiteId: String,
+        registrationStart: LocalDate?,
+        registrationEnd: LocalDate?,
+        bookingStart: LocalDate?,
+        bookingEnd: LocalDate?,
+        numberOfWinnersString: String,
+        waitlistCapacityString: String
+    ): String? {
+        val existingLottery = lotteryRepository.getLottery(lotteryId)
+            ?: return "Lottery not found."
+
+        val today = LocalDate.now()
+
+        // inpuut check the dates
+        if (registrationStart == null || registrationEnd == null ||
+            bookingStart == null || bookingEnd == null) {
+            return "Please pick all four dates."
+        }
+
+        if (registrationEnd.isBefore(today)) {
+            return "The registration period must not end before today."
+        }
+
+        if (registrationEnd.isBefore(registrationStart)) {
+            return "The registration period must end after it starts."
+        }
+
+        if (!bookingStart.isAfter(registrationEnd)) {
+            return "The booking period must start after the registration period ends."
+        }
+
+        if (bookingEnd.isBefore(bookingStart)) {
+            return "The booking period must end after it starts."
+        }
+
+        // input check the num of winners
+        val numberOfWinners = numberOfWinnersString.trim().toIntOrNull()
+            ?: return "The number of winners is not a valid number."
+        if (numberOfWinners < 1) {
+            return "The number of winners must be at least 1."
+        }
+
+        // input check the capacity
+        val waitlistCapacity = waitlistCapacityString.trim().toIntOrNull()
+            ?: return "The waitlist capacity is not a valid number."
+        if (waitlistCapacity < numberOfWinners) {
+            return "The waitlist capacity must be at least the number of winners."
+        }
+        if (waitlistCapacity < existingLottery.entryIds.size) {
+            return "The waitlist capacity can't be smaller than the number of entrants already on it."
+        }
+
+        val newRegistrationStart = toStartOfDay(registrationStart)
+        val newRegistrationEnd = toEndOfDay(registrationEnd)
+
+        // a campsite shouldn't have multiple conflicting lottery periods / overlap
+        val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
+        for (existing in existingLotteries) {
+            if (existing.lotteryId == lotteryId) {
+                continue
+            }
+            val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
+                    !newRegistrationStart.after(existing.registrationEnd)
+
+            if (existing.status != LotteryStatus.CANCELLED && overlaps) {
+                return "This campsite already has a lottery with an overlapping registration period."
+            }
+        }
+
+        val newBookingStart = toStartOfDay(bookingStart)
+        val newBookingEnd = toEndOfDay(bookingEnd)
+
+        lotteryRepository.updateLottery(
+            Lottery(
+                lotteryId = lotteryId,
+                campsiteIds = listOf(campsiteId),
+                ownerId = ownerId,
+                registrationStart = newRegistrationStart,
+                registrationEnd = newRegistrationEnd,
+                bookingStart = newBookingStart,
+                bookingEnd = newBookingEnd,
+                numberOfWinners = numberOfWinners,
+                waitlistCapacity = waitlistCapacity
+            )
+        )
+
+        return null
+    }
+
+    /**
      * Converts a [LocalDate] date to the first timestamp of that day (so 00:00:00).
      *
      * @param date The date to convert.
