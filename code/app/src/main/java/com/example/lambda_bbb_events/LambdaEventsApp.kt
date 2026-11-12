@@ -22,6 +22,7 @@ import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScr
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreDefaultScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRScannerScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryEnteredScreen
@@ -109,6 +110,7 @@ private fun MainApp(controllers: AppControllers) {
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
+            composable("qr_scanner") { QRScannerScreen(navController) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CampsiteDetailsScreen(navController, controllers, campsiteId)

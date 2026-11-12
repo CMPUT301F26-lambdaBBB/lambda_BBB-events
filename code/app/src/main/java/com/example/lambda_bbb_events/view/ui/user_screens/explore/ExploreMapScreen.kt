@@ -4,6 +4,7 @@ package com.example.lambda_bbb_events.view.ui.user_screens.explore
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,10 +12,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -80,6 +84,7 @@ fun ExploreMapScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
                 .testTag("screen_explore")
         ) {
             ScreenTitle(
@@ -87,21 +92,39 @@ fun ExploreMapScreen(
                 navController = navController
             )
 
-            SearchBar(
-                label = "Search Campsites",
-                placeholder = "Search campsites...",
-                query = query,
-                onQueryChange = {
-                    query = it
-                },
-                onSearch = {
-                    controllers.campsites.search(query)
-                    navController.navigate("explore_default")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("exploreSearchInput")
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SearchBar(
+                    label = "Search Campsites",
+                    placeholder = "Search campsites...",
+                    query = query,
+                    onQueryChange = {
+                        query = it
+                    },
+                    onSearch = {
+                        controllers.campsites.search(query)
+                        navController.navigate("explore_default")
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("exploreSearchInput")
+                )
+
+                IconButton(
+                    onClick = {
+                        navController.navigate("qr_scanner")
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.QrCodeScanner,
+                        contentDescription = "QR Scanner",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
 
             AssistChip(
                 onClick = {
