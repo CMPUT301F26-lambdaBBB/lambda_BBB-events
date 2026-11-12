@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
-import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
