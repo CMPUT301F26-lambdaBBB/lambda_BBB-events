@@ -7,6 +7,7 @@ import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -62,7 +63,18 @@ class WaitlistEntryRepository {
      * @param entry The waitlist entry to be deleted.
      */
     suspend fun deleteWaitlistEntry(entry: WaitlistEntry) {
-        entriesRef.document(entry.entryId).delete().await()
+        val entryRef = entriesRef.document(entry.entryId)
+        val lotteryRef = db.collection("lotteries")
+            .document(entry.lotteryId)
+        val batch = db.batch()
+        batch.delete(entryRef)
+        batch.update(
+            lotteryRef,
+            "entryIds",
+            FieldValue.arrayRemove(entry.entryId)
+        )
+
+        batch.commit().await()
     }
 
 
