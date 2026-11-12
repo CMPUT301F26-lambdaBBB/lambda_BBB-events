@@ -110,7 +110,7 @@ private fun MainApp(controllers: AppControllers) {
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
-            composable("qr_scanner") { QRScannerScreen(navController) }
+            composable("qr_scanner") { QRScannerScreen() }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CampsiteDetailsScreen(navController, controllers, campsiteId)
