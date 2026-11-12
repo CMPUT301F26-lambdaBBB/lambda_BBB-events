@@ -43,7 +43,6 @@ internal fun CreateLotteryStep(
     errorMessage: String?,
     onDone: () -> Unit
 ) {
-    val context = LocalContext.current
     var isSpotsExpanded by remember { mutableStateOf(false) }
     var isEligibilityExpanded by remember { mutableStateOf(false) }
     val spotsOptions = listOf("5", "10", "15", "20", "25", "50", "100")
