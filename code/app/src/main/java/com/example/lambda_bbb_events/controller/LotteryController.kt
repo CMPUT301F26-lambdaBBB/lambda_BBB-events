@@ -257,6 +257,15 @@ class LotteryController(
     }
 
     /**
+     * Deletes a lottery.
+     *
+     * @param lottery The lottery to delete.
+     */
+    suspend fun deleteLottery(lottery: Lottery) {
+        lotteryRepository.deleteLottery(lottery)
+    }
+
+    /**
      * Converts a [LocalDate] date to the first timestamp of that day (so 00:00:00).
      *
      * @param date The date to convert.

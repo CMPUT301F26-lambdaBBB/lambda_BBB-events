@@ -13,17 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +43,8 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.EntryStatusPill
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 import com.example.lambda_bbb_events.view.ui.components.lottery.formatSingleDate
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
+import kotlinx.coroutines.launch
 
 /*
  * Defines the campsite owner's screen for one lottery, showing the lottery
@@ -69,6 +74,11 @@ fun OwnerLotteryDetailsScreen(
     var entries by remember { mutableStateOf<List<WaitlistEntry>>(emptyList()) }
     var names by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
+
+    val scope = rememberCoroutineScope()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(lotteryId) {
         val loadedLottery = controllers.lotteries.getLottery(lotteryId)
@@ -165,13 +175,23 @@ fun OwnerLotteryDetailsScreen(
 
                 item {
                     OutlinedButton(
-                        onClick = { /* TODO: open the edit lottery screen */ },
+                        onClick = { showDeleteDialog = true },
+                        enabled = !isDeleting,
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Delete Lottery")
+                        Text(if (isDeleting) "Deleting..." else "Delete Lottery")
+                    }
+                }
+
+                if (errorMessage != null) {
+                    item {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
 
@@ -206,6 +226,62 @@ fun OwnerLotteryDetailsScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteDialog && currentLottery != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isDeleting) {
+                    showDeleteDialog = false
+                }
+            },
+            title = {
+                Text("Delete Lottery?")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to delete this lottery? " +
+                            "Everyone on its waitlist will lose their entry. " +
+                            "This can't be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    onClick = {
+                        isDeleting = true
+                        errorMessage = null
+
+                        scope.launch {
+                            try {
+                                controllers.lotteries.deleteLottery(currentLottery)
+
+                                showDeleteDialog = false
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Failed to delete lottery."
+                                showDeleteDialog = false
+                            } finally {
+                                isDeleting = false
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
