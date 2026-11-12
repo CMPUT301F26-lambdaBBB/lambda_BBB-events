@@ -39,7 +39,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.EntryStatusPill
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 import com.example.lambda_bbb_events.view.ui.components.lottery.formatSingleDate
-import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 
 /*
  * Defines the campsite owner's screen for one lottery, showing the lottery
@@ -165,8 +164,10 @@ fun OwnerLotteryDetailsScreen(
                 item {
                     HorizontalDivider()
                     Spacer(Modifier.height(12.dp))
-                    SectionTitle(
-                        text = "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})"
+                    Text(
+                        text = "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
