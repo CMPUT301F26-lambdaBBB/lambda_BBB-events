@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
