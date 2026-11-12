@@ -2,13 +2,14 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.AssistChip
@@ -50,6 +51,9 @@ import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCardSec
  * Map selections update the search location, while campsite
  * selections navigate to their details screens.
  *
+ * The map and nearby campsite listings scroll vertically,
+ * while the search controls and bottom navigation remain fixed.
+ *
  * @param navController Handles screen navigation.
  * @param controllers Manages campsite searches and filters.
  * @param showMap Whether to display the interactive map.
@@ -70,6 +74,7 @@ fun ExploreMapScreen(
             BottomNavigationBar(navController)
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -123,45 +128,53 @@ fun ExploreMapScreen(
                 )
             )
 
-            /**
-             * Displays Google Maps within the application.
-             *
-             * Reference:
-             * Google Maps SDK for Android documentation.
-             * https://developers.google.com/maps/documentation/android-sdk/overview
-             */
-            if (showMap) {
-                // Clicking Google Maps updates the search query.
-                ClickableMap(
-                    height = 300,
-                    onLocationSelected = { coordinates, address, postalCode ->
-                        // TODO: Use coordinates to filter nearby campsites.
+            // Scrollable map and campsite listings
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-                        if (address.isNotBlank()) {
-                            query = address
-                        } else if (postalCode.isNotBlank()) {
-                            query = postalCode
+                /**
+                 * Displays Google Maps within the application.
+                 *
+                 * Reference:
+                 * Google Maps SDK for Android documentation.
+                 * https://developers.google.com/maps/documentation/android-sdk/overview
+                 */
+                if (showMap) {
+                    ClickableMap(
+                        height = 300,
+                        onLocationSelected = { _, address, postalCode ->
+                            // TODO: Use coordinates to filter nearby campsites.
+
+                            if (address.isNotBlank()) {
+                                query = address
+                            } else if (postalCode.isNotBlank()) {
+                                query = postalCode
+                            }
                         }
-                    }
+                    )
+                }
+
+                // Nearby Campsites
+                VerticalCardSection(
+                    title = "Nearby Campsites",
+                    campsites = controllers.campsites.campsites,
+                    onCampsiteClick = { campsite ->
+                        navController.navigate(
+                            "campsite_details/${campsite.campsiteId}"
+                        )
+                    },
+                    onSeeAll = {
+                        controllers.campsites.search("")
+                        navController.navigate("explore_default")
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            VerticalCardSection(
-                title = "Nearby Campsites",
-                campsites = controllers.campsites.campsites,
-                onCampsiteClick = {
-                    navController.navigate(
-                        "campsite_details/${it.campsiteId}"
-                    )
-                },
-                onSeeAll = {
-                    controllers.campsites.search("")
-                    navController.navigate("explore_default")
-                },
-                modifier = Modifier.weight(1f)
-            )
         }
     }
 
@@ -173,6 +186,7 @@ fun ExploreMapScreen(
             },
             onShowResults = {
                 openFilter = false
+
                 navController.navigate("explore_default") {
                     launchSingleTop = true
                 }

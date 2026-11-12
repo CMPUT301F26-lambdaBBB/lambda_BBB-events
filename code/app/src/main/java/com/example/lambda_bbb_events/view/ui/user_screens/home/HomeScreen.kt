@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -110,26 +112,33 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            Box(
-                modifier = Modifier.testTag("recentlyViewedSection")
+            Column (
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                HorizontalCardSection(
-                    title = "Recently Viewed",
-                    onSeeAll = {
-                        // TODO: Implement See All navigation.
-                    }
-                )
-            }
+                Box(
+                    modifier = Modifier.testTag("recentlyViewedSection")
+                ) {
+                    HorizontalCardSection(
+                        title = "Recently Viewed",
+                        onSeeAll = {
+                            // TODO: Implement See All navigation.
+                        }
+                    )
+                }
 
-            Box(
-                modifier = Modifier.testTag("featuredCampsitesSection")
-            ) {
-                HorizontalCardSection(
-                    title = "Featured Campsites",
-                    onSeeAll = {
-                        // TODO: Implement See All navigation.
-                    }
-                )
+                Box(
+                    modifier = Modifier.testTag("featuredCampsitesSection")
+                ) {
+                    HorizontalCardSection(
+                        title = "Featured Campsites",
+                        onSeeAll = {
+                            // TODO: Implement See All navigation.
+                        }
+                    )
+                }
             }
         }
     }

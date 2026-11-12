@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.view.ui.user_screens.explore.SectionTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 
@@ -266,7 +265,12 @@ private fun LotterySection(
     }
 
     HorizontalDivider(Modifier.padding(top = 5.dp))
-    SectionTitle(title)
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
 
     for (lottery in lotteries) {
         OwnerLotteryCard(
