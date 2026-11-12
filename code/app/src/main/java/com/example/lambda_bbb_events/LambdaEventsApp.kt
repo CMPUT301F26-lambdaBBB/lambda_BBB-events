@@ -21,6 +21,7 @@ import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreDefaultScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryEnteredScreen
@@ -111,6 +112,10 @@ private fun MainApp(controllers: AppControllers) {
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CampsiteDetailsScreen(navController, controllers, campsiteId)
+            }
+            composable("campsite_qr_code/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                QRCodeScreen(navController, controllers, campsiteId)
             }
             composable("campsite_check_availability/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
