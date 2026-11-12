@@ -34,7 +34,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
  * tags, description, and reservation availability.
  *
  * TODO: Replace the image carousel placeholder with campsite images.
- * TODO: Display a QR code for the campsite.
+ * TODO: Make the QR code scannable and navigate to campsite details.
  * TODO: Display the campsite location using Google Maps.
  * TODO: Implement the campsite reviews section.
  */

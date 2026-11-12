@@ -1,6 +1,6 @@
-
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,24 +17,28 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
 
 /*
  * Displays campsite details and provides management actions
  * for owners in managing lotteries.
  *
  * TODO: Replace the image carousel placeholder with campsite images.
+ * TODO: Make the QR code scannable and navigate to campsite details.
  * TODO: Display actual upcoming, past, and cancelled reservations.
  * TODO: Implement campsite deletion with confirmation.
  */
@@ -56,6 +60,11 @@ fun OwnerCampsiteDetailsScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
+
+    var showQrDialog by remember { mutableStateOf(false) }
+    val qrThumbnail = remember(campsiteId) {
+        generateQR(campsiteId, 300, 300)
+    }
 
     if (campsite == null) {
         Text(
@@ -210,6 +219,64 @@ fun OwnerCampsiteDetailsScreen(
                                 // TODO: Implement campsite deletion with confirmation.
                             },
                             modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+
+                    // Campsite QR code box
+                    Text(
+                        text = "Campsite QR Code",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable {
+                                showQrDialog = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (qrThumbnail != null) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    bitmap = qrThumbnail.asImageBitmap(),
+                                    contentDescription = "QR Code Preview",
+                                    modifier = Modifier.size(110.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Tap to enlarge QR Code",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "Tap to view QR Code",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (showQrDialog) {
+                        QRCodeDialog(
+                            campsiteName = campsite.campsiteName,
+                            campsiteId = campsiteId,
+                            onDismiss = { showQrDialog = false }
                         )
                     }
 
