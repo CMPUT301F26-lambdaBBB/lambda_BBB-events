@@ -136,7 +136,7 @@ fun BottomNavigationBar(navController: NavController) {
         NavigationBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp)),
+                .clip(RoundedCornerShape(50.dp)),
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 2.dp
