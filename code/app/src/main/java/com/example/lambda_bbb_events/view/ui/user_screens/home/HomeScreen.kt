@@ -72,7 +72,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Home",
