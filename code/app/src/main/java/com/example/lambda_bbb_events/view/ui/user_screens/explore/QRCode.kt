@@ -1,26 +1,30 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.generateQR
+import com.example.lambda_bbb_events.model.saveBitmapToGallery
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 
 /**
- * Displays a full-screen view for a campsite's QR Code.
+ * Displays a full-screen view for a campsite's QR Code with option to download.
  *
  * @param navController The [NavController] used for navigation.
  * @param controllers The [AppControllers] used to fetch campsite details.
@@ -32,6 +36,7 @@ fun QRCodeScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val context = LocalContext.current
     val campsite = controllers.campsites.getCampsite(campsiteId)
     val qrBitmap = remember(campsiteId) {
         generateQR(campsiteId, 800, 800)
@@ -97,12 +102,42 @@ fun QRCodeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
+        if (qrBitmap != null) {
+            Button(
+                onClick = {
+                    val success = saveBitmapToGallery(context, qrBitmap, "campsite_${campsiteId}_qr")
+                    if (success) {
+                        Toast.makeText(context, "QR Code saved to Pictures/LambdaEvents", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Failed to save QR Code", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Download,
+                    contentDescription = "Download QR Code",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Download QR Code")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
-                .fillMaxWidth(0.6f)
+                .fillMaxWidth(0.7f)
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp)
         ) {
@@ -112,7 +147,7 @@ fun QRCodeScreen(
 }
 
 /**
- * Displays a popup dialog showing the enlarged QR code for a campsite.
+ * Displays a popup dialog showing the enlarged QR code for a campsite with option to download.
  *
  * @param campsiteName The name of the campsite.
  * @param campsiteId The ID of the campsite.
@@ -124,6 +159,7 @@ fun QRCodeDialog(
     campsiteId: String,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val qrBitmap = remember(campsiteId) {
         generateQR(campsiteId, 800, 800)
     }
@@ -180,9 +216,33 @@ fun QRCodeDialog(
                     }
                 }
 
-                Button(
+                if (qrBitmap != null) {
+                    Button(
+                        onClick = {
+                            val success = saveBitmapToGallery(context, qrBitmap, "campsite_${campsiteId}_qr")
+                            if (success) {
+                                Toast.makeText(context, "QR Code saved to Pictures/LambdaEvents", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Failed to save QR Code", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Download,
+                            contentDescription = "Download QR Code",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Download QR Code")
+                    }
+                }
+
+                OutlinedButton(
                     onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Text("Close")
                 }
