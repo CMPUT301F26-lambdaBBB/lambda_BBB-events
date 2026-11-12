@@ -14,6 +14,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -55,6 +56,12 @@ class ImageRepositoryUnitTest {
             documentRef.delete()
         } returns task
 
+        every { task.isComplete } returns true
+        every { task.isSuccessful } returns true
+        every { task.result } returns null
+        every { task.exception } returns null
+        every { task.isCanceled } returns false
+
         repository = ImageRepository(db)
     }
 
@@ -64,7 +71,7 @@ class ImageRepositoryUnitTest {
     }
 
     @Test
-    fun addImage() {
+    fun addImage() = runTest {
         repository.addImage(image)
 
         verify(exactly = 1) {
@@ -77,7 +84,7 @@ class ImageRepositoryUnitTest {
     }
 
     @Test
-    fun deleteImage() {
+    fun deleteImage() = runTest {
         repository.deleteImage(image)
 
         verify(exactly = 1) {
@@ -90,7 +97,7 @@ class ImageRepositoryUnitTest {
     }
 
     @Test
-    fun updateImage() {
+    fun updateImage() = runTest {
         repository.updateImage(image)
 
         verify(exactly = 1) {
