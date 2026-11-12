@@ -198,8 +198,10 @@ fun OwnerLotteryDetailsScreen(
                 item {
                     HorizontalDivider()
                     Spacer(Modifier.height(12.dp))
-                    SectionTitle(
-                        text = "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})"
+                    Text(
+                        text = "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
