@@ -247,10 +247,10 @@ fun OwnerManageLotteryScreen(
  * Each lottery has a divider, title, and card with info in it. Nothing is shown when the
  * list is empty, meaning a section is only shown if it has at least one lottery.
  *
- * @param title The section title, like "Active Lotteries".
- * @param lotteries The lotteries in this section.
- * @param allLotteries Every lottery of the campsite in order, used to number the cards.
- * @param controllers The app's controllers, used to get each lottery's phase.
+ * @param title The section title.
+ * @param lotteries The lotteries in the section.
+ * @param allLotteries Every lottery of the campsite in order. Used to number the cards.
+ * @param controllers The app's controllers.
  */
 @Composable
 private fun LotterySection(

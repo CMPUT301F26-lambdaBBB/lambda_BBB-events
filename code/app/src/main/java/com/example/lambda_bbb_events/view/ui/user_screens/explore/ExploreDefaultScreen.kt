@@ -81,7 +81,6 @@ fun ExploreDefaultScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Explore",
@@ -148,10 +147,10 @@ fun ExploreDefaultScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(11.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).padding(bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(results) { campsite ->

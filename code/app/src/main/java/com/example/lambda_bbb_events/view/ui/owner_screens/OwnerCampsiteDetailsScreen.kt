@@ -28,9 +28,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.controller.ReservationFilter
+import com.example.lambda_bbb_events.model.Reservation
 import com.example.lambda_bbb_events.model.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.reservation.OwnerReservationCard
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
 
 /*
@@ -39,7 +42,6 @@ import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
  *
  * TODO: Replace the image carousel placeholder with campsite images.
  * TODO: Make the QR code scannable and navigate to campsite details.
- * TODO: Display actual upcoming, past, and cancelled reservations.
  * TODO: Implement campsite deletion with confirmation.
  */
 
@@ -64,6 +66,46 @@ fun OwnerCampsiteDetailsScreen(
     var showQrDialog by remember { mutableStateOf(false) }
     val qrThumbnail = remember(campsiteId) {
         generateQR(campsiteId, 300, 300)
+    }
+
+    var allReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var upcomingReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var pastReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var cancelledReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var guestNames by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var isLoadingReservations by remember { mutableStateOf(true) }
+
+    LaunchedEffect(campsiteId) {
+        val loadedAll = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.ALL
+        )
+        val loadedUpcoming = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.UPCOMING
+        )
+        val loadedPast = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.PAST
+        )
+        val loadedCancelled = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.CANCELLED
+        )
+
+        val loadedNames = mutableMapOf<String, String>()
+
+        for (reservation in loadedAll) {
+            if (!loadedNames.containsKey(reservation.entrantId)) {
+                loadedNames[reservation.entrantId] = controllers.users.getUserName(reservation.entrantId)
+            }
+        }
+
+        upcomingReservations = loadedUpcoming
+        pastReservations = loadedPast
+        cancelledReservations = loadedCancelled
+        guestNames = loadedNames
+        isLoadingReservations = false
     }
 
     if (campsite == null) {
@@ -280,46 +322,23 @@ fun OwnerCampsiteDetailsScreen(
                         )
                     }
 
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
+                    if (!isLoadingReservations &&
+                        upcomingReservations.isEmpty() &&
+                        pastReservations.isEmpty() &&
+                        cancelledReservations.isEmpty()) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        Text(
+                            text = "No reservations yet.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
-                    // Upcoming reservations
-                    Text(
-                        text = "Upcoming Reservations",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    OwnerReservationPlaceholder("upcoming")
-                    OwnerReservationPlaceholder("lalalalala")
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-
-                    // Past reservations
-                    Text(
-                        text = "Past Reservations",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    OwnerReservationPlaceholder("pssst")
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-
-                    // Cancelled reservations
-                    Text(
-                        text = "Cancelled Reservations",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    OwnerReservationPlaceholder("im a can")
-                    OwnerReservationPlaceholder("canada")
+                    ReservationSection("Upcoming Reservations", upcomingReservations, guestNames)
+                    ReservationSection("Past Reservations", pastReservations, guestNames)
+                    ReservationSection("Cancelled Reservations", cancelledReservations, guestNames)
 
                     Spacer(
                         modifier = Modifier.height(50.dp)
@@ -382,31 +401,37 @@ fun OwnerActionButton(
 }
 
 /**
- * Displays placeholder content for a reservation.
+ * Each reservation has a divider, title, and card with info in it. Nothing is shown when the
+ * list is empty, meaning a section is only shown if it has at least one reservation.
  *
- * Uses theme colors until real reservation data
- * is implemented.
- *
- * @param text Placeholder text to display.
+ * @param title The section title.
+ * @param reservations The reservations in the section.
+ * @param guestNames The names of the guests.
  */
 @Composable
-private fun OwnerReservationPlaceholder(
-    text: String
+private fun ReservationSection(
+    title: String,
+    reservations: List<Reservation>,
+    guestNames: Map<String, String>
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    if (reservations.isEmpty()) {
+        return
+    }
+
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant
+    )
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+
+    for (reservation in reservations) {
+        OwnerReservationCard(
+            guestName = guestNames[reservation.entrantId] ?: "Unknown guest",
+            reservation = reservation
         )
     }
 }
