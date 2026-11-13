@@ -165,4 +165,16 @@ class UserController(
 
         return user.name
     }
+
+
+    /**
+     * Deletes the current user's account.
+     *
+     * @return True if deleted, false if no user exists.
+     */
+    suspend fun deleteAccount(): Boolean {
+        val user = currentUser ?: return false
+        userRepository.deleteUser(user)
+        return true
+    }
 }
