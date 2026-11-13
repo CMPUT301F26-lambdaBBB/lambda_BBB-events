@@ -39,6 +39,7 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.AppPoliciesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
@@ -244,6 +245,7 @@ private fun MainApp(
                 onDarkThemeChange
             ) }
             composable("notif_toggle"){ Notification_Toggle(navController,controllers) }
+            composable("app_policy"){ AppPoliciesScreen(navController) }
         }
     }
 }

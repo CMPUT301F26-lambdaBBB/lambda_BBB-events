@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -39,7 +40,8 @@ fun Theme_Toggle(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .testTag("screen_appearance"), // test to see if dark mode function works
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ScreenTitle(
@@ -58,6 +60,7 @@ fun Theme_Toggle(
                 },
                 onText = "Light Mode",
                 offText = "Dark Mode",
+                modifier = Modifier.testTag("toggle_theme")
             )
         }
     }

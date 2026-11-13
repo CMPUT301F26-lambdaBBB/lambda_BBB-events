@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -40,7 +41,8 @@ fun Notification_Toggle(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .testTag("screen_notification_settings"),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ScreenTitle(
@@ -58,7 +60,8 @@ fun Notification_Toggle(
                 onToggle = { isToggled = it // function not yet implemented
                 },
                 onText="Turn On",
-                offText = "Turn Off"
+                offText = "Turn Off",
+                modifier = Modifier.testTag("toggle_notifications")
             )
         }
     }

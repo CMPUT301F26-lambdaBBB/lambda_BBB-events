@@ -56,7 +56,7 @@ fun Settings(
         ),
 
         "ACCOUNT SETTINGS" to listOf(
-            Triple("App Policies", Icons.Outlined.ContentPaste, "test_nav"),
+            Triple("App Policies", Icons.Outlined.ContentPaste, "app_policy"),
             Triple("Edit Profile", Icons.Outlined.Edit, "edit_profile"),
             Triple("Log Out", Icons.AutoMirrored.Outlined.ExitToApp, "test_nav"),
             Triple("Delete Account", Icons.Outlined.Delete, "test_nav")
