@@ -22,6 +22,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /*
  * Defines the application's main Android activity.
@@ -67,8 +72,20 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            Lambda_BBBeventsTheme {
-                LambdaEventsApp(controllers)
+            val systemDarkTheme = isSystemInDarkTheme()
+
+            var darkTheme by rememberSaveable {
+                mutableStateOf(systemDarkTheme)
+            }
+
+            Lambda_BBBeventsTheme(
+                darkTheme = darkTheme
+            ){
+                LambdaEventsApp(
+                    controllers = controllers,
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = { darkTheme = it }
+                )
             }
         }
     }

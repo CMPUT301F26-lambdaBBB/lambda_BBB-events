@@ -39,6 +39,7 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import java.time.LocalDate
@@ -51,18 +52,19 @@ import java.time.LocalDate
  * layout issues on smaller screens could be an issue.
  */
 
+
 /**
- * Root composable that controls application startup.
+ * Manages application startup such as loading, signup, or main application screens.
  *
- * Displays a loading indicator while user data loads,
- * then opens either the signup screen or the main application
- * depending on whether a user has an account.
- *
- * @param controllers The [AppControllers] managing application data.
+ * @param controllers Shared application controllers.
+ * @param darkTheme Whether dark mode is enabled.
+ * @param onDarkThemeChange Updates the application's theme.
  */
 @Composable
 fun LambdaEventsApp(
-    controllers: AppControllers
+    controllers: AppControllers,
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit
 ) {
     if (!controllers.users.usersFullyLoaded) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -80,20 +82,26 @@ fun LambdaEventsApp(
             }
         }
     } else {
-        MainApp(controllers)
+        MainApp(controllers, darkTheme, onDarkThemeChange)
     }
 }
+
 
 /**
  * Configures the application's navigation graph and screens.
  *
- * Defines routes for campsite browsing, bookings, lottery
- * registration, profile management, and owner features.
+ * Defines routes for browsing, bookings, and account management.
  *
- * @param controllers The [AppControllers] shared across screens.
+ * @param controllers Shared application controllers.
+ * @param darkTheme Whether dark mode is enabled.
+ * @param onDarkThemeChange Updates the application's theme.
  */
 @Composable
-private fun MainApp(controllers: AppControllers) {
+private fun MainApp(
+    controllers: AppControllers,
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit
+) {
     // NOTE: Screen looks too zoomed on small phone so cant login, someone test
     // and try to fix if happens for u too thx
     val navController = rememberNavController()
@@ -226,18 +234,16 @@ private fun MainApp(controllers: AppControllers) {
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerManageLotteryScreen(navController, controllers, campsiteId)
             }
-            composable("profile") {
-                ProfileScreen(navController, controllers)
-            }
-            composable("edit_profile") {
-                EditProfileScreen(navController, controllers)
-            }
-            composable("settings") {
-                Settings(navController, controllers)
-            }
-            composable("test_nav"){
-                Test_screen(navController, controllers)
-            }
+            composable("profile") { ProfileScreen(navController, controllers) }
+            composable("edit_profile") { EditProfileScreen(navController, controllers) }
+            composable("settings") { Settings(navController, controllers) }
+            composable("test_nav"){ Test_screen(navController, controllers) }
+            composable("theme_toggle"){ Theme_Toggle(
+                navController = navController,
+                controllers = controllers,
+                darkTheme = darkTheme,
+                onDarkThemeChange = onDarkThemeChange
+            ) }
         }
     }
 }

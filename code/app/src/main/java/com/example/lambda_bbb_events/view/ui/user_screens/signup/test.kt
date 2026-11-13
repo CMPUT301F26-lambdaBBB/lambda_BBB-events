@@ -46,7 +46,7 @@ fun Test_screen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .testTag("screen_profile"),
+                .testTag("test_nav"),
             contentAlignment = Alignment.Center
         ) {
             Text(
