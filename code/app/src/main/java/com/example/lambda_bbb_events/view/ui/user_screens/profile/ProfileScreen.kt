@@ -116,7 +116,7 @@ fun ProfileScreen(
             ProfileRow(
                 title = "Settings",
                 onClick = {
-                    // TODO: Implement Settings navigation.
+                    navController.navigate("settings")
                 },
                 leadingIcon = {
                     Icon(
