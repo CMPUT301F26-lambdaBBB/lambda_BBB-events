@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.profile
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,12 +28,18 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 
 /*
  * Displays more detailed account and app settings.
  *
- * AI used to change the sizes for icons and text to make everything evenly spaced and positioned.
- * TODO: Implement the pages for the different routes
+ * TODO: Implement the pages for Language and Log-Out
+ * TODO: Implement Notification page functionality
  * TODO: Change placeholder profile picture to user profile picture
  */
 /**
@@ -47,6 +54,9 @@ fun Settings(
     controllers: AppControllers
 ) {
     val user = controllers.users.user
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val settingsGroups = listOf(
         "APP PREFERENCES" to listOf(
@@ -59,7 +69,7 @@ fun Settings(
             Triple("App Policies", Icons.Outlined.ContentPaste, "app_policy"),
             Triple("Edit Profile", Icons.Outlined.Edit, "edit_profile"),
             Triple("Log Out", Icons.AutoMirrored.Outlined.ExitToApp, "test_nav"),
-            Triple("Delete Account", Icons.Outlined.Delete, "test_nav")
+            Triple("Delete Account", Icons.Outlined.Delete, "delete_account")
         )
     )
 
@@ -149,7 +159,7 @@ fun Settings(
                         )
                     }
 
-                    // per row entry, includes all necessary information and theming + dividers
+                    // per row entry, includes all necessary information and theme-ing + dividers
                     items(options) { (title, icon, route) ->
                         Column {
                             // whole row navigates to specific route per triple entry
@@ -158,7 +168,11 @@ fun Settings(
                                     .fillMaxWidth()
                                     .heightIn(min = 60.dp)
                                     .clickable {
-                                        navController.navigate(route)
+                                        if (route == "delete_account") {
+                                            showDeleteDialog = true
+                                        } else {
+                                            navController.navigate(route)
+                                        }
                                     }
                                     .padding(
                                         horizontal = 16.dp,
@@ -212,4 +226,44 @@ fun Settings(
             }
         }
     }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            containerColor = MaterialTheme.colorScheme.surface,
+            // close dialog when the user taps outside the request box or presses Back.
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Account?") },
+            text = {
+                Text(
+                    if (deleteError) "Please try again."
+                    else "Are you sure? \nThis action cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch { // starts coroutine so firebase deletion runs without freezing app
+                            try {
+                                if (controllers.users.deleteAccount()) {
+                                    showDeleteDialog = false
+                                } else {
+                                    deleteError = true
+                                }
+                            } catch (_: Exception) { // a failed execution is caught by catch
+                                deleteError = true
+                            }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }

@@ -189,7 +189,7 @@ fun AppPoliciesScreen(
                             MaterialTheme.colorScheme.outlineVariant
                         ),
                         onClick = {
-                            navController.navigate("settings")
+                            navController.popBackStack()
                         }
                     ) {
                         Text("Accept")

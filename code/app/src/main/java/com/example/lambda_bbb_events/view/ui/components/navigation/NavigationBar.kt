@@ -123,6 +123,7 @@ fun BottomNavigationBar(navController: NavController) {
                 "profile",
                 "settings",
                 "theme_toggle",
+                "app_policy"
                 ),
             testTag = "nav_profile"
         )
