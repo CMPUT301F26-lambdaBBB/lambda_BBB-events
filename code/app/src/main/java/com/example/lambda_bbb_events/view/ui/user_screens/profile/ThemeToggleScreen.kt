@@ -5,15 +5,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.profile.ToggleButton
+/*
+Provides togglable button to switch between dark and light mode throughout the app
+ */
 
 /**
- * Displays the appearance settings for switching themes.
+ * Displays togglable appearance settings for switching themes.
  *
  * @param navController Handles navigation.
  * @param controllers Application controllers.
@@ -36,7 +40,8 @@ fun Theme_Toggle(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .testTag("screen_appearance"), // test to see if dark mode function works
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ScreenTitle(
@@ -47,20 +52,15 @@ fun Theme_Toggle(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Light Mode",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
             // use button function, default value set to light-mode on
             ToggleButton(
                 isOn = !darkTheme,
                 onToggle = { isLightMode ->
                     onDarkThemeChange(!isLightMode)
-                }
+                },
+                onText = "Light Mode",
+                offText = "Dark Mode",
+                modifier = Modifier.testTag("toggle_theme")
             )
         }
     }

@@ -18,7 +18,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 /*
- * Provides a reusable two-option toggle button for profiles page.
+Provides togglable button to be re-used throughout the app to switch between two options
  */
 
 /**
@@ -27,12 +27,16 @@ import androidx.compose.ui.unit.dp
  * @param isOn Whether the toggle is enabled.
  * @param onToggle Called when an option is selected.
  * @param modifier Modifier applied to the toggle.
+ * @param onText Displayed Text on "True" button.
+ * @param offText Displayed Text on "False" button.
  */
 @Composable
 fun ToggleButton(
     isOn: Boolean,
     onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onText: String,
+    offText: String,
 ) {
     val shape = RoundedCornerShape(50)
 
@@ -44,7 +48,7 @@ fun ToggleButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // create two toggle options and checks which one is selected.
-        listOf(true to "Turn on", false to "Turn off").forEach { (value, title) ->
+        listOf(true to onText, false to offText).forEach { (value, title) ->
             val selected = isOn == value
             // checks if current state of button is equal to truth value of button
 
@@ -54,7 +58,7 @@ fun ToggleButton(
                     .clip(shape)
                     .background(
                         if (selected) MaterialTheme.colorScheme.primaryContainer
-                        else Color.Transparent // color the button if selected
+                        else Color.Transparent // highlight  the button if selected
                     )
                     .selectable(
                         selected = selected,
@@ -64,7 +68,7 @@ fun ToggleButton(
                     .padding(horizontal = 28.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // add check icon if selected
+                // add check-mark icon if selected
                 if (selected) {
                     Icon(
                         imageVector = Icons.Default.Check,
