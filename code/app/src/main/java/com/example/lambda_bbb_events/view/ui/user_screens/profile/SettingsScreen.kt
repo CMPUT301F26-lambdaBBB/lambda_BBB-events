@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+
 /*
  * Displays more detailed account and app settings.
  *
@@ -50,7 +51,7 @@ fun Settings(
     val settingsGroups = listOf(
         "APP PREFERENCES" to listOf(
             Triple("Notifications", Icons.Outlined.Notifications, "test_nav"),
-            Triple("Appearance", Icons.Outlined.Brightness6, "test_nav"),
+            Triple("Appearance", Icons.Outlined.Brightness6, "theme_toggle"),
             Triple("Language", Icons.Outlined.Language, "test_nav")
         ),
 
