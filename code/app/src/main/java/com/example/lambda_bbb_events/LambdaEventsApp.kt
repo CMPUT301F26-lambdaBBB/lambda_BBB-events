@@ -39,6 +39,8 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import java.time.LocalDate
 
 /*
@@ -93,7 +95,7 @@ fun LambdaEventsApp(
 @Composable
 private fun MainApp(controllers: AppControllers) {
     // NOTE: Screen looks too zoomed on small phone so cant login, someone test
-    // and try fix if happens for u too thx
+    // and try to fix if happens for u too thx
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
@@ -229,6 +231,12 @@ private fun MainApp(controllers: AppControllers) {
             }
             composable("edit_profile") {
                 EditProfileScreen(navController, controllers)
+            }
+            composable("settings") {
+                Settings(navController, controllers)
+            }
+            composable("test_nav"){
+                Test_screen(navController, controllers)
             }
         }
     }
