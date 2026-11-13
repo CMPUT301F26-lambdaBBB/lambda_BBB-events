@@ -50,7 +50,7 @@ fun Settings(
 
     val settingsGroups = listOf(
         "APP PREFERENCES" to listOf(
-            Triple("Notifications", Icons.Outlined.Notifications, "test_nav"),
+            Triple("Notifications", Icons.Outlined.Notifications, "notif_toggle"),
             Triple("Appearance", Icons.Outlined.Brightness6, "theme_toggle"),
             Triple("Language", Icons.Outlined.Language, "test_nav")
         ),
@@ -165,7 +165,8 @@ fun Settings(
                                         vertical = 8.dp
                                     ),
                                 verticalAlignment = Alignment.CenterVertically
-                            ) { // vertical box houses the page icon, name and right arrow indicator
+                            ) {
+                                // vertical box houses the page icon, name and right arrow indicator
                                 Box(
                                     modifier = Modifier
                                         .size(38.dp)

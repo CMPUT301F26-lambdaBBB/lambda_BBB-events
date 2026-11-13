@@ -39,6 +39,7 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
@@ -51,7 +52,6 @@ import java.time.LocalDate
  *
  * layout issues on smaller screens could be an issue.
  */
-
 
 /**
  * Manages application startup such as loading, signup, or main application screens.
@@ -85,7 +85,6 @@ fun LambdaEventsApp(
         MainApp(controllers, darkTheme, onDarkThemeChange)
     }
 }
-
 
 /**
  * Configures the application's navigation graph and screens.
@@ -239,11 +238,12 @@ private fun MainApp(
             composable("settings") { Settings(navController, controllers) }
             composable("test_nav"){ Test_screen(navController, controllers) }
             composable("theme_toggle"){ Theme_Toggle(
-                navController = navController,
-                controllers = controllers,
-                darkTheme = darkTheme,
-                onDarkThemeChange = onDarkThemeChange
+                navController,
+                controllers,
+                darkTheme,
+                onDarkThemeChange
             ) }
+            composable("notif_toggle"){ Notification_Toggle(navController,controllers) }
         }
     }
 }

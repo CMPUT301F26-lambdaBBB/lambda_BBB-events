@@ -11,9 +11,12 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.profile.ToggleButton
+/*
+Provides togglable button to switch between dark and light mode throughout the app
+ */
 
 /**
- * Displays the appearance settings for switching themes.
+ * Displays togglable appearance settings for switching themes.
  *
  * @param navController Handles navigation.
  * @param controllers Application controllers.
@@ -47,20 +50,14 @@ fun Theme_Toggle(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Light Mode",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
             // use button function, default value set to light-mode on
             ToggleButton(
                 isOn = !darkTheme,
                 onToggle = { isLightMode ->
                     onDarkThemeChange(!isLightMode)
-                }
+                },
+                onText = "Light Mode",
+                offText = "Dark Mode",
             )
         }
     }
