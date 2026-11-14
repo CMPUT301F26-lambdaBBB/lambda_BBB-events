@@ -28,7 +28,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
  * Displays app policies.
  *
  * @param navController Handles navigation.
- * @param controllers Shared app controllers.
  */
 
 @Composable
