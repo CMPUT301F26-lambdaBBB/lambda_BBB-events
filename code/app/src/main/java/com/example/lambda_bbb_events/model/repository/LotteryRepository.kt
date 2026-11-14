@@ -5,7 +5,6 @@ import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.LotteryStatus
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
-import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
@@ -124,7 +123,7 @@ class LotteryRepository {
      */
     suspend fun addWaitlistToLottery(lottery: Lottery, waitlistEntry: WaitlistEntry): Boolean {
         // check if the waitlist is already full
-        if (lottery.entryIds.size >= lottery.waitlistCapacity) { // > should be impos, but include strict bound incase
+        if (lottery.entryIds.size >= lottery.waitlistCapacity) { // > should be imposed, but include strict bound in case
             return false
         }
 

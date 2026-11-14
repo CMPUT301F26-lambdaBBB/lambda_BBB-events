@@ -1,179 +1,96 @@
 package com.example.lambda_bbb_events.model
 
-import com.google.firebase.firestore.Exclude
+import android.util.Range
 import java.time.LocalDate
 
-/*
- * Manages campsite availability and booked dates
- * using ISO date strings for Firestore compatibility.
- */
-
-/**
- * Represents the availability schedule for a set of dates.
- *
- * @property availableDates Dates that are set to be available for booking by the owner.
- * @property bookedDates Dates that have already been booked.
- */
 data class AvailabilitySchedule (
-    var availableDates: List<String> = emptyList(),
-    var bookedDates: List<String> = emptyList()
+    var dates: MutableMap<LocalDate, Int> = mutableMapOf<LocalDate, Int>(),
 ) {
-    /**
-     * Gets the set of available dates of type [LocalDate]. Dates are converted
-     * from ISO date strings (compatible with firestore) to [LocalDate].
-     *
-     * @return A set of available dates.
-     */
+    var currentBookings: MutableMap<String, Range<LocalDate>> = mutableMapOf()
+    val minDate: LocalDate?
+        get() = dates.keys.minOrNull()
 
-    @Exclude
-    fun getAvailableLocalDates(): Set<LocalDate> {
-        val result = mutableSetOf<LocalDate>()
+    val maxDate: LocalDate?
+        get() = dates.keys.maxOrNull()
 
-        for (date in availableDates) {
-            result.add(LocalDate.parse(date))
+    fun addAvailableDates(startDate: LocalDate, endDate: LocalDate? = null) {
+        val newEndDate = endDate ?: startDate
+        var newDate = startDate
+        while (newDate <= newEndDate) {
+            if (dates.contains(newDate)) {
+                newDate = newDate.plusDays(1)
+                continue
+            }
+            dates[newDate] = 0
+            newDate = newDate.plusDays(1)
         }
-
-        return result
     }
 
-    /**
-     * Gets the set of booked dates of type [LocalDate]. Dates are converted
-     * from ISO date strings (compatible with firestore) to [LocalDate].
-     *
-     * @return A set of booked dates.
-     */
-    @Exclude
-    fun getBookedLocalDates(): Set<LocalDate> {
-        val result = mutableSetOf<LocalDate>()
-
-        for (date in bookedDates) {
-            result.add(LocalDate.parse(date))
-        }
-
-        return result
-    }
-
-    /**
-     * Checks whether the list of dates are available and not booked.
-     *
-     * @param dates The dates to be checked.
-     * @return `true` if every specified date is available and not booked,
-     * `false` otherwise.
-     */
-    fun isAvailable(dates: Collection<LocalDate>): Boolean {
-        val available = getAvailableLocalDates()
-        val booked = getBookedLocalDates()
-
-        for (date in dates) {
-            if (!available.contains(date) || booked.contains(date)) {
+    fun canBook(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        maxGuests: Int
+    ): Boolean {
+        var current = startDate
+        while (!current.isAfter(endDate)) {
+            if (current !in dates && dates[current] !!<= maxGuests) {
                 return false
             }
+            current = current.plusDays(1)
         }
-
         return true
     }
 
-    /**
-     * Returns a list of dates that are not booked of the available
-     * dates (free), in order.
-     *
-     * @return sorted list of dates which are available and not booked, in sorted order.
-     */
-    fun freeDates(): List<LocalDate> {
-        val available = getAvailableLocalDates()
-        val booked = getBookedLocalDates()
-
-        val result = mutableListOf<LocalDate>()
-
-        for (date in available) {
-            if (!booked.contains(date)) {
-                result.add(date)
-            }
+    fun addNewBooking(startDate: LocalDate, endDate: LocalDate? = null, ownerID: String, maxGuests: Int): Boolean {
+        val actualEnd = endDate ?: startDate
+        if (!canBook(startDate, actualEnd, maxGuests)) {
+            return false
         }
-
-        return result.sorted()
+        currentBookings[ownerID] = Range(startDate, endDate)
+        var current = startDate
+        while (!current.isAfter(actualEnd)) {
+            dates[current] = dates[current]!! + 1
+            current = current.plusDays(1)
+        }
+        return true
     }
 
-
-    /**
-     * Marks specified dates as booked if they are available.
-     * Dates outside the availability schedule are ignored.
-     *
-     * @param dates The dates to mark as booked.
-     */
-    fun markAsBooked(dates: Collection<LocalDate>) {
-        val available = getAvailableLocalDates()
-        val booked = getBookedLocalDates().toMutableSet()
-
-        for (date in dates) {
-            if (available.contains(date)) {
-                booked.add(date)
+    fun cancelBooking(startDate: LocalDate, endDate: LocalDate? = null) {
+        val newEndDate = endDate ?: startDate
+        var newDate = startDate
+        while (newDate <= newEndDate) {
+            val currentBookings = dates[newDate]
+            if (currentBookings != null && currentBookings > 0) {
+                dates[newDate] = currentBookings - 1
             }
+            newDate = newDate.plusDays(1)
         }
-
-        val result = mutableListOf<String>()
-
-        for (date in booked) {
-            result.add(date.toString())
-        }
-
-        bookedDates = result
     }
 
-    /**
-     * Cancels bookings for the specified dates.
-     *
-     * @param dates The dates to remove from booked dates.
-     */
-    fun cancelBookings(dates: Collection<LocalDate>) {
-        val booked = getBookedLocalDates()
-        val result = mutableListOf<String>()
-
-        for (date in booked) {
-            if (!dates.contains(date)) {
-                result.add(date.toString())
+    fun removeAvailableDate(startDate: LocalDate, endDate: LocalDate? = null) {
+        val newEndDate = endDate ?: startDate
+        var newDate = startDate
+        while (newDate <= newEndDate) {
+            if (!dates.containsKey(newDate)) {
+                newDate = newDate.plusDays(1)
+                continue
             }
+            dates.remove(newDate)
+            newDate = newDate.plusDays(1)
         }
-
-        bookedDates = result
     }
 
-    /**
-     * Adds dates to the schedule's available dates.
-     *
-     * @param dates The dates to add.
-     */
-    fun addAvailableDates(dates: Collection<LocalDate>) {
-        val available = getAvailableLocalDates().toMutableSet()
-
-        for (date in dates) {
-            available.add(date)
-        }
-
-        val result = mutableListOf<String>()
-
-        for (date in available) {
-            result.add(date.toString())
-        }
-
-        availableDates = result
-    }
-
-    /**
-     * Removes dates from the schedule's available dates.
-     *
-     * @param dates The dates to remove.
-     */
-    fun removeAvailableDates(dates: Collection<LocalDate>) {
-        val available = getAvailableLocalDates()
-        val result = mutableListOf<String>()
-
-        for (date in available) {
-            if (!dates.contains(date)) {
-                result.add(date.toString())
+    fun isAvailable(
+        start: LocalDate,
+        end: LocalDate
+    ): Boolean {
+        var current: LocalDate = start
+        while (!current.isAfter(end)) {
+            if (current !in dates || dates[current]!! > 0) {
+                return false
             }
+            current = current.plusDays(1)
         }
-
-        availableDates = result
+        return true
     }
 }

@@ -19,6 +19,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.FormTextField
 import com.google.firebase.Timestamp
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
@@ -254,14 +255,11 @@ fun HomeCampsiteFilter(
             Button(
                 onClick = {
                     campsiteController.applyFilters(
-                        startDate = startTimestamp,
-                        endDate = endTimestamp,
+                        startDate = startTimestamp?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+                        endDate = endTimestamp?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate(),
                         location = location.trim(),
-                        minGuests = guestRange.start.roundToInt(),
-                        maxGuests = guestRange.endInclusive.roundToInt(),
-                        minRating = rating
-                            .takeIf { it > 0 }
-                            ?.toDouble()
+                        guestRange = guestRange.start.roundToInt()..guestRange.endInclusive.roundToInt(),
+                        starRating = rating.takeIf { it > 0 }?.toDouble()
                     )
 
                     onShowResults()

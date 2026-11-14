@@ -36,9 +36,25 @@ data class Campsite(
     val rulesPolicies: String = "",
     val amenities: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
-    val imageIds: List<String> = emptyList(),
+    val imageIds: List<ImageMetaData> = emptyList(),
     val rating: Float = 0f, // average
     val ratingCount: Int = 0,
     val availability: AvailabilitySchedule = AvailabilitySchedule(),
     var active: Boolean = true
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Campsite) return false
+
+        return campsiteId == other.campsiteId &&
+                ownerId == other.ownerId &&
+                campsiteName == other.campsiteName
+    }
+
+    override fun hashCode(): Int {
+        var result = campsiteId.hashCode()
+        result = 31 * result + ownerId.hashCode()
+        result = 31 * result + campsiteName.hashCode()
+        return result
+    }
+}

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.ImageMetaData
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import java.time.LocalDate
@@ -132,8 +133,8 @@ fun CreateScreen(
                                                         val ownerId = controllers.users.user.deviceId
                                                         val winnerCount = form.numberOfSpots.toIntOrNull() ?: 10
 
-                                            val campsite = Campsite(
-                                                campsiteId = campsiteId,
+                                            // Save campsite first so the lottery can reference it.
+                                            controllers.campsites.addCampsite(campsiteId = campsiteId,
                                                 ownerId = ownerId,
                                                 campsiteName = form.campsiteName.trim(),
                                                 description = form.description.trim(),
@@ -148,11 +149,8 @@ fun CreateScreen(
                                                     .toIntOrNull() ?: 1,
                                                 rulesPolicies = form.additionalRules.trim(),
                                                 tags = form.tags.toList(),
-                                                imageIds = form.selectedImageUris.map { it.toString() }
+                                                imageIds = listOf<ImageMetaData>()
                                             )
-
-                                            // Save campsite first so the lottery can reference it.
-                                            controllers.campsites.addCampsite(campsite)
                                             controllers.lotteries.createLottery(
                                                 ownerId = ownerId,
                                                 campsiteId = campsiteId,

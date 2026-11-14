@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.lambda_bbb_events.store.CampsiteStore
 
 /*
  * Defines the application's main Android activity.
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         val userRepository = UserRepository()
-        val campsiteRepository = CampsiteRepository()
+        val campsiteStore = CampsiteStore()
         val lotteryRepository = LotteryRepository()
         val reservationRepository = ReservationRepository()
         val waitlistEntryRepository = WaitlistEntryRepository()
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
 
         val controllers = AppControllers(
             users = UserController(userRepository, deviceId),
-            campsites = CampsiteController(campsiteRepository),
+            campsites = CampsiteController(campsiteStore),
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository)
