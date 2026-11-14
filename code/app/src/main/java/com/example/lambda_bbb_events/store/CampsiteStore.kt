@@ -66,7 +66,7 @@ class CampsiteStore {
 
             campsites[campsite.campsiteId] = campsite
             scope.launch {
-                campsiteRepo.addCampsite()
+                campsiteRepo.addCampsite(campsite)
             }
         }
         catch (e: Exception) {
