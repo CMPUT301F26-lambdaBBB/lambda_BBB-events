@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.services.generateQR
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +39,7 @@ class CampsiteStore {
         rulesPolicies: String = "",
         amenities: List<String> = emptyList(),
         tags: List<String> = emptyList(),
-        imageIds: List<String> = emptyList(),
+        imageIds: List<ImageMetaData> = emptyList(),
         rating: Float = 0f, // average
         ratingCount: Int = 0,
         availability: AvailabilitySchedule = AvailabilitySchedule(),

@@ -36,7 +36,7 @@ data class Campsite(
     val rulesPolicies: String = "",
     val amenities: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
-    val imageIds: List<String> = emptyList(),
+    val imageIds: List<ImageMetaData> = emptyList(),
     val rating: Float = 0f, // average
     val ratingCount: Int = 0,
     val availability: AvailabilitySchedule = AvailabilitySchedule(),
