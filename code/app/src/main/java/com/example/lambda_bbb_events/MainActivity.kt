@@ -11,15 +11,22 @@ import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
+import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /*
  * Defines the application's main Android activity.
@@ -50,6 +57,7 @@ class MainActivity : ComponentActivity() {
         val campsiteRepository = CampsiteRepository()
         val lotteryRepository = LotteryRepository()
         val reservationRepository = ReservationRepository()
+        val waitlistEntryRepository = WaitlistEntryRepository()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -59,12 +67,25 @@ class MainActivity : ComponentActivity() {
             users = UserController(userRepository, deviceId),
             campsites = CampsiteController(campsiteRepository),
             lotteries = LotteryController(lotteryRepository),
-            reservations = ReservationController(reservationRepository)
+            reservations = ReservationController(reservationRepository),
+            waitlistEntries = WaitlistEntryController(waitlistEntryRepository)
         )
 
         setContent {
-            Lambda_BBBeventsTheme {
-                LambdaEventsApp(controllers)
+            val systemDarkTheme = isSystemInDarkTheme()
+
+            var darkTheme by rememberSaveable {
+                mutableStateOf(systemDarkTheme)
+            }
+
+            Lambda_BBBeventsTheme(
+                darkTheme = darkTheme
+            ){
+                LambdaEventsApp(
+                    controllers = controllers,
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = { darkTheme = it }
+                )
             }
         }
     }

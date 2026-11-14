@@ -13,25 +13,37 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
-import com.example.lambda_bbb_events.view.ui.CampsiteCheckAvailabilityScreen
-import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
-import com.example.lambda_bbb_events.view.ui.CreateScreen
-import com.example.lambda_bbb_events.view.ui.EditProfileScreen
-import com.example.lambda_bbb_events.view.ui.ExploreMapScreen
-import com.example.lambda_bbb_events.view.ui.ExploreDefaultScreen
-import com.example.lambda_bbb_events.view.ui.HomeScreen
-import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
-import com.example.lambda_bbb_events.view.ui.LotteryEnteredScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreDefaultScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRScannerScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryEnteredScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
-import com.example.lambda_bbb_events.view.ui.NotificationsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.notification.NotificationsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
-import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
-import com.example.lambda_bbb_events.view.ui.ProfileScreen
-import com.example.lambda_bbb_events.view.ui.RegistrationStatusScreen
-import com.example.lambda_bbb_events.view.ui.SignupScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.PastBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.ProfileScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.RegistrationStatusScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.AppPoliciesScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_Toggle
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import java.time.LocalDate
 
 /*
@@ -43,17 +55,17 @@ import java.time.LocalDate
  */
 
 /**
- * Root composable that controls application startup.
+ * Manages application startup such as loading, signup, or main application screens.
  *
- * Displays a loading indicator while user data loads,
- * then opens either the signup screen or the main application
- * depending on whether a user has an account.
- *
- * @param controllers The [AppControllers] managing application data.
+ * @param controllers Shared application controllers.
+ * @param darkTheme Whether dark mode is enabled.
+ * @param onDarkThemeChange Updates the application's theme.
  */
 @Composable
 fun LambdaEventsApp(
-    controllers: AppControllers
+    controllers: AppControllers,
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit
 ) {
     if (!controllers.users.usersFullyLoaded) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -71,22 +83,27 @@ fun LambdaEventsApp(
             }
         }
     } else {
-        MainApp(controllers)
+        MainApp(controllers, darkTheme, onDarkThemeChange)
     }
 }
 
 /**
  * Configures the application's navigation graph and screens.
  *
- * Defines routes for campsite browsing, bookings, lottery
- * registration, profile management, and owner features.
+ * Defines routes for browsing, bookings, and account management.
  *
- * @param controllers The [AppControllers] shared across screens.
+ * @param controllers Shared application controllers.
+ * @param darkTheme Whether dark mode is enabled.
+ * @param onDarkThemeChange Updates the application's theme.
  */
 @Composable
-private fun MainApp(controllers: AppControllers) {
+private fun MainApp(
+    controllers: AppControllers,
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit
+) {
     // NOTE: Screen looks too zoomed on small phone so cant login, someone test
-    // and try fix if happens for u too thx
+    // and try to fix if happens for u too thx
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
@@ -103,9 +120,14 @@ private fun MainApp(controllers: AppControllers) {
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
+            composable("qr_scanner") { QRScannerScreen(navController) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CampsiteDetailsScreen(navController, controllers, campsiteId)
+            }
+            composable("campsite_qr_code/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                QRCodeScreen(navController, controllers, campsiteId)
             }
             composable("campsite_check_availability/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
@@ -115,15 +137,66 @@ private fun MainApp(controllers: AppControllers) {
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
             }
+            composable("create_lottery/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                CreateLotteryScreen(navController, controllers, campsiteId)
+            }
+            composable("edit_lottery/{lotteryId}") { backStackEntry ->
+                val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+                EditLotteryScreen(navController, controllers, lotteryId)
+            }
+            composable("lottery_details/{lotteryId}") { backStackEntry ->
+                val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+                OwnerLotteryDetailsScreen(navController, controllers, lotteryId)
+            }
+            composable("registrationStatus/{entryId}") { backStackEntry ->
+                val entryId =
+                    backStackEntry.arguments?.getString("entryId") ?: ""
+
+                RegistrationStatusScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    entryId = entryId
+                )
+            }
+
             composable(
-                route = "registrationStatus/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+                route = "lotteryAvailability/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
+            ) { backStackEntry ->
+
+                val campsiteId =
+                    backStackEntry.arguments?.getString("campsiteId") ?: ""
+
+                val fromDate = LocalDate.parse(
+                    backStackEntry.arguments?.getString("fromDate")
+                )
+
+                val endDate = LocalDate.parse(
+                    backStackEntry.arguments?.getString("endDate")
+                )
+
+                val numPeople =
+                    backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
+
+                LotteryAvailabilityScreen(
+                    navController = navController,
+                    controllers = controllers,
+                    campsiteId = campsiteId,
+                    fromDate = fromDate,
+                    endDate = endDate,
+                    numPeople = numPeople
+                )
+            }
+
+            composable(
+                route = "rule_confirm/{campsiteId}/{fromDate}/{endDate}/{numPeople}"
             ) { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 val fromDate = LocalDate.parse(backStackEntry.arguments?.getString("fromDate"))
                 val endDate = LocalDate.parse(backStackEntry.arguments?.getString("endDate"))
                 val numPeople = backStackEntry.arguments?.getString("numPeople")?.toIntOrNull() ?: 1
 
-                RegistrationStatusScreen(
+                RuleConfirmScreen(
                     navController = navController,
                     controllers = controllers,
                     campsiteId = campsiteId,
@@ -161,12 +234,18 @@ private fun MainApp(controllers: AppControllers) {
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerManageLotteryScreen(navController, controllers, campsiteId)
             }
-            composable("profile") {
-                ProfileScreen(navController, controllers)
-            }
-            composable("edit_profile") {
-                EditProfileScreen(navController, controllers)
-            }
+            composable("profile") { ProfileScreen(navController, controllers) }
+            composable("edit_profile") { EditProfileScreen(navController, controllers) }
+            composable("settings") { Settings(navController, controllers) }
+            composable("test_nav"){ Test_screen(navController, controllers) }
+            composable("theme_toggle"){ Theme_Toggle(
+                navController,
+                controllers,
+                darkTheme,
+                onDarkThemeChange
+            ) }
+            composable("notif_toggle"){ Notification_Toggle(navController,controllers) }
+            composable("app_policy"){ AppPoliciesScreen(navController) }
         }
     }
 }

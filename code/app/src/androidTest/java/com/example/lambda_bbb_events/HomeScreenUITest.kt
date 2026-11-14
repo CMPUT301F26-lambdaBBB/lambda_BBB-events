@@ -12,7 +12,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.HomeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
 import io.mockk.mockk
 import org.junit.Before
 import org.junit.Rule

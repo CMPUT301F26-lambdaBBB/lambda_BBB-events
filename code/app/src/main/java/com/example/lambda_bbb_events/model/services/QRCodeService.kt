@@ -1,8 +1,12 @@
 package com.example.lambda_bbb_events.model.services
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.navigation.NavController
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
@@ -98,5 +102,46 @@ private fun parseCampsiteId(qrContent: String): String? {
         qrContent.substringAfterLast("/").trim()
     } else {
         qrContent.trim()
+    }
+}
+
+/**
+ * Saves a bitmap image to the device's Pictures gallery directory.
+ *
+ * @param context The Android [Context].
+ * @param bitmap The [Bitmap] to save.
+ * @param filename The desired filename (without extension).
+ * @return `true` if saved successfully, `false` otherwise.
+ */
+fun saveBitmapToGallery(
+    context: Context,
+    bitmap: Bitmap,
+    filename: String
+): Boolean {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "$filename.png")
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/LambdaEvents")
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+    }
+
+    val resolver = context.contentResolver
+    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return false
+
+    return try {
+        resolver.openOutputStream(uri)?.use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.clear()
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            resolver.update(uri, contentValues, null, null)
+        }
+        true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
     }
 }
