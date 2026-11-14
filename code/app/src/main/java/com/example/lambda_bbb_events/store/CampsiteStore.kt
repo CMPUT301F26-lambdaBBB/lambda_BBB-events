@@ -110,7 +110,8 @@ class CampsiteStore {
     fun filterUpdate(
         startDate: LocalDate? = null,
         endDate: LocalDate? = null,
-        starRating: Float? = null,
+        location: String? = null,
+        starRating: Double? = null,
         guestRange: IntRange? = null,
     ): MutableMap<String, Campsite> {
         val givenStartDate = startDate ?: campsites.values.mapNotNull { it.availability.minDate }.minOrNull()
@@ -132,7 +133,13 @@ class CampsiteStore {
                 campsite.maxOccupancy in range
             } ?: true
 
-            isAvailable && meetsStarRating && meetsGuestRange
+            val meetsLocation = location?.let { query ->
+                query.isBlank() ||
+                        campsite.address.contains(query, ignoreCase = true) ||
+                        campsite.campsiteName.contains(query, ignoreCase = true)
+            } ?: true
+
+            isAvailable && meetsStarRating && meetsGuestRange && meetsLocation
         }.toMutableMap()
         return filteredCampsites
     }

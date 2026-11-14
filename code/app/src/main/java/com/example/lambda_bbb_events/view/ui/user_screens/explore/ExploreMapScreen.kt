@@ -185,7 +185,7 @@ fun ExploreMapScreen(
                 // Nearby Campsites
                 VerticalCardSection(
                     title = "Nearby Campsites",
-                    campsites = controllers.campsites.campsites,
+                    campsites = controllers.campsites.campsites.values.toList(),
                     onCampsiteClick = { campsite ->
                         navController.navigate(
                             "campsite_details/${campsite.campsiteId}"

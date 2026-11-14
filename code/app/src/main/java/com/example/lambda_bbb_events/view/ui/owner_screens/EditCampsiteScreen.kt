@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -274,23 +275,22 @@ fun EditCampsiteScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        val saved = controllers.campsites.updateCampsite(
-                            campsiteId,
-                            name,
-                            address,
-                            maxOccupancy,
-                            description,
-                            rulesPolicies,
-                            tags
-                        )
+                    val saved = controllers.campsites.updateCampsite(
+                        campsiteId,
+                        Campsite(campsiteId = name,
+                            ownerId = address,
+                            campsiteName = maxOccupancy,
+                            description = description,
+                            address = rulesPolicies,
+                            tags = tags
+                        ),
+                    )
 
                         if (saved) {
                             navController.popBackStack()
                         } else {
                             showError = true
                         }
-                    }
                 },
                 modifier = Modifier
                     .weight(1f)
