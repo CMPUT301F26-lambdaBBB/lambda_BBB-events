@@ -229,7 +229,7 @@ fun OwnerManageLotteryScreen(
 
                     if (allLotteries.isEmpty()) {
                         HorizontalDivider()
-                        Text("No lotteries yet. Tap \"+ Create Lottery\" to list this campsite in one.")
+                        Text("No lotteries yet. Tap \"+ Create Lottery\" to create a lottery for this campsite.")
                     }
 
                     LotterySection("Active Lotteries", activeLotteries, allLotteries, navController, controllers)

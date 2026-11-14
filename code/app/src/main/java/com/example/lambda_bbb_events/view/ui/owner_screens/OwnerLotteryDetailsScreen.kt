@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -24,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
+import com.example.lambda_bbb_events.controller.LotteryPhase
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -73,13 +76,19 @@ fun OwnerLotteryDetailsScreen(
     var entries by remember { mutableStateOf<List<WaitlistEntry>>(emptyList()) }
     var names by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
+    var reloadCount by remember { mutableIntStateOf(0) } // changing it loads everything again, terrible but it works i guess
 
-    val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var isDeleting by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var deleteErrorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(lotteryId) {
+    var showDrawDialog by remember { mutableStateOf(false) }
+    var isDrawing by remember { mutableStateOf(false) }
+    var drawErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(lotteryId, reloadCount) {
         val loadedLottery = controllers.lotteries.getLottery(lotteryId)
 
         if (loadedLottery != null) {
@@ -99,6 +108,7 @@ fun OwnerLotteryDetailsScreen(
     }
 
     val currentLottery = lottery
+    var winnersCount = 0
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenTitle(
@@ -146,6 +156,10 @@ fun OwnerLotteryDetailsScreen(
                 }
             }
 
+            val lotteryPhase = controllers.lotteries.getPhase(currentLottery)
+            val canDraw = controllers.lotteries.canDrawWinners(currentLottery)
+            winnersCount = minOf(currentLottery.numberOfWinners, entries.size)
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -159,6 +173,47 @@ fun OwnerLotteryDetailsScreen(
                         phase = controllers.lotteries.getPhase(currentLottery),
                         onClick = {}
                     )
+                }
+
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { showDrawDialog = true },
+                            enabled = canDraw && entries.isNotEmpty() && !isDrawing,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (isDrawing) "Drawing..." else "Draw Winners")
+                        }
+
+                        if (lotteryPhase == LotteryPhase.UPCOMING || lotteryPhase == LotteryPhase.REGISTRATION_OPEN) {
+                            Text(
+                                text = "Winners can be drawn after registration ends on " +
+                                        "${formatSingleDate(currentLottery.registrationEnd)}.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else if (canDraw && entries.isEmpty()) {
+                            Text(
+                                text = "Unable to draw winners. Nobody has joined the lottery.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else if (lotteryPhase == LotteryPhase.WINNERS_DRAWN || lotteryPhase == LotteryPhase.BOOKING_OPEN) {
+                            Text(
+                                text = "The winners have been drawn.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        if (drawErrorMessage != null) {
+                            Text(
+                                text = drawErrorMessage ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 }
 
                 item {
@@ -185,10 +240,10 @@ fun OwnerLotteryDetailsScreen(
                     }
                 }
 
-                if (errorMessage != null) {
+                if (deleteErrorMessage != null) {
                     item {
                         Text(
-                            text = errorMessage ?: "",
+                            text = deleteErrorMessage ?: "",
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -249,7 +304,7 @@ fun OwnerLotteryDetailsScreen(
                     enabled = !isDeleting,
                     onClick = {
                         isDeleting = true
-                        errorMessage = null
+                        deleteErrorMessage = null
 
                         scope.launch {
                             try {
@@ -258,7 +313,7 @@ fun OwnerLotteryDetailsScreen(
                                 showDeleteDialog = false
                                 navController.popBackStack()
                             } catch (e: Exception) {
-                                errorMessage = e.message ?: "Failed to delete lottery."
+                                deleteErrorMessage = e.message ?: "Failed to delete lottery."
                                 showDeleteDialog = false
                             } finally {
                                 isDeleting = false
@@ -282,6 +337,42 @@ fun OwnerLotteryDetailsScreen(
             }
         )
     }
+
+    if (showDrawDialog) {
+        AlertDialog(
+            onDismissRequest = { showDrawDialog = false },
+            title = { Text("Draw winners?") },
+            text = {
+                Text(
+                    "$winnersCount out of the ${entries.size} entrants will be picked " +
+                            "randomly to win the lottery."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDrawDialog = false
+                        isDrawing = true
+                        drawErrorMessage = null
+
+                        scope.launch {
+                            drawErrorMessage = controllers.lotteries.drawWinners(lotteryId)
+                            isDrawing = false
+                            reloadCount++ // shows updated new Won and Lost status
+                        }
+                    }
+                ) {
+                    Text("Draw")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDrawDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
 
 /**
