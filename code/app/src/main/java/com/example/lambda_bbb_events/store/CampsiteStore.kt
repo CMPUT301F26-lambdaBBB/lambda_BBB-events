@@ -103,6 +103,10 @@ class CampsiteStore {
         return true
     }
 
+    fun getByOwner(ownerId: String): Campsite {
+        return campsites[ownerId] ?: throw IllegalArgumentException("Campsite not found")
+    }
+
     fun filterUpdate(
         startDate: LocalDate? = null,
         endDate: LocalDate? = null,
