@@ -330,7 +330,7 @@ fun CampsiteDetailsScreen(
                         onClick = {
                             if (hasEnteredLottery) {
                                 navController.navigate(
-                                    "registrationStatus/${existingEntry!!.entryId}"
+                                    "registrationStatus/${existingEntry.entryId}"
                                 )
                             } else {
                                 navController.navigate(

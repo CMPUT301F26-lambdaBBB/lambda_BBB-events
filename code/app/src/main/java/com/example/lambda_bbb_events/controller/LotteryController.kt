@@ -321,22 +321,26 @@ class LotteryController(
             return LotteryPhase.CANCELLED
         }
 
-        if (today.before(lottery.registrationStart)) {
+        if (today.before(lottery.registrationStart)) { // today < reg start
             return LotteryPhase.UPCOMING
         }
 
-        if (!today.after(lottery.registrationEnd)) {
+        if (!today.after(lottery.registrationEnd)) { // today <= reg end
             return LotteryPhase.REGISTRATION_OPEN
         }
 
-        if (today.before(lottery.bookingStart)) {
-            if (lottery.status == LotteryStatus.DRAWN) {
-                return LotteryPhase.WINNERS_DRAWN
+        if (lottery.status != LotteryStatus.DRAWN) {
+            if (!today.after(lottery.bookingEnd)) { // today <= book end
+                return LotteryPhase.AWAITING_DRAW
             }
-            return LotteryPhase.AWAITING_DRAW
+            return LotteryPhase.ENDED // idk what we should do if booking period ends but owners havent drawn. ill just put ended for now
         }
 
-        if (!today.after(lottery.bookingEnd)) {
+        if (today.before(lottery.bookingStart)) { // today < book start
+            return LotteryPhase.WINNERS_DRAWN
+        }
+
+        if (!today.after(lottery.bookingEnd)) { // today <= book end
             return LotteryPhase.BOOKING_OPEN
         }
 
@@ -368,6 +372,25 @@ class LotteryController(
         return phase != LotteryPhase.ENDED && phase != LotteryPhase.CANCELLED
     }
 
+    /**
+     * Checks if the owner can draw winners of the lottery at current time.
+     *
+     * @param lottery The lottery to check.
+     * @return `true` if the winners can be drawn, `false` otherwise.
+     */
+    fun canDrawWinners(lottery: Lottery): Boolean {
+        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW
+    }
+
+    /**
+     * Draws the winners of a lottery randomly from the waitlist.
+     *
+     * @param lotteryId The ID of the lottery to draw.
+     * @return `null` if the winners were drawn successfully, an error message otherwise.
+     */
+    suspend fun drawWinners(lotteryId: String): String? {
+        return lotteryRepository.drawWinners(lotteryId)
+    }
 
     /**
      * Retrieves the first lottery accepting registrations

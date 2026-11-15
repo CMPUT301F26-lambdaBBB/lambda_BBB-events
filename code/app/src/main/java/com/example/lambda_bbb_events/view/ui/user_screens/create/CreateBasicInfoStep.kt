@@ -42,8 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 
@@ -210,13 +212,12 @@ internal fun CreateBasicInfoStep(
                             color = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.size(80.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    "Photo",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = "Selected photo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
                         }
                         Icon(
                             imageVector = Icons.Default.Close,

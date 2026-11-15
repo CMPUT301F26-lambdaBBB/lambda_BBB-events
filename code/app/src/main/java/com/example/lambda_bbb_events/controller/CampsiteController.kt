@@ -1,231 +1,160 @@
-
 package com.example.lambda_bbb_events.controller
 
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.repository.CampsiteRepository
-import com.google.firebase.Timestamp
-import com.example.lambda_bbb_events.model.roles.CampsiteOwner
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-/*
- * Manages campsite operations, searching, and filtering
- * through the repository.
- *
- */
+import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.store.CampsiteStore
+import java.time.LocalDate
 
-
-/**
- * Controller for [Campsite]-related operations.
- *
- * @property campsiteRepository The repository for [Campsite].
- */
 class CampsiteController(
-    val campsiteRepository: CampsiteRepository
+    private val campsiteStore: CampsiteStore
 ) {
-    /**
-     * Adds a campsite to the repository.
-     *
-     * @param campsite The campsite to add.
-     */
-    suspend fun addCampsite(campsite: Campsite) {
-        campsiteRepository.addCampsite(campsite)
-    }
-    /** The current campsite search query. */
-    var searchQuery by mutableStateOf("")
 
+    var searchQuery = ""
 
-    /** All campsites retrieved from the repository. */
-    val campsites: List<Campsite>
-        get() = campsiteRepository.campsites
+    val campsites: Map<String, Campsite>
+        get() = campsiteStore.campsites
 
-    /** Campsites available after applying Explore filters. */
-    val exploreCampsites: List<Campsite>
-        get() = if (campsiteRepository.isExploreFiltered) {
-            campsiteRepository.filteredCampsites
-        } else {
-            campsiteRepository.campsites
-        }
+    val filteredCampsites: Map<String, Campsite>
+        get() = campsiteStore.filteredCampsites
 
-    /** Whether campsite filtering is in progress. */
-    val isFiltering: Boolean
-        get() = campsiteRepository.isFiltering
-
-    /** The current filtering error, or null if none exists. */
-    val filterError: String?
-        get() = campsiteRepository.filterError
-
-    /** Whether Explore filters are currently applied. */
-    val isExploreFiltered: Boolean
-        get() = campsiteRepository.isExploreFiltered
-
-    /**
-     * Gets a [Campsite] given its campsiteId.
-     *
-     * @param campsiteId The `campsiteId` to search for.
-     * @return The [Campsite] with the specified campsiteId if it exists. `null` otherwise.
-     */
-    fun getCampsite(campsiteId: String): Campsite? {
-        return campsiteRepository.get(campsiteId)
-    }
-
-    /**
-     * Gets a list [Campsite] made by a user.
-     *
-     * @param ownerId The ID of the campsite owner.
-     * @return A list of [Campsite] associated with the owner.
-     */
-    fun getCampsitesByOwner(ownerId: String): List<Campsite> {
-        return campsiteRepository.getCampsitesByOwner(ownerId)
-    }
-
-    /**
-     * Updates a Campsite detail information.
-     *
-     * @param campsiteId The ID of the campsite to update.
-     * @param name The new campsite name.
-     * @param address The new address.
-     * @param maxOccupancyText The new max occupancy.
-     * @param description The new description.
-     * @param rulesPolicies The new rules and policies.
-     * @param tags The updated list of campsite tags.
-     * @return `true` if the campsite was updated successfully, `false` otherwise.
-     */
-    suspend fun updateCampsite(
-        campsiteId: String,
-        name: String,
-        address: String,
-        maxOccupancyText: String,
-        description: String,
-        rulesPolicies: String,
-        tags: List<String>
+    fun addCampsite(
+        campsiteId: String = "",
+        ownerId: String = "",
+        campsiteName: String = "",
+        description: String = "",
+        address: String = "",
+        latitude: Double = 0.0,
+        longitude: Double = 0.0,
+        maxOccupancy: Int = 1,
+        rulesPolicies: String = "",
+        amenities: List<String> = emptyList(),
+        tags: List<String> = emptyList(),
+        imageIds: List<ImageMetaData> = emptyList(),
+        rating: Float = 0f,
+        ratingCount: Int = 0,
+        availability: AvailabilitySchedule = AvailabilitySchedule(),
+        active: Boolean = true,
+        returnMessage: MutableState<String> = mutableStateOf("")
     ): Boolean {
-        val campsite = campsiteRepository.get(campsiteId)
 
-        if (campsite == null) {
-            return false
-        }
-
-        if (name.isBlank() || address.isBlank()) {
-            return false
-        }
-
-        val maxOccupancy = maxOccupancyText.trim().toIntOrNull()
-
-        if (maxOccupancy == null || maxOccupancy < 1) {
-            return false
-        }
-
-        campsiteRepository.updateCampsite(
-            campsite.copy(
-                campsiteName = name.trim(),
-                address = address.trim(),
-                maxOccupancy = maxOccupancy,
-                description = description.trim(),
-                rulesPolicies = rulesPolicies.trim(),
-                tags = tags
-            )
+        return campsiteStore.addCampsite(
+            campsiteId = campsiteId,
+            ownerId = ownerId,
+            campsiteName = campsiteName,
+            description = description,
+            address = address,
+            latitude = latitude,
+            longitude = longitude,
+            maxOccupancy = maxOccupancy,
+            rulesPolicies = rulesPolicies,
+            amenities = amenities,
+            tags = tags,
+            imageIds = imageIds,
+            rating = rating,
+            ratingCount = ratingCount,
+            availability = availability,
+            active = active,
+            returnMessage = returnMessage
         )
-
-        return true
     }
 
-    /**
-     * Saves the query to the [searchQuery] variable. An empty query means no search (show all).
-     *
-     * @param query The user search query string.
-     */
-    fun search(query: String) {
+    fun removeCampsite(
+        campsite: Campsite,
+        returnMessage: MutableState<String>
+    ): Boolean {
+
+        return campsiteStore.removeCampsite(
+            campsite,
+            returnMessage
+        )
+    }
+
+    fun updateCampsite(
+        campsiteId: String,
+        campsite: Campsite,
+        returnMessage: MutableState<String> = mutableStateOf("")
+    ): Boolean {
+
+        return campsiteStore.updateCampsite(
+            campsiteId,
+            campsite,
+            returnMessage
+        )
+    }
+
+    fun getCampsite(
+        campsiteId: String
+    ): Campsite? {
+
+        return campsiteStore.campsites[campsiteId]
+    }
+
+    fun getCampsitesByOwner(
+        ownerId: String
+    ): List<Campsite> {
+
+        return campsiteStore.campsites.values.filter {
+            it.ownerId == ownerId
+        }
+    }
+
+    fun applyFilters(
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null,
+        location: String = "",
+        starRating: Double? = null,
+        guestRange: IntRange? = null
+    ): Map<String, Campsite> {
+
+        return campsiteStore.filterUpdate(
+            startDate = startDate,
+            endDate = endDate,
+            location = location,
+            starRating = starRating,
+            guestRange = guestRange
+        )
+    }
+
+
+    fun clearFilters() {
+        campsiteStore.filterUpdate()
+    }
+
+    fun search(
+        query: String
+    ) {
         searchQuery = query.trim()
     }
 
-    /**
-     * Gets the campsites that match the current search query. The query is
-     * matched with the campsite name, address, and tags (ignores case).
-     *
-     * @return The list of campsites matching the query. If there is no query,
-     * all the campsites are returned.
-     */
     fun getSearchResults(): List<Campsite> {
-        // no search, show everything
-        if (searchQuery.isEmpty()) {
-            return exploreCampsites
-        }
 
-        val result = mutableListOf<Campsite>()
+        val source =
+            if (searchQuery.isBlank()) {
+                filteredCampsites.values.toList()
+            } else {
+                filteredCampsites.values.filter { campsite ->
 
-        for (campsite in exploreCampsites) {
-            if (matchesSearch(campsite)) {
-                result.add(campsite)
+                    campsite.campsiteName.contains(
+                        searchQuery,
+                        ignoreCase = true
+                    ) ||
+
+                            campsite.address.contains(
+                                searchQuery,
+                                ignoreCase = true
+                            ) ||
+
+                            campsite.tags.any {
+                                it.contains(
+                                    searchQuery,
+                                    ignoreCase = true
+                                )
+                            }
+                }
             }
-        }
-
-        return result
-    }
-
-    /**
-     * Checks if a campsite matches the current search query.
-     *
-     * @param campsite The campsite to check.
-     * @return `true` if the query is in the campsite's name, address, or tags. `false` otherwise.
-     */
-    private fun matchesSearch(campsite: Campsite): Boolean {
-        if (campsite.campsiteName.contains(searchQuery, ignoreCase = true)) {
-            return true
-        }
-
-        if (campsite.address.contains(searchQuery, ignoreCase = true)) {
-            return true
-        }
-
-        for (tag in campsite.tags) {
-            if (tag.contains(searchQuery, ignoreCase = true)) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * Applies filters to the campsite list in the Explore screen.
-     *
-     * @param startDate The earliest available date for the campsite.
-     * @param endDate The latest available date for the campsite.
-     * @param location The location to filter campsites by.
-     * @param minGuests The minimum number of guests.
-     * @param maxGuests The maximum number of guests.
-     * @param minRating The minimum campsite rating.
-     */
-    fun applyFilters(
-        startDate: Timestamp?,
-        endDate: Timestamp?,
-        location: String,
-        minGuests: Int,
-        maxGuests: Int,
-        minRating: Double?
-    ) {
-        val scope = CoroutineScope(Dispatchers.IO)
-
-        scope.launch {
-            campsiteRepository.filterCampsites(
-                startDate,
-                endDate,
-                location,
-                minGuests,
-                maxGuests,
-                minRating
-            )
-        }
-    }
-
-    /**
-     * Clears all applied filters from the Explore screen.
-     */
-    fun clearFilters() {
-        campsiteRepository.clearExploreFilters()
+        return source
     }
 }
