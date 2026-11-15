@@ -1,4 +1,4 @@
-package com.example.lambda_bbb_events.view.ui.components
+package com.example.lambda_bbb_events.view.ui.components.common
 
 import android.graphics.Bitmap
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,8 +30,7 @@ import com.example.lambda_bbb_events.model.ImageProcessor
  * @return `true` if the URL passes validation, `false` otherwise.
  */
 @Composable
-fun CampsiteImage(imageId: String, imageProcessor: ImageProcessor, modifier: Modifier = Modifier, contentDescription: String = "", loadImage: ImageProcessor.(String, () -> Unit?, () -> Unit?) -> Unit
-) {
+fun CampsiteImage(imageId: String, imageProcessor: ImageProcessor, modifier: Modifier = Modifier, contentDescription: String = "") {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     var loading by remember { mutableStateOf(true) }

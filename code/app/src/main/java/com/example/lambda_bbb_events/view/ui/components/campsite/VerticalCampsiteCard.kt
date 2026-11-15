@@ -23,13 +23,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImage
 
 /*
  * Defines a clickable campsite card.
@@ -69,20 +72,25 @@ fun VerticalCampsiteCard(
             .clickable { onClick() }
     ) {
         // Image placeholder
-        Box(
-            modifier = Modifier
-                .width(120.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "image",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        if (campsite.imageIds.isNotEmpty()) {
+            CampsiteImage(
+                imageId = campsite.imageIds.first().imageId,
+                imageProcessor = remember { ImageProcessor() },
+                modifier = Modifier
+                    .width(120.dp)
+                    .fillMaxHeight()
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .width(120.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No Image")
+            }
         }
-
         Column(
             modifier = Modifier
                 .weight(1f)

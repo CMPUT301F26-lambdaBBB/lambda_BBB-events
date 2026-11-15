@@ -19,7 +19,7 @@ internal class CreateCampsiteFormState {
     var campsiteName by mutableStateOf("")
     var description by mutableStateOf("")
     var maxOccupancy by mutableStateOf("1")
-    val tags = mutableStateListOf("Wifi", "Lake View", "Pet Friendly")
+    val tags = mutableStateListOf<String>()
     val selectedImageUris = mutableStateListOf<Uri>()
 
     // Location

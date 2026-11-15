@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.example.lambda_bbb_events.model.ImageChunk
 import com.example.lambda_bbb_events.model.ImageMetaData
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
@@ -22,7 +23,9 @@ class ImageRepository(
 
             val chunkCollection = imagesRef.document(metadata.imageId).collection("chunks")
 
-            chunks.forEach { chunk -> chunkCollection.document(chunk.priority.toString()).set(chunk).await() }
+            chunks.forEach { chunk -> chunkCollection.document(chunk.priority.toString())
+                .set(mapOf("imageId" to chunk.imageId, "priority" to chunk.priority, "bandHeight" to chunk.bandHeight, "imageBytes" to Blob.fromBytes(chunk.imageBytes)))
+                .await() }
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -36,7 +39,18 @@ class ImageRepository(
 
         return try {
             imagesRef.document(imageId).collection("chunks").get().await()
-                .documents.mapNotNull { it.toObject(ImageChunk::class.java) }
+                .documents.mapNotNull { document ->
+
+                    val blob = document.getBlob("imageBytes")
+                        ?: return@mapNotNull null
+
+                    ImageChunk(
+                        imageId = document.getString("imageId") ?: "",
+                        priority = document.getLong("priority")?.toInt() ?: 0,
+                        bandHeight = document.getLong("bandHeight")?.toInt() ?: 0,
+                        imageBytes = blob.toBytes()
+                    )
+                }
                 .sortedBy { it.priority }
 
         } catch (e: Exception) {

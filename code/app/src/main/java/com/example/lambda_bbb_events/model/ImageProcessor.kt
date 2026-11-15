@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.util.Log
 import androidx.core.graphics.createBitmap
 import com.example.lambda_bbb_events.model.repository.ImageRepository
 import kotlinx.coroutines.CoroutineScope
@@ -28,15 +29,6 @@ class ImageProcessor {
         val ratio = minOf(maxWidth.toFloat() / image.width, maxHeight.toFloat() / image.height, 1f)
 
         return image.scale((image.width * ratio).toInt(), (image.height * ratio).toInt())
-    }
-
-    /**
-     *
-     */
-    fun imageToByteArray(image: Bitmap): ByteArray {
-        val stream = ByteArrayOutputStream()
-        image.compress(Bitmap.CompressFormat.JPEG, 85, stream)
-        return stream.toByteArray()
     }
 
     /**
@@ -96,42 +88,53 @@ class ImageProcessor {
     /**
      * Loads an image from the repository and calls the appropriate callback.
      */
-    fun loadImage(imageId: String, onSuccess: (Bitmap) -> Unit, onFailure: (Exception) -> Unit
+    fun loadImage(
+        imageId: String,
+        onSuccess: (Bitmap) -> Unit,
+        onFailure: (Exception) -> Unit
     ) {
         scope.launch {
             try {
-                val metadata = imageRepository.getImageMetadata(imageId)
+                Log.d("IMAGE", "Loading image $imageId")
 
-                val chunks = imageRepository.getImageChunks(imageId)
+                val chunks = imageRepository.getImage(imageId)
 
-                if (metadata != null && chunks.size != metadata.chunkCount) {
-                    throw IllegalStateException("Missing image chunks")
-                }
+                Log.d("IMAGE", "Retrieved ${chunks.size} chunks")
 
                 val bitmap = rebuildImage(chunks)
 
-                withContext(Dispatchers.Main) { onSuccess(bitmap) }
+                Log.d(
+                    "IMAGE",
+                    "Bitmap rebuilt ${bitmap.width}x${bitmap.height}"
+                )
+
+                withContext(Dispatchers.Main) {
+                    onSuccess(bitmap)
+                }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { onFailure(e) }
+                Log.e("IMAGE", "Load failed", e)
+
+                withContext(Dispatchers.Main) {
+                    onFailure(e)
+                }
             }
         }
     }
 
-    fun uploadImage(imageId: String, uploaderUserId: String, bitmap: Bitmap, onSuccess: () -> Unit, onFailure: (Exception) -> Unit
-    ) {
-        scope.launch {
-            try {
-                val scaledBitmap = downscaleImage(bitmap)
-                val chunks = splitImage(imageId = imageId, bitmap = scaledBitmap)
-                val metadata = ImageMetaData(imageId = imageId, uploaderUserId = uploaderUserId, chunkCount = chunks.size)
+    suspend fun uploadImage(
+        imageId: String,
+        uploaderUserId: String,
+        bitmap: Bitmap
+    ): ImageMetaData {
 
-                imageRepository.uploadImage(metadata = metadata, chunks = chunks)
+        val scaledBitmap = downscaleImage(bitmap)
 
-                withContext(Dispatchers.Main) { onSuccess() }
+        val chunks = splitImage(imageId, scaledBitmap)
 
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) { onFailure(e) }
-            }
-        }
+        val metadata = ImageMetaData(imageId = imageId, uploaderUserId = uploaderUserId, chunkCount = chunks.size)
+
+        imageRepository.uploadImage(metadata = metadata, chunks = chunks)
+
+        return metadata
     }
 }

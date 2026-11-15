@@ -1,5 +1,8 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,12 +28,18 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndicator
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+
 /**
  * Coordinates the three-step campsite creation form and saves the campsite
  * and associated lottery when the owner presses Done.
@@ -50,6 +59,8 @@ fun CreateScreen(
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val imageProcessor = ImageProcessor()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = Modifier.testTag("screen_create"),
@@ -89,12 +100,14 @@ fun CreateScreen(
                         form = form,
                         onNext = { currentStep = 1 }
                     )
+
                     1 -> CreateLocationStep(
                         form = form,
                         showMap = showMap,
                         onBack = { currentStep = 0 },
                         onNext = { currentStep = 2 }
                     )
+
                     2 -> CreateLotteryStep(
                         form = form,
                         onBack = { currentStep = 1 },
@@ -120,21 +133,48 @@ fun CreateScreen(
                                         bookingStart == null || bookingEnd == null -> {
                                     saveError = "Select valid registration and booking dates."
                                 }
+
                                 registrationEnd.isBefore(registrationStart) ||
                                         bookingEnd.isBefore(bookingStart) -> {
                                     saveError = "End dates cannot be before start dates."
                                 }
-                                            else -> {
-                                                isSaving = true
-                                                saveError = null
-                                                scope.launch {
-                                                    try {
-                                                        val campsiteId = UUID.randomUUID().toString()
-                                                        val ownerId = controllers.users.user.deviceId
-                                                        val winnerCount = form.numberOfSpots.toIntOrNull() ?: 10
+
+                                else -> {
+                                    isSaving = true
+                                    saveError = null
+                                    try {
+                                        scope.launch {
+                                            val campsiteId = UUID.randomUUID().toString()
+                                            val ownerId = controllers.users.user.deviceId
+                                            val winnerCount = form.numberOfSpots.toIntOrNull() ?: 10
+                                            val imageMetaData = mutableListOf<ImageMetaData>()
+
+                                            for (uri in form.selectedImageUris) {
+                                                val bitmap =
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                                        ImageDecoder.decodeBitmap(
+                                                            ImageDecoder.createSource(
+                                                                context.contentResolver,
+                                                                uri
+                                                            )
+                                                        )
+                                                    } else {
+                                                        MediaStore.Images.Media.getBitmap(
+                                                            context.contentResolver,
+                                                            uri
+                                                        )
+                                                    }
+
+                                                imageMetaData += imageProcessor.uploadImage(
+                                                    imageId = UUID.randomUUID().toString(),
+                                                    uploaderUserId = ownerId,
+                                                    bitmap = bitmap
+                                                )
+                                            }
 
                                             // Save campsite first so the lottery can reference it.
-                                            controllers.campsites.addCampsite(campsiteId = campsiteId,
+                                            controllers.campsites.addCampsite(
+                                                campsiteId = campsiteId,
                                                 ownerId = ownerId,
                                                 campsiteName = form.campsiteName.trim(),
                                                 description = form.description.trim(),
@@ -149,7 +189,7 @@ fun CreateScreen(
                                                     .toIntOrNull() ?: 1,
                                                 rulesPolicies = form.additionalRules.trim(),
                                                 tags = form.tags.toList(),
-                                                imageIds = listOf<ImageMetaData>()
+                                                imageIds = imageMetaData
                                             )
                                             controllers.lotteries.createLottery(
                                                 ownerId = ownerId,
@@ -161,14 +201,16 @@ fun CreateScreen(
                                                 numberOfWinnersString = winnerCount.toString(),
                                                 waitlistCapacityString = winnerCount.toString()
                                             )
-                                            navController.navigate("home") {
-                                                launchSingleTop = true
+                                            withContext(Dispatchers.Main) {
+                                                navController.navigate("home") {
+                                                    launchSingleTop = true
+                                                }
                                             }
-                                        } catch (e: Exception) {
-                                            saveError = e.message ?: "Failed to create campsite."
-                                        } finally {
-                                            isSaving = false
                                         }
+                                    } catch (e: Exception) {
+                                        saveError = e.message ?: "Failed to create campsite."
+                                    } finally {
+                                        isSaving = false
                                     }
                                 }
                             }
