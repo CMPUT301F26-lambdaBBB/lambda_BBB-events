@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.store.CampsiteStore
 
 /*
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
         val lotteryRepository = LotteryRepository()
         val reservationRepository = ReservationRepository()
         val waitlistEntryRepository = WaitlistEntryRepository()
+        val imageProcessor = ImageProcessor()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -69,7 +71,8 @@ class MainActivity : ComponentActivity() {
             campsites = CampsiteController(campsiteStore),
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),
-            waitlistEntries = WaitlistEntryController(waitlistEntryRepository)
+            waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
+            images = imageProcessor
         )
 
         setContent {
