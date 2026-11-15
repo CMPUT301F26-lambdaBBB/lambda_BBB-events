@@ -42,7 +42,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 /*
  * Displays the current user's profile information and account settings.
  *
- * TODO: Implement the Settings and Logout actions.
+ * TODO: no test tags for log out dialog yet and log out does not allow re log-in
  * TODO: Replace the placeholder profile picture when profile image support is added.
  */
 

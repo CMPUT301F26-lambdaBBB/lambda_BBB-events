@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
  * Displays more detailed account and app settings.
  *
  * TODO: Log-Out to allow logging back in
+ * TODO: no test tags for log out or delete dialogs yet
  * TODO: Change placeholder profile picture to user profile picture
  */
 /**
