@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +38,8 @@ import kotlinx.coroutines.launch
 /*
  * Displays more detailed account and app settings.
  *
- * TODO: Implement the pages for Log-Out
- * TODO: Implement Notification page functionality
+ * TODO: Log-Out to allow logging back in
+ * TODO: no test tags for log out or delete dialogs yet
  * TODO: Change placeholder profile picture to user profile picture
  */
 /**
@@ -234,75 +235,48 @@ fun Settings(
 
     // Alert Prompts for both log out and delete account functions
     if (showDeleteDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surface,
-            // close dialog when the user taps outside the request box or presses Back.
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Account?") },
-            text = {
-                Text(
-                    if (accountError) "Please try again."
-                    else "Are you sure? \nThis action cannot be undone."
-                )
-            },
+        ShowAlertDialog(
+            dialogLabel = "Delete Account? ",
+            dialogCaption = "Are you sure?\nThis action cannot be undone.",
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch { // starts coroutine so firebase deletion runs without freezing app
-                            try {
-                                if (controllers.users.deleteAccount()) {
-                                    showDeleteDialog = false
-                                } else {
-                                    accountError = true
-                                }
-                            } catch (_: Exception) { // a failed execution is caught by catch
-                                accountError = true
-                            }
+                scope.launch { // starts coroutine so firebase deletion runs without freezing app
+                    try {
+                        if (controllers.users.deleteAccount()) {
+                            showDeleteDialog = false
+                        } else {
+                            accountError = true
                         }
+                    } catch (_: Exception) { // a failed execution is caught by catch
+                        accountError = true
                     }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            confirmText = "Delete",
+            dismissState = { showDeleteDialog = false },
+            cancelText = "Cancel",
+            modifier = Modifier
         )
     }
 
-    // you can't login to any account after logging out since it just navigates to signup for now
+    // you can't log in to any account after logging out since it just navigates to signup for now
     // need to work out way to log out with device id verification not causing re-login issue.
     if (showLogOutDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surface,
-            // close dialog when the user taps outside the request box or presses Back.
-            onDismissRequest = { showLogOutDialog = false },
-            title = { Text("Log Out?") },
-            text = {
-                Text("Please stay :( \nAlso note you cannot log back in so just refresh app")
-            },
+        ShowAlertDialog(
+            dialogLabel = "Log Out?",
+            dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogOutDialog = false
-                        navController.navigate("signup") {
-                            popUpTo(navController.graph.startDestinationId) { //
-                                inclusive = true // removes previous screens in back stack
-                            }
-                            launchSingleTop = true // prevent duplicate destination entries
-                        }
+                showLogOutDialog = false
+                navController.navigate("signup") {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true // removes previous screens in back stack including home
                     }
-                ) {
-                    Text("Log Out", color = MaterialTheme.colorScheme.error)
+                    launchSingleTop = true // prevent duplicate destination entries
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showLogOutDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            confirmText = "Log Out",
+            dismissState = { showLogOutDialog = false },
+            cancelText = "Cancel",
+            modifier = Modifier
         )
     }
 
