@@ -69,7 +69,6 @@ fun ProfileScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
                 .testTag("screen_profile")
         ) {
             ScreenTitle(

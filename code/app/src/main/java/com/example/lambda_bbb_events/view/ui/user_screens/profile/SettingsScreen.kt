@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.profile
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,12 +10,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Brightness6
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,11 +27,18 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
+
 /*
  * Displays more detailed account and app settings.
  *
- * AI used to change the sizes for icons and text to make everything evenly spaced and positioned.
- * TODO: Implement the pages for the different routes
+ * TODO: Implement the pages for Log-Out
+ * TODO: Implement Notification page functionality
  * TODO: Change placeholder profile picture to user profile picture
  */
 /**
@@ -46,19 +53,22 @@ fun Settings(
     controllers: AppControllers
 ) {
     val user = controllers.users.user
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showLogOutDialog by remember { mutableStateOf(false) }
+    var accountError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val settingsGroups = listOf(
         "APP PREFERENCES" to listOf(
-            Triple("Notifications", Icons.Outlined.Notifications, "test_nav"),
-            Triple("Appearance", Icons.Outlined.Brightness6, "test_nav"),
-            Triple("Language", Icons.Outlined.Language, "test_nav")
+            Triple("Notifications", Icons.Outlined.Notifications, "notif_toggle"),
+            Triple("Appearance", Icons.Outlined.Brightness6, "theme_toggle")
         ),
 
         "ACCOUNT SETTINGS" to listOf(
-            Triple("App Policies", Icons.Outlined.ContentPaste, "test_nav"),
+            Triple("App Policies", Icons.Outlined.ContentPaste, "app_policy"),
             Triple("Edit Profile", Icons.Outlined.Edit, "edit_profile"),
-            Triple("Log Out", Icons.AutoMirrored.Outlined.ExitToApp, "test_nav"),
-            Triple("Delete Account", Icons.Outlined.Delete, "test_nav")
+            Triple("Log Out", Icons.AutoMirrored.Outlined.ExitToApp, "log_out"),
+            Triple("Delete Account", Icons.Outlined.Delete, "delete_account")
         )
     )
 
@@ -148,7 +158,7 @@ fun Settings(
                         )
                     }
 
-                    // per row entry, includes all necessary information and theming + dividers
+                    // per row entry, includes all necessary information and theme-ing + dividers
                     items(options) { (title, icon, route) ->
                         Column {
                             // whole row navigates to specific route per triple entry
@@ -157,14 +167,25 @@ fun Settings(
                                     .fillMaxWidth()
                                     .heightIn(min = 60.dp)
                                     .clickable {
-                                        navController.navigate(route)
+                                        when (route) {
+                                            "delete_account" -> {
+                                                showDeleteDialog = true
+                                            }
+                                            "log_out" -> {
+                                                showLogOutDialog = true
+                                            }
+                                            else -> {
+                                                navController.navigate(route)
+                                            }
+                                        }
                                     }
                                     .padding(
                                         horizontal = 16.dp,
                                         vertical = 8.dp
                                     ),
                                 verticalAlignment = Alignment.CenterVertically
-                            ) { // vertical box houses the page icon, name and right arrow indicator
+                            ) {
+                                // vertical box houses the page icon, name and right arrow indicator
                                 Box(
                                     modifier = Modifier
                                         .size(38.dp)
@@ -192,7 +213,7 @@ fun Settings(
                                 )
 
                                 Icon(
-                                    imageVector = Icons.Default.KeyboardArrowRight,
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -210,4 +231,79 @@ fun Settings(
             }
         }
     }
+
+    // Alert Prompts for both log out and delete account functions
+    if (showDeleteDialog) {
+        AlertDialog(
+            containerColor = MaterialTheme.colorScheme.surface,
+            // close dialog when the user taps outside the request box or presses Back.
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Account?") },
+            text = {
+                Text(
+                    if (accountError) "Please try again."
+                    else "Are you sure? \nThis action cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch { // starts coroutine so firebase deletion runs without freezing app
+                            try {
+                                if (controllers.users.deleteAccount()) {
+                                    showDeleteDialog = false
+                                } else {
+                                    accountError = true
+                                }
+                            } catch (_: Exception) { // a failed execution is caught by catch
+                                accountError = true
+                            }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // you can't login to any account after logging out since it just navigates to signup for now
+    // need to work out way to log out with device id verification not causing re-login issue.
+    if (showLogOutDialog) {
+        AlertDialog(
+            containerColor = MaterialTheme.colorScheme.surface,
+            // close dialog when the user taps outside the request box or presses Back.
+            onDismissRequest = { showLogOutDialog = false },
+            title = { Text("Log Out?") },
+            text = {
+                Text("Please stay :( \nAlso note you cannot log back in so just refresh app")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogOutDialog = false
+                        navController.navigate("signup") {
+                            popUpTo(navController.graph.startDestinationId) { //
+                                inclusive = true // removes previous screens in back stack
+                            }
+                            launchSingleTop = true // prevent duplicate destination entries
+                        }
+                    }
+                ) {
+                    Text("Log Out", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogOutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }

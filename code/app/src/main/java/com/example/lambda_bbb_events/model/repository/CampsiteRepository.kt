@@ -1,316 +1,165 @@
 package com.example.lambda_bbb_events.model.repository
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.roles.CampsiteOwner
+import com.example.lambda_bbb_events.model.ImageMetaData
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
-
-/*
- * Manages campsite data and filtering in Firestore.
- * TODO: Complete date-filtered results handling.
- */
-
-
+import java.time.LocalDate
 
 /**
- * Manages campsite storage, retrieval, and filtering in Firestore.
+ * Represents a Firestore campsite listing.
  *
- * @param enableListener Whether to listen for live database updates.
+ * @property campsiteId The unique ID of the campsite.
+ * @property ownerId The device ID of the campsite owner.
+ * @property campsiteName The name of the campsite.
+ * @property description A description of the campsite.
+ * @property address The campsite's address.
+ * @property latitude The campsite's latitude.
+ * @property longitude The campsite's longitude.
+ * @property maxOccupancy The maximum number of guests allowed.
+ * @property rulesPolicies Rules and policies for the campsite.
+ * @property amenities Amenities available at the campsite.
+ * @property tags Tags for the campsite.
+ * @property imageIds IDs of images associated with the campsite.
+ * @property rating The mean rating of the campsite.
+ * @property ratingCount The number of ratings of the campsite.
+ * @property availability The campsite's availability schedule.
+ * @property active Whether the campsite listing is active.
  */
-class CampsiteRepository(enableListener: Boolean = true) {
+data class FirestoreCampsite(
+    val campsiteId: String = "",
+    val ownerId: String = "", // CampsiteOwner deviceId
+    val campsiteName: String = "",
+    val description: String = "",
+    val address: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val maxOccupancy: Int = 1,
+    val rulesPolicies: String = "",
+    val amenities: List<String> = emptyList(),
+    val tags: List<String> = emptyList(),
+    val imageIds: List<ImageMetaData> = emptyList(),
+    val rating: Float = 0f, // average
+    val ratingCount: Int = 0,
+    val availability: FirestoreAvailabilitySchedule = FirestoreAvailabilitySchedule(),
+    var active: Boolean = true
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Campsite) return false
+
+        return campsiteId == other.campsiteId &&
+                ownerId == other.ownerId &&
+                campsiteName == other.campsiteName
+    }
+
+    override fun hashCode(): Int {
+        var result = campsiteId.hashCode()
+        result = 31 * result + ownerId.hashCode()
+        result = 31 * result + campsiteName.hashCode()
+        return result
+    }
+}
+
+data class FirestoreAvailabilitySchedule(
+    var dates: MutableMap<String, Int> = mutableMapOf()
+)
+
+/**
+ * Does all the data operations related to databases.
+ */
+class CampsiteRepository {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
 
-    private val _campsites = mutableStateListOf<Campsite>()
-    private val _filteredCampsites = mutableStateListOf<Campsite>()
-    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
-
-
-    init {
-        if (enableListener) {
-            listenerRegistration = campsitesRef.addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    return@addSnapshotListener
-                }
-
-                _campsites.clear()
-
-                snapshot?.documents?.forEach { document ->
-                    val campsite = document.toObject(Campsite::class.java)
-                    if (campsite != null) {
-                        _campsites.add(campsite)
-                    }
-                }
-            }
-        }
-    }
-
-    /** Cached campsite listings. */
-    val campsites: List<Campsite>
-        get() = _campsites
+    // private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
     /**
-     * Adds a new campsite to the Firestore database.
-     *
-     * @param campsite The campsite to add.
+     * Gets all campsites from the database.
      */
     suspend fun addCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId)
-            .set(campsite)
-            .await()
+        val firestoreDates = campsite.availability.dates.mapKeys { it.key.toString() }.toMutableMap()
 
-        _campsites.removeAll {
-            it.campsiteId == campsite.campsiteId
-        }
-        _campsites.add(campsite)
-    }
-
-    /**
-     * Deletes a campsite from the Firestore database
-     *
-     * @param campsite The campsite to be deleted.
-     */
-    suspend fun deleteCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId)
-            .delete()
-            .await()
-
-        _campsites.removeAll {
-            it.campsiteId == campsite.campsiteId
-        }
-    }
-
-    /**
-     * Overwrites an existing campsite in the Firestore database with updated data.
-     *
-     * @param updatedCampsite The campsite to be updated. Must have the same `campsiteId`
-     * as the original document.
-     */
-    suspend fun updateCampsite(updatedCampsite: Campsite) {
-        // assumes the old and updated campsite uses same ID bcs this function overwrites
-        // the campsite with the same campsiteId
-        campsitesRef.document(updatedCampsite.campsiteId)
-            .set(updatedCampsite)
-            .await()
-
-        _campsites.removeAll {
-            it.campsiteId == updatedCampsite.campsiteId
-        }
-        _campsites.add(updatedCampsite)
-    }
-
-    /**
-     * Gets a [Campsite] object from the database given its campsiteId.
-     *
-     * @param campsiteId The `campsiteId` to search for.
-     * @return The [Campsite] object with the specified campsiteId if it exists. `null` otherwise.
-     */
-     fun get(campsiteId: String): Campsite? {
-        for (campsite in _campsites) {
-            if (campsite.campsiteId == campsiteId) {
-                return campsite
-            }
-        }
-        return null
-    }
-
-    /**
-     * Gets all [Campsite] of a specific [CampsiteOwner].
-     *
-     * @param ownerId The [CampsiteOwner] device ID.
-     * @return The list of [Campsite] made by the owner.
-     */
-    fun getCampsitesByOwner(ownerId: String): List<Campsite> {
-        val result = mutableListOf<Campsite>()
-
-        for (campsite in _campsites) {
-            if (campsite.ownerId == ownerId) {
-                result.add(campsite)
-            }
-        }
-
-        return result
-    }
-
-    /** Campsites matching the applied filters. */
-    val filteredCampsites: List<Campsite>
-        get() = _filteredCampsites
-
-    /** Whether Explore filtering is enabled. */
-    var isExploreFiltered by mutableStateOf(false)
-        private set
-
-    /** Whether a filter request is running. */
-    var isFiltering by mutableStateOf(false)
-        private set
-
-    /** The latest filter error, or null. */
-    var filterError by mutableStateOf<String?>(null)
-        private set
-
-    private var filterRequestVersion = 0
-
-    /**
-     * Filters campsites based on dates, location, guest capacity, and rating.
-     *
-     * Retrieves matching campsites from Firestore and excludes campsites
-     * with confirmed reservations overlapping the selected dates.
-     *
-     * @param startDate The start date of the requested stay, or `null` if not specified.
-     * @param endDate The end date of the requested stay, or `null` if not specified.
-     * @param location The location to search for in the campsite address.
-     * @param minGuests The minimum guest capacity.
-     * @param maxGuests The maximum guest capacity.
-     * @param minRating The minimum campsite rating, or `null` if not specified.
-     */
-    suspend fun filterCampsites(
-        startDate: Timestamp?,
-        endDate: Timestamp?,
-        location: String,
-        minGuests: Int,
-        maxGuests: Int,
-        minRating: Double?
-    ) {
-        val requestId = ++filterRequestVersion
-
-        isExploreFiltered = true
-        isFiltering = true
-        filterError = null
-        _filteredCampsites.clear()
-
-        if ((startDate == null) != (endDate == null) || (startDate != null && endDate != null && startDate >= endDate)) {
-            filterError = "Invalid date range"
-            isFiltering = false
-            return
-        }
-
-        if (minGuests < 0 || maxGuests < 0 || minGuests > maxGuests) {
-            filterError = "Invalid guest range"
-            isFiltering = false
-            return
-        }
-
-        fun complete(results: List<Campsite>) {
-            if (requestId != filterRequestVersion) {
-                return
-            }
-
-            _filteredCampsites.clear()
-            _filteredCampsites.addAll(results)
-
-            filterError = null
-            isFiltering = false
-        }
-
-        fun fail(error: Exception) {
-            if (requestId != filterRequestVersion) {
-                return
-            }
-
-            filterError = error.message ?: "Failed to filter campsites"
-            isFiltering = false
-        }
-
-        var query: Query = campsitesRef
-
-        if (minGuests > 0) {
-            query = query.whereGreaterThanOrEqualTo(
-                "maxOccupancy",
-                minGuests
+        val firestoreCampsite = FirestoreCampsite(campsiteId = campsite.campsiteId,
+                ownerId = campsite.ownerId,
+                campsiteName = campsite.campsiteName,
+                description = campsite.description,
+                address = campsite.address,
+                latitude = campsite.latitude,
+                longitude = campsite.longitude,
+                maxOccupancy = campsite.maxOccupancy,
+                rulesPolicies = campsite.rulesPolicies,
+                amenities = campsite.amenities,
+                tags = campsite.tags,
+                imageIds = campsite.imageIds,
+                rating = campsite.rating,
+                ratingCount = campsite.ratingCount,
+                availability = FirestoreAvailabilitySchedule(dates = firestoreDates),
+                active = campsite.active
             )
-        }
+        campsitesRef.add(firestoreCampsite).await()
+    }
 
-        if (maxGuests < 100) {
-            query = query.whereLessThanOrEqualTo(
-                "maxOccupancy",
-                maxGuests
+    suspend fun deleteCampsite(campsiteID: String) {
+        campsitesRef.document(campsiteID).delete().await()
+    }
+
+    suspend fun updateCampsite(campsiteID: String, updatedCampsite: Campsite) {
+        val firestoreDates = updatedCampsite.availability.dates.mapKeys { it.key.toString() }.toMutableMap()
+
+        val firestoreCampsite = FirestoreCampsite(campsiteId = updatedCampsite.campsiteId,
+                ownerId = updatedCampsite.ownerId,
+                campsiteName = updatedCampsite.campsiteName,
+                description = updatedCampsite.description,
+                address = updatedCampsite.address,
+                latitude = updatedCampsite.latitude,
+                longitude = updatedCampsite.longitude,
+                maxOccupancy = updatedCampsite.maxOccupancy,
+                rulesPolicies = updatedCampsite.rulesPolicies,
+                amenities = updatedCampsite.amenities,
+                tags = updatedCampsite.tags,
+                imageIds = updatedCampsite.imageIds,
+                rating = updatedCampsite.rating,
+                ratingCount = updatedCampsite.ratingCount,
+                availability = FirestoreAvailabilitySchedule(dates = firestoreDates),
+                active = updatedCampsite.active
             )
-        }
+        campsitesRef.document(campsiteID).set(firestoreCampsite).await()
+    }
 
-        if (minRating != null && minRating > 0) {
-            query = query.whereGreaterThanOrEqualTo(
-                "rating",
-                minRating
-            )
-        }
-
-        try {
-            val snapshot = query.get().await()
-
-            if (requestId != filterRequestVersion) {
-                return
+    suspend fun getAllCampsites(): MutableMap<String, Campsite> {
+        val campsites = mutableMapOf<String, Campsite>()
+        val snapshot = campsitesRef.get().await()
+        campsites.clear()
+        for (document in snapshot.documents) {
+            val firestoreCampsite = document.toObject(FirestoreCampsite::class.java)
+            if (firestoreCampsite != null) {
+                val campsite = Campsite(
+                    campsiteId = firestoreCampsite.campsiteId,
+                    ownerId = firestoreCampsite.ownerId,
+                    campsiteName = firestoreCampsite.campsiteName,
+                    description = firestoreCampsite.description,
+                    address = firestoreCampsite.address,
+                    latitude = firestoreCampsite.latitude,
+                    longitude = firestoreCampsite.longitude,
+                    maxOccupancy = firestoreCampsite.maxOccupancy,
+                    rulesPolicies = firestoreCampsite.rulesPolicies,
+                    amenities = firestoreCampsite.amenities,
+                    tags = firestoreCampsite.tags,
+                    imageIds = firestoreCampsite.imageIds,
+                    rating = firestoreCampsite.rating,
+                    ratingCount = firestoreCampsite.ratingCount,
+                    availability = AvailabilitySchedule(dates = firestoreCampsite.availability.dates
+                        .mapKeys { LocalDate.parse(it.key) }
+                        .toMutableMap()
+                    ),
+                    active = firestoreCampsite.active
+                )
+                campsites[campsite.campsiteId] = campsite
             }
-
-            val matchingCampsites = snapshot.documents
-                .mapNotNull { document ->
-                    document.toObject(Campsite::class.java)
-                }
-                .filter { campsite ->
-                    location.isBlank() ||
-                            campsite.address.contains(
-                                location.trim(),
-                                ignoreCase = true
-                            )
-                }
-
-            if (startDate != null && endDate != null) {
-
-                val reservationSnapshot = db.collection("reservations")
-                    .whereLessThan("startDate", endDate)
-                    .whereGreaterThan("endDate", startDate)
-                    .get()
-                    .await()
-
-                val occupiedIds = reservationSnapshot.documents
-                    .filter {
-                        it.getString("status") == "confirmed"
-                    }
-                    .mapNotNull {
-                        it.getString("campsiteId")
-                    }
-                    .toSet()
-
-                val availableCampsites = matchingCampsites.filterNot {
-                    it.campsiteId in occupiedIds
-                }
-                complete(availableCampsites)
-
-                }
-                else { complete(matchingCampsites)
-                }
-
-        } catch (error: Exception) {
-            fail(error)
         }
+        return campsites
     }
-
-    /**
-     * Clears all applied campsite filters and resets the filtering state.
-     *
-     * Removes filtered campsite results, clears any filter errors,
-     * and invalidates pending filter requests.
-     */
-    fun clearExploreFilters() {
-        filterRequestVersion++
-        isExploreFiltered = false
-        isFiltering = false
-        filterError = null
-        _filteredCampsites.clear()
-    }
-
-    /**
-     * Removes the Firestore snapshot listener.
-     */
-    fun close() {
-        listenerRegistration?.remove()
-        listenerRegistration = null
-    }
-
 }

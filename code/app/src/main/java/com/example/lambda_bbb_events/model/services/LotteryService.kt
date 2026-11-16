@@ -1,7 +1,6 @@
-package com.example.lambda_bbb_events.model
+package com.example.lambda_bbb_events.model.services
 
-import androidx.compose.runtime.mutableStateListOf
-
+import com.example.lambda_bbb_events.model.Lottery
 
 
 /**

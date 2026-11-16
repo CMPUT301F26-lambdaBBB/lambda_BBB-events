@@ -144,9 +144,9 @@ val MaterialTheme.bookingStatusColors: BookingStatusColors
 /**
  * Applies the application's Coastal Blue Material 3 theme.
  *
- * @param darkTheme Whether to use dark mode.
+ * @param darkTheme Whether to use dark mode (false by default, enabled in appearance settings).
  * @param dynamicColor Whether to use Android wallpaper colors.
- * Defaults to false to preserve the app's palette.
+ * Defaults to false.
  * @param content UI content displayed within the theme.
  */
 @Composable

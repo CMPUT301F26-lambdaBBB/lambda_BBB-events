@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -30,11 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.ImageProcessor
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImage
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
-import kotlinx.coroutines.launch
 
 /*
  * Provides a screen for editing campsite details.
@@ -59,7 +60,6 @@ fun EditCampsiteScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
-    val scope = rememberCoroutineScope()
 
     if (campsite == null) {
         Text(
@@ -126,28 +126,24 @@ fun EditCampsiteScreen(
                 placeholder = "Campsite name"
             )
 
-            // Photos placeholder
-            Text(
-                text = "Photos",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Some images here",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            // TODO: Photos
+            if (campsite.imageIds.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No images available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             OutlinedButton(
@@ -274,23 +270,22 @@ fun EditCampsiteScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        val saved = controllers.campsites.updateCampsite(
-                            campsiteId,
-                            name,
-                            address,
-                            maxOccupancy,
-                            description,
-                            rulesPolicies,
-                            tags
-                        )
+                    val saved = controllers.campsites.updateCampsite(
+                        campsiteId,
+                        Campsite(campsiteId = name,
+                            ownerId = address,
+                            campsiteName = maxOccupancy,
+                            description = description,
+                            address = rulesPolicies,
+                            tags = tags
+                        ),
+                    )
 
                         if (saved) {
                             navController.popBackStack()
                         } else {
                             showError = true
                         }
-                    }
                 },
                 modifier = Modifier
                     .weight(1f)

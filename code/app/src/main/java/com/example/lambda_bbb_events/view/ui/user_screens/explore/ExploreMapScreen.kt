@@ -84,7 +84,6 @@ fun ExploreMapScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
                 .testTag("screen_explore")
         ) {
             ScreenTitle(
@@ -185,7 +184,7 @@ fun ExploreMapScreen(
                 // Nearby Campsites
                 VerticalCardSection(
                     title = "Nearby Campsites",
-                    campsites = controllers.campsites.campsites,
+                    campsites = controllers.campsites.campsites.values.toList(),
                     onCampsiteClick = { campsite ->
                         navController.navigate(
                             "campsite_details/${campsite.campsiteId}"

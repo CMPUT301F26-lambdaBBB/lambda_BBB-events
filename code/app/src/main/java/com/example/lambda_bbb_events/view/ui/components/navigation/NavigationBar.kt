@@ -119,7 +119,12 @@ fun BottomNavigationBar(navController: NavController) {
             title = "Profile",
             route = "profile",
             icon = Icons.Filled.AccountCircle,
-            selectedRoutes = listOf("profile"),
+            selectedRoutes = listOf(
+                "profile",
+                "settings",
+                "theme_toggle",
+                "app_policy"
+                ),
             testTag = "nav_profile"
         )
     )

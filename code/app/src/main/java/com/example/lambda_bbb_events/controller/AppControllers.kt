@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.model.WaitlistEntry
 
 /**
@@ -16,5 +17,6 @@ class AppControllers (
     val campsites: CampsiteController,
     val lotteries: LotteryController,
     val reservations: ReservationController,
-    val waitlistEntries: WaitlistEntryController
+    val waitlistEntries: WaitlistEntryController,
+    val images: ImageProcessor
 )
