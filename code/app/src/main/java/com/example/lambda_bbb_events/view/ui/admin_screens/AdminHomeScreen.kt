@@ -29,6 +29,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminScreenTitleWithRoleSwitcher
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminToolTile
+import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 
 /**
@@ -51,28 +52,7 @@ fun AdminHomeScreen(
         // TODO: add the admin bottom navigation bar here
     ) { innerPadding ->
         if (!isAdmin) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(top = 15.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Text(
-                    text = "You do not have access to this page.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(Modifier.height(20.dp))
-                Button(
-                    onClick = {
-                        navController.navigate("home")
-                    }
-                ) {
-                    Text("Return to user home screen")
-                }
-            }
+            NoAccessMessage(navController)
         } else {
             Column(
                 modifier = Modifier
@@ -117,7 +97,7 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Profiles",
                                     icon = Icons.Outlined.Person,
-                                    onClick = { /* TODO */ },
+                                    onClick = { navController.navigate("admin_profiles") },
                                     modifier = Modifier.weight(1f)
                                 )
                             }

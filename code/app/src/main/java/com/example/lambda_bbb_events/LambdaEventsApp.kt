@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminHomeScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
@@ -250,6 +251,7 @@ private fun MainApp(
 
             // admin screens
             composable("admin_home") { AdminHomeScreen(navController, controllers) }
+            composable("admin_profiles") { AdminProfilesScreen(navController, controllers) }
         }
     }
 }
