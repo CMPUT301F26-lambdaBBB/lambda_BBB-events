@@ -103,10 +103,13 @@ fun OwnerLotteryCard(
             )
 
             val winnerWord = if (lottery.numberOfWinners == 1) "winner" else "winners"
-
+            val waitlistText = if (lottery.waitlistCapacity == null) {
+                "${lottery.entryIds.size} waitlisted"
+            } else {
+                "${lottery.entryIds.size} / ${lottery.waitlistCapacity} waitlisted"
+            }
             Text(
-                text = "${lottery.numberOfWinners} $winnerWord  |  " +
-                        "${lottery.entryIds.size} / ${lottery.waitlistCapacity} waitlisted",
+                text = "${lottery.numberOfWinners} $winnerWord  |  $waitlistText",
                 fontSize = 14.sp
             )
         }
