@@ -109,7 +109,7 @@ private fun MainApp(
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "admin_home",
+            startDestination = "home",
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 32.dp)

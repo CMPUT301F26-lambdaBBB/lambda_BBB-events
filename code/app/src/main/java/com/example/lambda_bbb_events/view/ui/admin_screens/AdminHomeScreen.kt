@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.view.ui.components.admin.AdminScreenTitleWithRoleSwitcher
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminToolTile
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 
@@ -53,12 +55,23 @@ fun AdminHomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .padding(top = 15.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
                 Text(
                     text = "You do not have access to this page.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                Spacer(Modifier.height(20.dp))
+                Button(
+                    onClick = {
+                        navController.navigate("home")
+                    }
+                ) {
+                    Text("Return to user home screen")
+                }
             }
         } else {
             Column(
@@ -66,11 +79,10 @@ fun AdminHomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                ScreenTitle(
-                    title = "Home",
+                AdminScreenTitleWithRoleSwitcher(
                     navController = navController,
-                    showNotifications = true,
-                    showBack = false
+                    title = "Home",
+                    showNotifications = true
                 )
 
                 LazyColumn(
@@ -81,7 +93,7 @@ fun AdminHomeScreen(
                     item {
                         Text(
                             text = "Admin Tools",
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.padding(bottom = 15.dp)
                         )
@@ -138,7 +150,7 @@ fun AdminHomeScreen(
                         ) {
                             Text(
                                 text = "Recent Activity",
-                                style = MaterialTheme.typography.headlineMedium,
+                                style = MaterialTheme.typography.headlineLarge,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
 
