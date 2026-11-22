@@ -59,6 +59,7 @@ fun EditCampsiteScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val deviceId = controllers.users.deviceId
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
@@ -273,10 +274,11 @@ fun EditCampsiteScreen(
                     val saved = controllers.campsites.updateCampsite(
                         campsiteId,
                         Campsite(campsiteId = name,
-                            ownerId = address,
-                            campsiteName = maxOccupancy,
+                            ownerId = deviceId,
+                            campsiteName = name,
                             description = description,
-                            address = rulesPolicies,
+                            address = address,
+                            rulesPolicies = rulesPolicies,
                             tags = tags
                         ),
                     )
