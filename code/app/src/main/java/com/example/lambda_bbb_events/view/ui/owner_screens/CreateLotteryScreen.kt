@@ -77,7 +77,7 @@ fun CreateLotteryScreen(
     var bookingStart by remember { mutableStateOf("") }
     var bookingEnd by remember { mutableStateOf("") }
     var numberOfWinners by remember { mutableStateOf("1") }
-    var waitlistCapacity by remember { mutableStateOf("10") }
+    var waitlistCapacity by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -121,10 +121,10 @@ fun CreateLotteryScreen(
             )
 
             FormTextFieldWithTitle(
-                title = "Waitlist capacity",
+                title = "Waitlist capacity (optional)",
                 value = waitlistCapacity,
                 onValueChange = { waitlistCapacity = it },
-                placeholder = "Max entrants allowed to join"
+                placeholder = "Max entrants allowed to join. Leave blank for no limit."
             )
 
             if (errorMessage != null) {

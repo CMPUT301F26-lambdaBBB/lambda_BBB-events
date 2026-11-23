@@ -111,9 +111,16 @@ class LotteryController(
         }
 
         // input check the capacity
-        val waitlistCapacity = waitlistCapacityString.trim().toIntOrNull()
-            ?: return "The waitlist capacity is not a valid number."
-        if (waitlistCapacity < numberOfWinners) {
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
             return "The waitlist capacity must be at least the number of winners."
         }
 
@@ -210,13 +217,20 @@ class LotteryController(
         }
 
         // input check the capacity
-        val waitlistCapacity = waitlistCapacityString.trim().toIntOrNull()
-            ?: return "The waitlist capacity is not a valid number."
-        if (waitlistCapacity < numberOfWinners) {
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
             return "The waitlist capacity must be at least the number of winners."
         }
-        if (waitlistCapacity < existingLottery.entryIds.size) {
-            return "The waitlist capacity can't be smaller than the number of entrants already on it."
+        if (waitlistCapacity != null && waitlistCapacity < existingLottery.entryIds.size) {
+            return "The waitlist capacity must not be smaller than the number of entrants already on it."
         }
 
         val newRegistrationStart = toStartOfDay(registrationStart)

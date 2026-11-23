@@ -123,7 +123,7 @@ class LotteryRepository {
      */
     suspend fun addWaitlistToLottery(lottery: Lottery, waitlistEntry: WaitlistEntry): Boolean {
         // check if the waitlist is already full
-        if (lottery.entryIds.size >= lottery.waitlistCapacity) { // > should be imposed, but include strict bound in case
+        if (lottery.isFull()) {
             return false
         }
 

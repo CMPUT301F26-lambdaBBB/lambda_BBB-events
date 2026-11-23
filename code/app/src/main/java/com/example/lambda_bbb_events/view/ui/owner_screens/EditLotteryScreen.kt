@@ -105,7 +105,7 @@ fun EditLotteryScreen(
     var bookingEnd by remember { mutableStateOf(
         dateToLocalDate(currentLottery.bookingEnd).toString()) }
     var numberOfWinners by remember { mutableStateOf(currentLottery.numberOfWinners.toString()) }
-    var waitlistCapacity by remember { mutableStateOf(currentLottery.waitlistCapacity.toString()) }
+    var waitlistCapacity by remember { mutableStateOf(currentLottery.waitlistCapacity?.toString() ?: "") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -152,7 +152,7 @@ fun EditLotteryScreen(
                 title = "Waitlist capacity",
                 value = waitlistCapacity,
                 onValueChange = { waitlistCapacity = it },
-                placeholder = "Max entrants allowed to join"
+                placeholder = "Max entrants allowed to join. Leave blank for no limit."
             )
 
             if (errorMessage != null) {
