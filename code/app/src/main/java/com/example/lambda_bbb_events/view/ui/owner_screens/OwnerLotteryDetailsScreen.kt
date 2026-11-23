@@ -255,8 +255,15 @@ fun OwnerLotteryDetailsScreen(
                 item {
                     HorizontalDivider()
                     Spacer(Modifier.height(12.dp))
+
+                    val waitlistTitle = if (currentLottery.waitlistCapacity == null) {
+                        "Waitlist (${entries.size})"
+                    } else {
+                        "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})"
+                    }
+
                     Text(
-                        text = "Waitlist (${entries.size} / ${currentLottery.waitlistCapacity})",
+                        text = waitlistTitle,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )

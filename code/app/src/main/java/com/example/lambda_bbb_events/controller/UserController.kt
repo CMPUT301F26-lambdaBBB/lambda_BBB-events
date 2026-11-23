@@ -177,4 +177,14 @@ class UserController(
         userRepository.deleteUser(user)
         return true
     }
+
+    /**
+     * Gets all users from the database.
+     *
+     * @return List of every user.
+     */
+    suspend fun getAllUsers(): List<User> {
+        userRepository.refreshUsers()
+        return userRepository.users
+    }
 }

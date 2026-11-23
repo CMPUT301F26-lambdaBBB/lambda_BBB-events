@@ -173,12 +173,23 @@ class LotteryControllerUnitTest {
 
     @Test
     fun createLotteryValidatesWaitlistCapacity() = runTest {
-        assertEquals("The waitlist capacity is not a valid number.", create(capacity = ""))
+        assertEquals("The waitlist capacity is not a valid number.", create(capacity = "lots"))
         assertEquals(
             "The waitlist capacity must be at least the number of winners.",
             create(winners = "5", capacity = "4")
         )
         assertNull(create(winners = "5", capacity = "5"))
+    }
+
+    @Test
+    fun createLotteryWithEmptyCapacityHasNoLimit() = runTest {
+        val saved = slot<Lottery>()
+        coEvery { repository.addLottery(capture(saved)) } just runs
+
+        assertNull(create(winners = "50", capacity = "   "))
+
+        assertNull(saved.captured.waitlistCapacity)
+        assertFalse(saved.captured.isFull())
     }
 
     @Test
@@ -216,9 +227,19 @@ class LotteryControllerUnitTest {
         coEvery { repository.getLottery("lottery-1") } returns lottery(entryIds = listOf("a", "b", "c"))
 
         assertEquals(
-            "The waitlist capacity can't be smaller than the number of entrants already on it.",
+            "The waitlist capacity must not be smaller than the number of entrants already on it.",
             update(capacity = "2")
         )
+    }
+
+    @Test
+    fun updateToNoLimitIsAllowedWithExistingEntries() = runTest {
+        coEvery { repository.getLottery("lottery-1") } returns lottery(entryIds = listOf("a", "b", "c"))
+        val saved = slot<Lottery>()
+        coEvery { repository.updateLottery(capture(saved)) } just runs
+
+        assertNull(update(capacity = ""))
+        assertNull(saved.captured.waitlistCapacity)
     }
 
     @Test

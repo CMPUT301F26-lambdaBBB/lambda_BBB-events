@@ -1,6 +1,7 @@
 
 package com.example.lambda_bbb_events.view.ui.user_screens.profile
 
+import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -37,7 +42,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 /*
  * Displays the current user's profile information and account settings.
  *
- * TODO: Implement the Settings and Logout actions.
+ * TODO: no test tags for log out dialog yet and log out does not allow re log-in
  */
 
 /**
@@ -55,6 +60,7 @@ fun ProfileScreen(
     controllers: AppControllers
 ) {
     val user: User = controllers.users.user
+    var showDialog by remember {mutableStateOf(false)}
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -145,9 +151,7 @@ fun ProfileScreen(
 
             ProfileRow(
                 title = "Logout",
-                onClick = {
-                    // TODO: Implement Logout.
-                },
+                onClick = { showDialog = true },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
@@ -157,6 +161,29 @@ fun ProfileScreen(
                     )
                 }
             )
+
+            // prompts alert dialog when log-out is clicked
+            // you can't log in to any account after logging out since it just navigates to signup for now
+            // need to work out way to log out with device id verification not causing re-login issue
+            if (showDialog) {
+                ShowAlertDialog(
+                    dialogLabel = "Log Out?",
+                    dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
+                    confirmButton = {
+                        showDialog = false
+                        navController.navigate("signup") {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true // removes previous screens in back stack including home
+                            }
+                            launchSingleTop = true // prevent duplicate destination entries
+                        }
+                    },
+                    confirmText = "Log Out",
+                    dismissState = { showDialog = false },
+                    cancelText = "Cancel",
+                    modifier = Modifier
+                )
+            }
         }
     }
 }

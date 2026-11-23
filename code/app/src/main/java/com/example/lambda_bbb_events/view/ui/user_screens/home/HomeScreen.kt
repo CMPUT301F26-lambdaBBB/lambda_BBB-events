@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.view.ui.components.admin.RoleDropdownSwitcher
 import com.example.lambda_bbb_events.view.ui.components.campsite.HorizontalCardSection
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.filter.FilterIconButton
@@ -58,6 +60,7 @@ fun HomeScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var openFilter by remember { mutableStateOf(false) }
+    val isAdmin = controllers.users.currentUser?.role == UserRole.ADMIN
 
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
@@ -72,10 +75,25 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            ScreenTitle(
-                title = "Home",
-                navController = navController
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ScreenTitle(
+                    title = "Home",
+                    navController = navController
+                )
+
+                if (isAdmin) {
+                    RoleDropdownSwitcher(
+                        currentView = "User",
+                        onUserSelected = {},
+                        onAdminSelected = {
+                            navController.navigate("admin_home")
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(bottom = 20.dp)
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

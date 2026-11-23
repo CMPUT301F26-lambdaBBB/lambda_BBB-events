@@ -123,6 +123,12 @@ class ModelUnitTest {
         assertTrue(Lottery(waitlistCapacity = 2, entryIds = listOf("a", "b", "c")).isFull())
     }
 
+    @Test
+    fun lotteryWithoutCapacityIsNeverFull() {
+        assertNull(Lottery().waitlistCapacity)
+        assertFalse(Lottery(entryIds = List(1_000) { "entry-$it" }).isFull())
+    }
+
     // AvailabilitySchedule
 
     private fun day(n: Int): LocalDate = LocalDate.of(2026, 1, n)

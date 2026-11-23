@@ -45,8 +45,13 @@ fun RegistrationStatusScreen(
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
     val scope = rememberCoroutineScope()
+
     var showLeaveDialog by remember { mutableStateOf(false) }
     var isLeaving by remember { mutableStateOf(false) }
+
+    var showDeclineDialog by remember { mutableStateOf(false) }
+    var isDeclining by remember { mutableStateOf(false) }
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -134,6 +139,24 @@ fun RegistrationStatusScreen(
             }
         }
 
+        if (entry?.status == WaitlistStatus.WON) {
+            OutlinedButton(
+                onClick = {
+                    showDeclineDialog = true
+                },
+                enabled = !isDeclining,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = if (isDeclining) "Declining..." else "Decline Reservation",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+
         if (errorMessage != null) {
             Text(
                 text = errorMessage ?: "",
@@ -193,6 +216,60 @@ fun RegistrationStatusScreen(
                     enabled = !isLeaving,
                     onClick = {
                         showLeaveDialog = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeclineDialog && entry != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isDeclining) {
+                    showDeclineDialog = false
+                }
+            },
+            title = {
+                Text("Decline Reservation?")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to decline your lottery win?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isDeclining,
+                    onClick = {
+                        isDeclining = true
+                        errorMessage = null
+
+                        scope.launch {
+                            try {
+                                controllers.waitlistEntries.declineWin(entry)
+                            } catch (e: Exception) {
+                                errorMessage =
+                                    e.message ?: "Failed to decline reservation."
+                            } finally {
+                                showDeclineDialog = false
+                                isDeclining = false
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "Decline",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isDeclining,
+                    onClick = {
+                        showDeclineDialog = false
                     }
                 ) {
                     Text("Cancel")
