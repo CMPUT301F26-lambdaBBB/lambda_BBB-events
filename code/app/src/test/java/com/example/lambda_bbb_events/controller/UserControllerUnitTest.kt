@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.local.InMemorySessionStore
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.user.Admin
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
@@ -175,5 +176,68 @@ class UserControllerUnitTest {
     fun updateProfilePictureWithoutUserDoesNothing() = runTest {
         assertNull(controller.updateProfilePicture("img-2"))
         coVerify(exactly = 0) { repository.updateUser(any()) }
+    }
+
+    @Test
+    fun logOutHidesTheAccountAndSavesIt() {
+        val session = InMemorySessionStore()
+        controller = UserController(repository, "device-1", session)
+        signIn(entrant)
+
+        controller.logOut()
+
+        assertNull(controller.currentUser)
+        assertTrue(controller.hasAccountOnDevice)
+        assertTrue(session.loggedOut)
+    }
+
+    @Test
+    fun startsLoggedOutWhenLoggedOutBefore() {
+        controller = UserController(repository, "device-1", InMemorySessionStore(loggedOut = true))
+        signIn(entrant)
+
+        assertNull(controller.currentUser)
+    }
+
+    @Test
+    fun loginWithThisDevicesEmailAndPhoneLogsBackIn() {
+        val session = InMemorySessionStore(loggedOut = true)
+        controller = UserController(repository, "device-1", session)
+        signIn(entrant)
+
+        // Saved without a country code, entered with one, and the email in another case
+        assertTrue(controller.login(" ED@example.com", "+1 7805551234"))
+
+        assertSame(entrant, controller.currentUser)
+        assertFalse(session.loggedOut)
+    }
+
+    @Test
+    fun loginFailsWhenEmailOrPhoneDoesNotMatch() {
+        controller = UserController(repository, "device-1", InMemorySessionStore(loggedOut = true))
+        signIn(entrant)
+
+        assertFalse(controller.login("ed@example.com", "+1 7805550000"))
+        assertFalse(controller.login("someone@example.com", "+1 7805551234"))
+        assertFalse(controller.login("ed@example.com", "+44 7805551234"))
+        assertNull(controller.currentUser)
+    }
+
+    @Test
+    fun loginFailsWithoutAnAccountOnThisDevice() {
+        // Another device's account is never looked up, so accounts cannot move devices
+        every { repository.getCachedUser("device-2") } returns entrant
+
+        assertFalse(controller.login("ed@example.com", "+1 7805551234"))
+        assertNull(controller.currentUser)
+    }
+
+    @Test
+    fun createEntrantFailsWhenALoggedOutAccountIsOnThisDevice() = runTest {
+        controller = UserController(repository, "device-1", InMemorySessionStore(loggedOut = true))
+        signIn(entrant)
+
+        assertFalse(controller.createEntrant("Ed", "ed@example.com", "7805551234"))
+        coVerify(exactly = 0) { repository.addUser(any()) }
     }
 }

@@ -2,6 +2,8 @@ package com.example.lambda_bbb_events.model.repository
 
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
+import com.example.lambda_bbb_events.model.message.Message
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -114,5 +116,50 @@ class LotteryRepositoryUnitTest {
             batch.commit()
         }
         assertTrue(repository.lotteries.isEmpty())
+    }
+
+    @Test
+    fun deleteAndNotifyWinnersMessagesOnlyWinnersInTheSameBatch() = runTest {
+        val entries = listOf(
+            WaitlistEntry(entryId = "entry-won", entrantId = "won", lotteryId = "lottery-1", status = WaitlistStatus.WON),
+            WaitlistEntry(entryId = "entry-accepted", entrantId = "accepted", lotteryId = "lottery-1", status = WaitlistStatus.ACCEPTED),
+            WaitlistEntry(entryId = "entry-lost", entrantId = "lost", lotteryId = "lottery-1", status = WaitlistStatus.LOST),
+            WaitlistEntry(entryId = "entry-waiting", entrantId = "waiting", lotteryId = "lottery-1")
+        )
+        val entryDocs = entries.map { entry ->
+            documentOf(entry.entryId, WaitlistEntry::class.java, entry)
+        }
+
+        val entriesRef = mockk<CollectionReference>()
+        val entriesQuery = mockk<Query>()
+        every { db.collection("waitlistEntries") } returns entriesRef
+        every { entriesRef.whereEqualTo("lotteryId", "lottery-1") } returns entriesQuery
+        every { entriesQuery.get() } returns completedTask(querySnapshotOf(*entryDocs.toTypedArray()))
+
+        val usersRef = mockk<CollectionReference>()
+        val usersQuery = mockk<Query>()
+        every { db.collection("users") } returns usersRef
+        every { usersRef.whereArrayContains("waitlistEntryIds", any()) } returns usersQuery
+        every { usersQuery.get() } returns completedTask(querySnapshotOf())
+
+        val messages = MockCollection(db, "messages")
+        val batch = mockk<WriteBatch>(relaxed = true)
+        every { db.batch() } returns batch
+        every { batch.commit() } returns completedTask(null)
+
+        val sent = mutableListOf<Message>()
+        val notified = repository.deleteAndNotifyWinners("lottery-1") { entry ->
+            Message(messageId = "msg-${entry.entrantId}", recipientId = entry.entrantId)
+                .also { sent.add(it) }
+        }
+
+        assertEquals(2, notified)
+        assertEquals(listOf("won", "accepted"), sent.map { it.recipientId })
+        verifyOrder {
+            batch.set(messages.document("msg-won"), sent[0])
+            batch.set(messages.document("msg-accepted"), sent[1])
+            batch.delete(lotteries.document("lottery-1"))
+            batch.commit()
+        }
     }
 }

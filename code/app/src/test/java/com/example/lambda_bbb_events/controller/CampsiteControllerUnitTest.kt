@@ -4,6 +4,12 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.local.InMemoryRecentlyViewedStore
 import com.example.lambda_bbb_events.store.CampsiteStore
 import io.mockk.every
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import io.mockk.runs
+import io.mockk.just
+import io.mockk.coVerify
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -209,5 +215,30 @@ class CampsiteControllerUnitTest {
         repeat(CampsiteController.MAX_RECENTLY_ADDED + 3) { i -> add("site-$i", createdAt = i.toLong()) }
 
         assertEquals(CampsiteController.MAX_RECENTLY_ADDED, controller.recentlyAddedCampsites.size)
+    }
+
+    @Test
+    fun archivedCampsitesAreHiddenFromBrowsingButStillFoundById() {
+        add("open")
+        add("archived", active = false)
+        controller.markViewed("archived")
+        controller.markViewed("open")
+
+        assertEquals(setOf("open"), controller.activeCampsites.keys)
+        assertEquals(listOf("open"), controller.getSearchResults().ids())
+        assertEquals(listOf("open"), controller.recentlyViewed.ids())
+        assertEquals(listOf("open"), controller.featuredCampsites.ids())
+        assertEquals(listOf("open"), controller.recentlyAddedCampsites.ids())
+        // Records such as past bookings can still look it up
+        assertFalse(controller.getCampsite("archived")!!.active)
+    }
+
+    @Test
+    fun archiveCampsitesByOwnerUsesTheStore() = scope.runTest {
+        coEvery { store.archiveCampsitesByOwner("owner-1") } just runs
+
+        controller.archiveCampsitesByOwner("owner-1")
+
+        coVerify(exactly = 1) { store.archiveCampsitesByOwner("owner-1") }
     }
 }

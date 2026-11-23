@@ -239,6 +239,14 @@ fun Settings(
             confirmButton = {
                 scope.launch { // starts coroutine so firebase deletion runs without freezing app
                     try {
+                        // Delete the user's lotteries and archive their campsites first, so a
+                        // failure leaves the account in place to retry instead of leaving them
+                        // orphaned. Campsites are kept, inactive, for past bookings and records.
+                        val ownerId = controllers.users.deviceId
+                        controllers.lotteries.cancelLotteriesOfDeletedOwner(ownerId) { campsiteId ->
+                            controllers.campsites.getCampsite(campsiteId)?.campsiteName
+                        }
+                        controllers.campsites.archiveCampsitesByOwner(ownerId)
                         if (controllers.users.deleteAccount()) {
                             showDeleteDialog = false
                         } else {
@@ -256,20 +264,14 @@ fun Settings(
         )
     }
 
-    // you can't log in to any account after logging out since it just navigates to signup for now
-    // need to work out way to log out with device id verification not causing re-login issue.
     if (showLogOutDialog) {
         ShowAlertDialog(
             dialogLabel = "Log Out?",
-            dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
+            dialogCaption = "You can log back in with your email and phone number.",
             confirmButton = {
                 showLogOutDialog = false
-                navController.navigate("signup") {
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true // removes previous screens in back stack including home
-                    }
-                    launchSingleTop = true // prevent duplicate destination entries
-                }
+                // The app goes back to the welcome screen by itself
+                controllers.users.logOut()
             },
             confirmText = "Log Out",
             dismissState = { showLogOutDialog = false },

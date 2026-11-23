@@ -29,10 +29,11 @@ class CampsiteDetailsScreenUITest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private fun setup(startDestination: String = "campsite_details") {
+    private fun setup(startDestination: String = "campsite_details", active: Boolean = true) {
         val controllers = mockk<AppControllers>(relaxed = true)
         val campsite = mockk<Campsite>(relaxed = true)
 
+        every { campsite.active } returns active
         every { campsite.campsiteId } returns "test-campsite-1"
         every { campsite.campsiteName } returns "Test campsite"
         every { campsite.address } returns "123 Test St"
@@ -141,5 +142,14 @@ class CampsiteDetailsScreenUITest {
 
         composeTestRule.onNodeWithText("123 Test St")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun archivedCampsiteShowsNoLongerAvailable() {
+        setup(active = false)
+
+        composeTestRule.onNodeWithTag("campsiteUnavailable").assertIsDisplayed()
+        composeTestRule.onNodeWithText("This campsite is no longer available").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("screen_campsite_details").assertDoesNotExist()
     }
 }

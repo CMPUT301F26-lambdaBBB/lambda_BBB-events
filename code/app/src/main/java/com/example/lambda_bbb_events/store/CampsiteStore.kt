@@ -88,6 +88,22 @@ class CampsiteStore(
         }
     }
 
+    /**
+     * Archives every campsite owned by a user by setting it inactive, and waits until
+     * Firestore has saved it. The campsites stay in [campsites] so records can still show them.
+     *
+     * @param ownerId The device ID of the owner.
+     * @throws Exception if Firestore fails, in which case no campsite is archived.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String) {
+        for (campsite in campsiteRepo.archiveCampsitesByOwner(ownerId)) {
+            // Campsite.equals ignores `active`, so the map would keep the old copy if the
+            // archived one were just put over it
+            campsites.remove(campsite.campsiteId)
+            campsites[campsite.campsiteId] = campsite
+        }
+    }
+
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
             campsites[campsiteID] = campsite

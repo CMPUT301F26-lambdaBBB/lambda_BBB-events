@@ -2,7 +2,6 @@ package com.example.lambda_bbb_events
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -53,9 +52,11 @@ import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_T
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.ProfileScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.LoginScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.WelcomeScreen
 import java.time.LocalDate
 
 /*
@@ -100,14 +101,27 @@ fun LambdaEventsApp(
             CircularProgressIndicator()
         }
     } else if (controllers.users.currentUser == null) {
-        // no profile so show sign up
+        // no profile so let the user choose to log in or sign up
+        val navController = rememberNavController()
         Scaffold { innerPadding ->
-            Box(
-                Modifier
+            NavHost(
+                navController = navController,
+                startDestination = "welcome",
+                modifier = Modifier
                     .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding)
                     .padding(horizontal = 16.dp)
             ) {
-                SignupScreen(rememberNavController(), controllers)
+                composable("welcome") {
+                    WelcomeScreen(
+                        onLogin = { navController.navigate("login") },
+                        onSignUp = { navController.navigate("signup") }
+                    )
+                }
+                composable("login") { LoginScreen(navController, controllers) }
+                composable("signup") {
+                    SignupScreen(navController, controllers, showBack = true)
+                }
             }
         }
     } else {

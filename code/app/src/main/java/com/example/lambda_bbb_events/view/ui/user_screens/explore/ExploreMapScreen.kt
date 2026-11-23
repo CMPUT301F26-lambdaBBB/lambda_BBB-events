@@ -170,7 +170,7 @@ fun ExploreMapScreen(
                  */
                 if (showMap) {
                     CampsiteMap(
-                        campsites = controllers.campsites.campsites.values.toList(),
+                        campsites = controllers.campsites.activeCampsites.values.toList(),
                         onCampsiteClick = { campsite ->
                             navController.navigate(
                                 "campsite_details/${campsite.campsiteId}"
@@ -187,7 +187,7 @@ fun ExploreMapScreen(
                 // Nearby Campsites
                 VerticalCardSection(
                     title = "Nearby Campsites",
-                    campsites = controllers.campsites.campsites.values.toList(),
+                    campsites = controllers.campsites.activeCampsites.values.toList(),
                     onCampsiteClick = { campsite ->
                         navController.navigate(
                             "campsite_details/${campsite.campsiteId}"

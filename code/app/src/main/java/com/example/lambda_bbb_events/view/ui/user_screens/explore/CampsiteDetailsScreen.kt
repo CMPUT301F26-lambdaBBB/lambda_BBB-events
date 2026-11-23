@@ -88,15 +88,18 @@ fun CampsiteDetailsScreen(
         generateQR(campsiteId, 300, 300)
     }
 
-    if (campsite == null) {
+    // Archived campsites are kept for records but cannot be viewed or booked, even from
+    // an old link or QR code
+    if (campsite == null || !campsite.active) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.background)
+                .testTag("campsiteUnavailable"),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Campsite not found",
+                text = if (campsite == null) "Campsite not found" else "This campsite is no longer available",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )

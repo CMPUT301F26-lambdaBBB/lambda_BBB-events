@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -73,6 +74,22 @@ class CampsiteStoreUnitTest {
         assertTrue(store.campsites.isEmpty())
         assertEquals("Success", message.value)
         coVerify(exactly = 1) { repo.deleteCampsite("site-1") }
+    }
+
+    @Test
+    fun archiveCampsitesByOwnerKeepsThemButInactive() = scope.runTest {
+        advanceUntilIdle()
+        store.campsites["site-2"] = Campsite(campsiteId = "site-2", ownerId = "owner-1")
+        store.campsites["site-3"] = Campsite(campsiteId = "site-3", ownerId = "owner-2")
+        coEvery { repo.archiveCampsitesByOwner("owner-1") } returns
+            listOf(Campsite(campsiteId = "site-2", ownerId = "owner-1", active = false))
+
+        store.archiveCampsitesByOwner("owner-1")
+
+        assertEquals(setOf("site-1", "site-2", "site-3"), store.campsites.keys)
+        assertFalse(store.campsites.getValue("site-2").active)
+        assertTrue(store.campsites.getValue("site-3").active)
+        coVerify(exactly = 0) { repo.deleteCampsite(any()) }
     }
 
     @Test

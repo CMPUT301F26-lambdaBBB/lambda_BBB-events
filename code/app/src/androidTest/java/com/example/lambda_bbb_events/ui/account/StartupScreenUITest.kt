@@ -2,8 +2,11 @@ package com.example.lambda_bbb_events.ui.account
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.LambdaEventsApp
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -11,6 +14,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -52,13 +56,57 @@ class StartupScreenUITest {
     }
 
     @Test
-    fun deviceWithoutAccountSeesSignUpWithLogo() {
+    fun deviceWithoutAccountSeesWelcomeWithLoginAndSignUp() {
         every { users.usersFullyLoaded } returns true
         every { users.currentUser } returns null
         startApp()
 
+        composeTestRule.onNodeWithTag("welcomeScreen").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("appLogo").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("loginButton").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("signupButton").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("loadingScreen").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("signupScreen").assertDoesNotExist()
+    }
+
+    @Test
+    fun signUpButtonOpensSignUpAndBackReturnsToWelcome() {
+        every { users.usersFullyLoaded } returns true
+        every { users.currentUser } returns null
+        startApp()
+
+        composeTestRule.onNodeWithTag("signupButton").performClick()
         composeTestRule.onNodeWithTag("signupScreen").assertIsDisplayed()
         composeTestRule.onNodeWithTag("appLogo").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("loadingScreen").assertDoesNotExist()
+
+        composeTestRule.onNodeWithContentDescription("Back").performClick()
+        composeTestRule.onNodeWithTag("welcomeScreen").assertIsDisplayed()
+    }
+
+    @Test
+    fun loginButtonOpensLoginScreen() {
+        every { users.usersFullyLoaded } returns true
+        every { users.currentUser } returns null
+        startApp()
+
+        composeTestRule.onNodeWithTag("loginButton").performClick()
+        composeTestRule.onNodeWithTag("loginScreen").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("welcomeScreen").assertDoesNotExist()
+    }
+
+    @Test
+    fun loginSubmitsEmailAndPhoneAndShowsErrorWhenNoAccountMatches() {
+        every { users.usersFullyLoaded } returns true
+        every { users.currentUser } returns null
+        every { users.login(any(), any()) } returns false
+        startApp()
+
+        composeTestRule.onNodeWithTag("loginButton").performClick()
+        composeTestRule.onNodeWithTag("loginEmailInput").performTextInput("ed@example.com")
+        composeTestRule.onNodeWithTag("loginPhoneInput").performTextInput("7805551234")
+        composeTestRule.onNodeWithTag("loginSubmitButton").performClick()
+
+        composeTestRule.onNodeWithTag("loginError").assertIsDisplayed()
+        verify { users.login("ed@example.com", "+1 7805551234") }
     }
 }

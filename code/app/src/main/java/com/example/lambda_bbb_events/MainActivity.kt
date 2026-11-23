@@ -21,6 +21,7 @@ import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
+import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
 import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
@@ -72,7 +73,11 @@ class MainActivity : ComponentActivity() {
         }
 
         val controllers = AppControllers(
-            users = UserController(userRepository, deviceId),
+            users = UserController(
+                userRepository,
+                deviceId,
+                SharedPreferencesSessionStore(applicationContext)
+            ),
             campsites = CampsiteController(
                 campsiteStore,
                 SqliteRecentlyViewedStore(LocalDatabase(applicationContext))

@@ -53,11 +53,13 @@ import kotlinx.coroutines.launch
  * @param onCreateEntrant Callback that submits user information
  * and returns whether account creation succeeded.
  * Defaults to using the user controller.
+ * @param showBack Whether to show a back button, such as when opened from the welcome screen.
  */
 @Composable
 fun SignupScreen(
     navController: NavController,
     controllers: AppControllers? = null,
+    showBack: Boolean = false,
     onCreateEntrant: suspend (String, String, String) -> Boolean =
         { name, email, phone ->
             requireNotNull(controllers)
@@ -84,7 +86,7 @@ fun SignupScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ScreenTitle("Sign Up", navController, showNotifications = false)
+        ScreenTitle("Sign Up", navController, showBack = showBack, showNotifications = false)
 
         Spacer(Modifier.height(16.dp))
 
@@ -152,7 +154,12 @@ fun SignupScreen(
 
         if (showCreationError) {
             Text(
-                text = "Unable to create account. Please review your information.",
+                // A device can only have one account, which is kept after logging out
+                text = if (controllers?.users?.hasAccountOnDevice == true) {
+                    "This device already has an account. Go back and log in instead."
+                } else {
+                    "Unable to create account. Please review your information."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error
             )

@@ -2,6 +2,8 @@ package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.message.Message
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -354,5 +356,29 @@ class LotteryControllerUnitTest {
 
         coVerify(exactly = 1) { repository.deleteLottery(existing) }
         verify(exactly = 1) { repository.joinLottery("lottery-1", "ed", 3, onResult) }
+    }
+
+    @Test
+    fun cancelLotteriesOfDeletedOwnerDeletesOnlyActiveOnesAndTellsWinners() = runTest {
+        val running = lottery(id = "running")
+        val ended = lottery(id = "ended", registration = -10L..-8L, booking = -6L..-4L, status = LotteryStatus.DRAWN)
+        val cancelled = lottery(id = "cancelled", status = LotteryStatus.CANCELLED)
+        coEvery { repository.getLotteriesByOwner("owner-1") } returns listOf(running, ended, cancelled)
+        val makeNotice = slot<(WaitlistEntry) -> Message>()
+        coEvery { repository.deleteAndNotifyWinners("running", capture(makeNotice)) } returns 3
+
+        val notified = controller.cancelLotteriesOfDeletedOwner("owner-1") { id ->
+            if (id == "site-1") "Lakeside" else null
+        }
+
+        assertEquals(3, notified)
+        coVerify(exactly = 1) { repository.deleteAndNotifyWinners(any(), any()) }
+
+        val notice = makeNotice.captured(WaitlistEntry(entrantId = "entrant-1", lotteryId = "running"))
+        assertEquals("entrant-1", notice.recipientId)
+        assertEquals("owner-1", notice.senderId)
+        assertTrue(notice.messageId.isNotBlank())
+        assertTrue(notice.content.contains("Lakeside"))
+        assertTrue(notice.content.contains("no longer valid"))
     }
 }

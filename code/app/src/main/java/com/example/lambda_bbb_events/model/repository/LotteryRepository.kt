@@ -4,6 +4,7 @@ import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
+import com.example.lambda_bbb_events.model.message.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -53,6 +54,22 @@ class LotteryRepository(
      * @param id The `lotteryId` of the lottery to be deleted.
      */
     override suspend fun delete(id: String) {
+        deleteAndNotifyWinners(id, makeNotice = null)
+    }
+
+    /**
+     * Deletes a lottery like [delete], and sends a message to each of its winners: the
+     * entries that won ([WaitlistStatus.WON]) or accepted their win
+     * ([WaitlistStatus.ACCEPTED]). The messages are written in the same batch as the
+     * deletion, so either the lottery is deleted and every winner is told, or nothing changes.
+     *
+     * @param id The `lotteryId` of the lottery to be deleted.
+     * @param makeNotice Makes the message for a winner's entry, or `null` to send none.
+     * @return The number of winners sent a message.
+     */
+    suspend fun deleteAndNotifyWinners(id: String, makeNotice: ((WaitlistEntry) -> Message)?): Int {
+        var notified = 0
+
         // find every waitlist entry that has this lottery id
         val entriesSnapshot = db.collection("waitlistEntries")
             .whereEqualTo("lotteryId", id)
@@ -73,6 +90,19 @@ class LotteryRepository(
                     FieldValue.arrayRemove(entryDocument.id))
             }
 
+            if (makeNotice != null) {
+                val entry = try {
+                    entryDocument.toObject(WaitlistEntry::class.java)
+                } catch (e: Exception) {
+                    null // skip entries that are not valid
+                }
+                if (entry != null && entry.status in WINNING_STATUSES) {
+                    val notice = makeNotice(entry)
+                    batch.set(db.collection("messages").document(notice.messageId), notice)
+                    notified++
+                }
+            }
+
             batch.delete(entryDocument.reference)
         }
 
@@ -80,6 +110,33 @@ class LotteryRepository(
 
         batch.commit().await()
         removeFromCache(id)
+        return notified
+    }
+
+    /**
+     * Reads every lottery a campsite owner created from Firestore, including ones not
+     * in the cache yet.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The owner's lotteries. Empty if [ownerId] is blank.
+     */
+    suspend fun getLotteriesByOwner(ownerId: String): List<Lottery> {
+        if (ownerId.isBlank()) {
+            return emptyList()
+        }
+        val snapshot = collectionRef.whereEqualTo("ownerId", ownerId).get().await()
+        return snapshot.documents.mapNotNull { document ->
+            try {
+                fromDocument(document)
+            } catch (e: Exception) {
+                null // skip lotteries that are not valid
+            }
+        }
+    }
+
+    private companion object {
+        /** Statuses of entries that won a lottery, so hold a booking. */
+        val WINNING_STATUSES = setOf(WaitlistStatus.WON, WaitlistStatus.ACCEPTED)
     }
 
     /**

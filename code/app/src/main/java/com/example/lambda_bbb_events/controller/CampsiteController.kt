@@ -47,11 +47,19 @@ class CampsiteController(
     private var starRating: Double? = null
     private var guestRange: IntRange? = null
 
+    /**
+     * Every campsite, including archived (inactive) ones. Use it to look up campsites that
+     * records refer to, such as past bookings. Browsing uses [activeCampsites].
+     */
     val campsites: Map<String, Campsite>
         get() = campsiteStore.campsites
 
+    /** Campsites that can be browsed and booked. Archived (inactive) ones are left out. */
+    val activeCampsites: Map<String, Campsite>
+        get() = campsites.filterValues { it.active }
+
     val filteredCampsites: Map<String, Campsite>
-        get() = campsites.filterValues { meetsAllFilters(it) }
+        get() = activeCampsites.filterValues { meetsAllFilters(it) }
 
     /**
      * IDs of recently viewed campsites, most recent first. Saved views are loaded on a
@@ -82,9 +90,9 @@ class CampsiteController(
             val result = mutableListOf<Campsite>()
             synchronized(recentlyViewedIds) {
                 for (id in recentlyViewedIds) {
-                    // Skip campsites that have since been deleted
+                    // Skip campsites that have since been deleted or archived
                     val campsite = campsites[id]
-                    if (campsite != null) {
+                    if (campsite != null && campsite.active) {
                         result.add(campsite)
                     }
                 }
@@ -102,8 +110,7 @@ class CampsiteController(
      * @see Campsite.totalPoints
      */
     val featuredCampsites: List<Campsite>
-        get() = campsites.values
-            .filter { it.active }
+        get() = activeCampsites.values
             .sortedWith(
                 compareByDescending<Campsite> { hasPositiveReviews(it) }
                     .thenByDescending { it.totalPoints() }
@@ -117,8 +124,7 @@ class CampsiteController(
      * recorded come last.
      */
     val recentlyAddedCampsites: List<Campsite>
-        get() = campsites.values
-            .filter { it.active }
+        get() = activeCampsites.values
             .sortedByDescending { it.createdAt }
             .take(MAX_RECENTLY_ADDED)
 
@@ -206,6 +212,16 @@ class CampsiteController(
             campsite,
             returnMessage
         )
+    }
+
+    /**
+     * Archives every campsite owned by a user, such as when they delete their account.
+     * Archived campsites are inactive: kept for records, but hidden from browsing.
+     *
+     * @param ownerId The device ID of the owner.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String) {
+        campsiteStore.archiveCampsitesByOwner(ownerId)
     }
 
     fun updateCampsite(
