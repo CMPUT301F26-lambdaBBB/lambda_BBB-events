@@ -1,6 +1,7 @@
 
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -73,13 +74,9 @@ fun CampsiteCheckAvailabilityScreen(
         mutableStateOf("")
     }
 
-    val startDate = runCatching {
-        LocalDate.parse(fromDate)
-    }.getOrNull()
+    val startDate = parseDateOrNull(fromDate)
 
-    val endDate = runCatching {
-        LocalDate.parse(toDate)
-    }.getOrNull()
+    val endDate = parseDateOrNull(toDate)
 
     var numberOfPeople by remember(campsiteId) {
         mutableStateOf("")

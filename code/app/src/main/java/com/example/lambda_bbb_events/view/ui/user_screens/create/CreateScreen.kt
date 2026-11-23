@@ -26,8 +26,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import java.time.LocalDate
@@ -35,9 +35,12 @@ import java.util.UUID
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndicator
 import androidx.compose.ui.platform.LocalContext
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
 
 
 /**
@@ -59,7 +62,7 @@ fun CreateScreen(
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    val imageProcessor = LocalImageProcessor.current
+    val imageProcessor = controllers.images
     val context = LocalContext.current
 
     Scaffold(
@@ -113,21 +116,18 @@ fun CreateScreen(
                         isSaving = isSaving,
                         errorMessage = saveError,
                         onDone = {
-                            val registrationStart = runCatching {
-                                LocalDate.parse(form.startRegistration)
-                            }.getOrNull()
-                            val registrationEnd = runCatching {
-                                LocalDate.parse(form.endRegistration)
-                            }.getOrNull()
-                            val bookingStart = runCatching {
-                                LocalDate.parse(form.startBooking)
-                            }.getOrNull()
-                            val bookingEnd = runCatching {
-                                LocalDate.parse(form.endBooking)
-                            }.getOrNull()
+                            val registrationStart = parseDateOrNull(form.startRegistration)
+                            val registrationEnd = parseDateOrNull(form.endRegistration)
+                            val bookingStart = parseDateOrNull(form.startBooking)
+                            val bookingEnd = parseDateOrNull(form.endBooking)
+                            val spots = form.numberOfSpots.toIntOrNull()
 
                             when {
                                 isSaving -> Unit
+                                spots == null || spots < 1 -> {
+                                    saveError = "Enter the number of spots (at least 1)."
+                                }
+
                                 registrationStart == null || registrationEnd == null ||
                                         bookingStart == null || bookingEnd == null -> {
                                     saveError = "Select valid registration and booking dates."
@@ -141,27 +141,15 @@ fun CreateScreen(
                                 else -> {
                                     isSaving = true
                                     saveError = null
-                                    try {
-                                        scope.launch {
+                                    scope.launch {
+                                        try {
                                             val campsiteId = UUID.randomUUID().toString()
                                             val ownerId = controllers.users.user.deviceId
-                                            val winnerCount = form.numberOfSpots.toIntOrNull() ?: 10
+                                            val winnerCount = spots
                                             val imageMetaData = mutableListOf<ImageMetaData>()
 
                                             for (uri in form.selectedImageUris) {
-                                                val bitmap =
-                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                                        ImageDecoder.decodeBitmap(
-                                                            ImageDecoder.createSource(
-                                                                context.contentResolver,
-                                                                uri
-                                                            )
-                                                        )
-                                                    } else {
-                                                        context.contentResolver.openInputStream(uri)
-                                                            ?.use { BitmapFactory.decodeStream(it) }
-                                                            ?: error("Could not read the selected image.")
-                                                    }
+                                                val bitmap = decodeSelectedPhoto(context, uri)
 
                                                 imageMetaData += imageProcessor.uploadImage(
                                                     imageId = UUID.randomUUID().toString(),
@@ -183,8 +171,7 @@ fun CreateScreen(
                                                 },
                                                 latitude = form.latitude,
                                                 longitude = form.longitude,
-                                                maxOccupancy = form.maxOccupancy.filter { it.isDigit() }
-                                                    .toIntOrNull() ?: 1,
+                                                maxOccupancy = form.maxOccupancy.toIntOrNull() ?: 1,
                                                 rulesPolicies = form.additionalRules.trim(),
                                                 tags = form.tags.toList(),
                                                 imageIds = imageMetaData
@@ -199,16 +186,14 @@ fun CreateScreen(
                                                 numberOfWinnersString = winnerCount.toString(),
                                                 waitlistCapacityString = winnerCount.toString()
                                             )
-                                            withContext(Dispatchers.Main) {
-                                                navController.navigate("home") {
-                                                    launchSingleTop = true
-                                                }
+                                            navController.navigate("home") {
+                                                launchSingleTop = true
                                             }
+                                        } catch (e: Exception) {
+                                            saveError = e.message ?: "Failed to create campsite."
+                                        } finally {
+                                            isSaving = false
                                         }
-                                    } catch (e: Exception) {
-                                        saveError = e.message ?: "Failed to create campsite."
-                                    } finally {
-                                        isSaving = false
                                     }
                                 }
                             }
@@ -216,6 +201,28 @@ fun CreateScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * Reads a photo the user picked into a bitmap. Reading a large photo is slow, so it is done
+ * off the main thread to keep the screen responsive.
+ *
+ * @param context Used to open the photo.
+ * @param uri The picked photo.
+ * @return The photo as a bitmap.
+ */
+private suspend fun decodeSelectedPhoto(context: Context, uri: Uri): Bitmap {
+    return withContext(Dispatchers.IO) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
+        } else {
+            val stream = context.contentResolver.openInputStream(uri)
+                ?: throw IllegalStateException("Could not read the selected image.")
+            val decoded = BitmapFactory.decodeStream(stream)
+            stream.close()
+            decoded
         }
     }
 }

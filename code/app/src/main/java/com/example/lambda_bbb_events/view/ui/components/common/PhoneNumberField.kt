@@ -11,16 +11,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,8 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.COUNTRY_CODES
-import com.example.lambda_bbb_events.model.CountryCode
+import com.example.lambda_bbb_events.model.formatting.COUNTRY_CODES
+import com.example.lambda_bbb_events.model.formatting.CountryCode
+import com.example.lambda_bbb_events.model.formatting.exampleLocalNumber
+import com.example.lambda_bbb_events.model.formatting.maxLocalNumberLength
 
 /*
  * Defines a phone number input with a country calling code picker.
@@ -61,6 +68,12 @@ fun PhoneNumberFieldWithTitle(
 ) {
     var pickingCountry by remember { mutableStateOf(false) }
 
+    // The field keeps its own text, and tells the screen each time the number changes
+    val numberState = rememberTextFieldState(number)
+    LaunchedEffect(numberState.text) {
+        onNumberChange(numberState.text.toString())
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -71,12 +84,23 @@ fun PhoneNumberFieldWithTitle(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        FormTextField(
-            value = number,
-            onValueChange = { input -> onNumberChange(input.filter { it.isDigit() }) },
-            placeholder = "Phone number",
+        OutlinedTextField(
+            state = numberState,
+            inputTransformation = PhoneDigitsInputTransformation(maxLocalNumberLength(country)),
+            // The number is shown in the selected country's format, such as "(780) 555-0123"
+            outputTransformation = PhoneNumberOutputTransformation(country),
+            placeholder = {
+                Text(
+                    text = exampleLocalNumber(country).ifEmpty { "Phone number" },
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            modifier = modifier,
+            lineLimits = TextFieldLineLimits.SingleLine,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            shape = RoundedCornerShape(16.dp),
+            colors = formTextFieldColors(),
+            modifier = modifier.fillMaxWidth(),
             // The country code picker sits inside the field, before the number, and its
             // dropdown opens directly below it
             leadingIcon = {

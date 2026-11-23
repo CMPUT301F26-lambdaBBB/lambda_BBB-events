@@ -2,9 +2,9 @@ package com.example.lambda_bbb_events.store
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

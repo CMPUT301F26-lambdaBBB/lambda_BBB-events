@@ -1,10 +1,10 @@
 package com.example.lambda_bbb_events.controller
 
 import android.util.Patterns
-import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
-import com.example.lambda_bbb_events.model.roles.CampsiteOwner
-import com.example.lambda_bbb_events.model.roles.Entrant
+import com.example.lambda_bbb_events.model.user.CampsiteOwner
+import com.example.lambda_bbb_events.model.user.Entrant
 
 /*
  * Manages user profiles, roles, and notification settings

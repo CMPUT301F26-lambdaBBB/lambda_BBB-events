@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.core)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.libphonenumber)
     implementation(libs.maps.compose)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit)

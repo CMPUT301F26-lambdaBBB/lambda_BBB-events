@@ -1,7 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.LotteryStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.LotteryStatus
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import java.time.LocalDate
 import java.time.ZoneId

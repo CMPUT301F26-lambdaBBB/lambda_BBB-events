@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.campsite.Campsite
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -38,16 +38,16 @@ private const val MAX_FRAMING_ZOOM = 14
  * @param campsites The campsites to mark, all with a location.
  */
 internal fun campsiteMapScript(campsites: List<Campsite>): String {
+    // The campsites are passed to the page as JSON, which keeps quotes in names from breaking the script
     val markers = JSONArray()
-    campsites.forEach {
-        markers.put(
-            JSONObject()
-                .put("id", it.campsiteId)
-                .put("name", it.campsiteName)
-                .put("address", it.address)
-                .put("lat", it.latitude)
-                .put("lng", it.longitude)
-        )
+    for (campsite in campsites) {
+        val marker = JSONObject()
+        marker.put("id", campsite.campsiteId)
+        marker.put("name", campsite.campsiteName)
+        marker.put("address", campsite.address)
+        marker.put("lat", campsite.latitude)
+        marker.put("lng", campsite.longitude)
+        markers.put(marker)
     }
 
     return """
@@ -149,9 +149,12 @@ fun CampsiteMap(
         html = html,
         modifier = modifier.testTag("campsite_map"),
         onEvent = { name, data ->
-            if (name == "campsiteClick") {
+            if (name == "campsiteClick" && onCampsiteClick != null) {
                 val id = data.optString("id")
-                located.firstOrNull { it.campsiteId == id }?.let { onCampsiteClick?.invoke(it) }
+                val campsite = located.find { it.campsiteId == id }
+                if (campsite != null) {
+                    onCampsiteClick(campsite)
+                }
             }
         }
     )

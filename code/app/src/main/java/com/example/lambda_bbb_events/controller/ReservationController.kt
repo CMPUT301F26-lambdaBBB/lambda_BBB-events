@@ -1,7 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Reservation
-import com.example.lambda_bbb_events.model.ReservationStatus
+import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import java.time.LocalDate
 

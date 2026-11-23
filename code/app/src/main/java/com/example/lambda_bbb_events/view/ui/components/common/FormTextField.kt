@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -50,19 +51,25 @@ fun FormTextField(
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge,
         shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        colors = formTextFieldColors()
     )
 }
+
+/**
+ * Gets the colors shared by the app's form text fields.
+ */
+@Composable
+fun formTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+)
 
 /**
  * Displays a single-line input field with a title.
@@ -73,6 +80,7 @@ fun FormTextField(
  * @param placeholder Placeholder displayed when empty.
  * @param modifier Modifier applied to the input field.
  * @param titleTag Test tag for the field title.
+ * @param keyboardOptions Keyboard type and actions for the input field.
  */
 @Composable
 fun FormTextFieldWithTitle(
@@ -81,7 +89,8 @@ fun FormTextFieldWithTitle(
     onValueChange: (String) -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
-    titleTag: String = ""
+    titleTag: String = "",
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -103,6 +112,7 @@ fun FormTextFieldWithTitle(
             value = value,
             onValueChange = onValueChange,
             placeholder = placeholder,
+            keyboardOptions = keyboardOptions,
             modifier = modifier
         )
     }

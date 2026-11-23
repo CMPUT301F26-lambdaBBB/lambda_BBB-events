@@ -1,6 +1,7 @@
 package com.example.lambda_bbb_events.view.ui.components.map
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.lambda_bbb_events.BuildConfig
+import org.json.JSONException
 import org.json.JSONObject
 
 /*
@@ -38,8 +40,30 @@ private class MapBridge(
 
     @JavascriptInterface
     fun post(name: String, json: String) {
-        val data = runCatching { JSONObject(json) }.getOrDefault(JSONObject())
+        var data = JSONObject()
+        try {
+            data = JSONObject(json)
+        } catch (e: JSONException) {
+            // Send the event without data rather than dropping it
+        }
         mainHandler.post { onEvent(name, data) }
+    }
+}
+
+/**
+ * Opens links tapped on the map page in the phone's browser instead of inside the map.
+ */
+private class OpenLinksInBrowser : WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+        if (!request.isForMainFrame) {
+            return false
+        }
+        try {
+            view.context.startActivity(Intent(Intent.ACTION_VIEW, request.url))
+        } catch (e: ActivityNotFoundException) {
+            // No app can open the link, so ignore the tap
+        }
+        return true
     }
 }
 
@@ -100,37 +124,36 @@ internal fun MapsJavaScriptView(
     modifier: Modifier = Modifier,
     onEvent: (name: String, data: JSONObject) -> Unit = { _, _ -> }
 ) {
+    // The page is only created once, so it must always call the newest onEvent
     val currentOnEvent by rememberUpdatedState(onEvent)
 
     AndroidView(
         modifier = modifier,
         factory = { context ->
-            WebView(context).apply {
-                // A WebView with wrap-content height gives its page a 0px tall viewport,
-                // which collapses the map; Compose still sizes it from the modifier
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                addJavascriptInterface(MapBridge { name, data -> currentOnEvent(name, data) }, "Android")
-                // Links such as Google's terms open in the browser instead of replacing the map
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                        if (!request.isForMainFrame) return false
-                        runCatching { view.context.startActivity(Intent(Intent.ACTION_VIEW, request.url)) }
-                        return true
-                    }
-                }
-                // Keep scrolling parents from taking over drags meant for the map
-                setOnTouchListener { view, _ ->
-                    view.parent?.requestDisallowInterceptTouchEvent(true)
-                    false
-                }
-                tag = html
-                loadDataWithBaseURL(MAP_PAGE_BASE_URL, html, "text/html", "utf-8", null)
+            val webView = WebView(context)
+
+            // A WebView with wrap-content height gives its page a 0px tall viewport,
+            // which collapses the map; Compose still sizes it from the modifier
+            webView.layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            webView.settings.javaScriptEnabled = true
+            webView.settings.domStorageEnabled = true
+            webView.addJavascriptInterface(MapBridge { name, data -> currentOnEvent(name, data) }, "Android")
+
+            // Links such as Google's terms open in the browser instead of replacing the map
+            webView.webViewClient = OpenLinksInBrowser()
+
+            // Keep scrolling parents from taking over drags meant for the map
+            webView.setOnTouchListener { view, _ ->
+                view.parent?.requestDisallowInterceptTouchEvent(true)
+                false
             }
+
+            webView.tag = html
+            webView.loadDataWithBaseURL(MAP_PAGE_BASE_URL, html, "text/html", "utf-8", null)
+            webView
         },
         update = { webView ->
             if (webView.tag != html) {

@@ -1,6 +1,7 @@
 
 package com.example.lambda_bbb_events.view.ui.components.calendar
 
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import android.app.DatePickerDialog
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -97,9 +98,7 @@ fun DatePickerField(
         trailingIcon = {
             IconButton(
                 onClick = {
-                    val selectedDate = runCatching {
-                        LocalDate.parse(value)
-                    }.getOrNull() ?: LocalDate.now()
+                    val selectedDate = parseDateOrNull(value) ?: LocalDate.now()
 
                     DatePickerDialog(
                         context,

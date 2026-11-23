@@ -40,8 +40,8 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.controller.LotteryPhase
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.EntryStatusPill
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard

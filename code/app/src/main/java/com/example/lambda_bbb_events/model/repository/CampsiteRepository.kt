@@ -1,14 +1,12 @@
 package com.example.lambda_bbb_events.model.repository
 
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /**
@@ -149,12 +147,11 @@ class CampsiteRepository(
     /**
      * Grabs all campsites that exist and returns them keyed by campsite ID.
      */
-    suspend fun getAllCampsites(): MutableMap<String, Campsite> =
-        getAll().associateBy { it.campsiteId }.toMutableMap()
-
-    /**
-     * Streams all campsites keyed by campsite ID, emitting each time the collection changes.
-     */
-    fun observeAllCampsites(): Flow<Map<String, Campsite>> =
-        observeAll().map { campsites -> campsites.associateBy { it.campsiteId } }
+    suspend fun getAllCampsites(): MutableMap<String, Campsite> {
+        val campsites = mutableMapOf<String, Campsite>()
+        for (campsite in getAll()) {
+            campsites[campsite.campsiteId] = campsite
+        }
+        return campsites
+    }
 }

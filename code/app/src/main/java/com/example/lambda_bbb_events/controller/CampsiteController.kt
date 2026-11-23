@@ -3,9 +3,9 @@ package com.example.lambda_bbb_events.controller
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.local.InMemoryRecentlyViewedStore
 import com.example.lambda_bbb_events.model.local.RecentlyViewedStore
 import com.example.lambda_bbb_events.store.CampsiteStore
@@ -49,6 +49,11 @@ class CampsiteController(
     val filteredCampsites: Map<String, Campsite>
         get() = campsites.filterValues { meetsAllFilters(it) }
 
+    /**
+     * IDs of recently viewed campsites, most recent first. Saved views are loaded on a
+     * background thread, so every use of this list is wrapped in `synchronized` to stop
+     * two threads changing it at once.
+     */
     private val recentlyViewedIds = mutableStateListOf<String>()
     private var lastViewedAt = 0L
 
@@ -56,8 +61,12 @@ class CampsiteController(
         scope.launch {
             val saved = recentlyViewedStore.load(MAX_RECENTLY_VIEWED)
             synchronized(recentlyViewedIds) {
-                // Views made while loading are newer, so keep them in front
-                saved.filterNot { it in recentlyViewedIds }.forEach { recentlyViewedIds.add(it) }
+                // Campsites viewed while loading are newer, so they stay in front
+                for (id in saved) {
+                    if (id !in recentlyViewedIds) {
+                        recentlyViewedIds.add(id)
+                    }
+                }
                 trimRecentlyViewed()
             }
         }
@@ -65,8 +74,19 @@ class CampsiteController(
 
     /** Recently viewed campsites, most recent first. */
     val recentlyViewed: List<Campsite>
-        get() = synchronized(recentlyViewedIds) { recentlyViewedIds.toList() }
-            .mapNotNull { campsites[it] }
+        get() {
+            val result = mutableListOf<Campsite>()
+            synchronized(recentlyViewedIds) {
+                for (id in recentlyViewedIds) {
+                    // Skip campsites that have since been deleted
+                    val campsite = campsites[id]
+                    if (campsite != null) {
+                        result.add(campsite)
+                    }
+                }
+            }
+            return result
+        }
 
     /** Active campsites with the highest ratings, best first. */
     val featuredCampsites: List<Campsite>
@@ -85,14 +105,15 @@ class CampsiteController(
      * @param campsiteId The ID of the viewed campsite.
      */
     fun markViewed(campsiteId: String) {
-        val viewedAt = synchronized(recentlyViewedIds) {
+        var viewedAt = 0L
+        synchronized(recentlyViewedIds) {
             recentlyViewedIds.remove(campsiteId)
             recentlyViewedIds.add(0, campsiteId)
             trimRecentlyViewed()
 
             // Views in the same millisecond still need a distinct order when saved
             lastViewedAt = maxOf(System.currentTimeMillis(), lastViewedAt + 1)
-            lastViewedAt
+            viewedAt = lastViewedAt
         }
 
         scope.launch {

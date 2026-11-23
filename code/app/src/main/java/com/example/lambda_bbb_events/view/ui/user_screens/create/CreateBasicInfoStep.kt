@@ -5,6 +5,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,18 +19,16 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,20 +43,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+
+/** Most digits the max occupancy can have, so the value always fits in an Int. */
+internal const val MAX_OCCUPANCY_DIGITS = 4
 
 @Composable
 internal fun CreateBasicInfoStep(
     form: CreateCampsiteFormState,
     onNext: () -> Unit
 ) {
-    var isOccupancyExpanded by remember { mutableStateOf(false) }
+    var showOccupancyError by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
     var isAddingTag by remember { mutableStateOf(false) }
-    val occupancyOptions = listOf("1", "2", "3", "4", "5", "6", "7", "10", "15", "20", "25", "50+")
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
@@ -115,38 +118,26 @@ internal fun CreateBasicInfoStep(
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Box {
-            OutlinedTextField(
-                value = form.maxOccupancy,
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Select Occupancy",
-                        modifier = Modifier.clickable { isOccupancyExpanded = true }
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .clickable { isOccupancyExpanded = true },
-                shape = RoundedCornerShape(16.dp)
-            )
-            DropdownMenu(
-                expanded = isOccupancyExpanded,
-                onDismissRequest = { isOccupancyExpanded = false }
-            ) {
-                occupancyOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            form.maxOccupancy = option
-                            isOccupancyExpanded = false
-                        }
-                    )
-                }
-            }
-        }
+        OutlinedTextField(
+            value = form.maxOccupancy,
+            onValueChange = { input ->
+                form.maxOccupancy = input.filter { it.isDigit() }.take(MAX_OCCUPANCY_DIGITS)
+                showOccupancyError = false
+            },
+            placeholder = { Text("e.g. 4", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            isError = showOccupancyError,
+            supportingText = if (showOccupancyError) {
+                { Text("Enter a max occupancy of at least 1.") }
+            } else {
+                null
+            },
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .testTag("create_max_occupancy"),
+            shape = RoundedCornerShape(16.dp)
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -205,19 +196,47 @@ internal fun CreateBasicInfoStep(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(form.selectedImageUris) { uri ->
+                itemsIndexed(form.selectedImageUris) { index, uri ->
+                    val isThumbnail = index == 0
                     Box {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.size(80.dp)
+                            border = if (isThumbnail) {
+                                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                            } else {
+                                null
+                            },
+                            modifier = Modifier
+                                .size(80.dp)
+                                .testTag("create_photo_$index")
+                                // Tapping a photo moves it to the front, making it the thumbnail
+                                .clickable {
+                                    form.selectedImageUris.remove(uri)
+                                    form.selectedImageUris.add(0, uri)
+                                }
                         ) {
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = "Selected photo",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            Box {
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = if (isThumbnail) "Thumbnail photo" else "Selected photo",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                if (isThumbnail) {
+                                    Text(
+                                        text = "Thumbnail",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.primary)
+                                            .padding(vertical = 2.dp)
+                                    )
+                                }
+                            }
                         }
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -230,6 +249,13 @@ internal fun CreateBasicInfoStep(
                         )
                     }
                 }
+            }
+            if (form.selectedImageUris.size > 1) {
+                Text(
+                    text = "The thumbnail is shown on campsite cards. Tap another photo to make it the thumbnail.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -273,7 +299,14 @@ internal fun CreateBasicInfoStep(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { onNext() },
+            onClick = {
+                val occupancy = form.maxOccupancy.toIntOrNull()
+                if (occupancy == null || occupancy < 1) {
+                    showOccupancyError = true
+                } else {
+                    onNext()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),

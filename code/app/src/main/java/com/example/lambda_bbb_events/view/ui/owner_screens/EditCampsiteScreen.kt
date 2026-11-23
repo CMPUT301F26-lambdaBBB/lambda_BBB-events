@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -25,16 +26,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
-import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
-import androidx.compose.ui.draw.clip
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
+import com.example.lambda_bbb_events.view.ui.user_screens.create.MAX_OCCUPANCY_DIGITS
 
 /*
  * Provides a screen for editing campsite details.
@@ -169,10 +173,12 @@ fun EditCampsiteScreen(
             FormTextFieldWithTitle(
                 title = "Max Occupancy",
                 value = maxOccupancy,
-                onValueChange = {
-                    maxOccupancy = it
+                onValueChange = { input ->
+                    maxOccupancy = input.filter { it.isDigit() }.take(MAX_OCCUPANCY_DIGITS)
                 },
-                placeholder = "Number of people"
+                placeholder = "Number of people",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.testTag("edit_max_occupancy")
             )
 
             // Description

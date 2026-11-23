@@ -28,14 +28,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
-import com.example.lambda_bbb_events.model.formatPhoneNumber
+import com.example.lambda_bbb_events.model.formatting.formatPhoneNumber
 import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
-import com.example.lambda_bbb_events.model.parsePhoneNumber
+import com.example.lambda_bbb_events.model.formatting.parsePhoneNumber
 
 /*
  * Provides a screen for editing the current user's profile.
@@ -60,8 +60,8 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
     val savedPhone = remember(user.phone) { parsePhoneNumber(user.phone) }
-    var phoneCountry by remember { mutableStateOf(savedPhone.first) }
-    var phone by remember { mutableStateOf(savedPhone.second) }
+    var phoneCountry by remember { mutableStateOf(savedPhone.country) }
+    var phone by remember { mutableStateOf(savedPhone.localNumber) }
     var showCreationError by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()

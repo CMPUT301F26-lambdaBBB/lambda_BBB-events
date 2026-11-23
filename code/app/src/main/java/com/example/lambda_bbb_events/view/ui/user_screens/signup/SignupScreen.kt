@@ -30,9 +30,9 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import kotlinx.coroutines.launch
-import com.example.lambda_bbb_events.model.formatPhoneNumber
+import com.example.lambda_bbb_events.model.formatting.formatPhoneNumber
 import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
-import com.example.lambda_bbb_events.model.DEFAULT_COUNTRY_CODE
+import com.example.lambda_bbb_events.model.formatting.DEFAULT_COUNTRY_CODE
 
 /*
  * Provides the signup screen for creating a new entrant account.

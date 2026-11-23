@@ -40,7 +40,7 @@ fun AppPoliciesScreen(
             .background(MaterialTheme.colorScheme.background)
             .testTag("screen_app_policies")
     ) {
-    val goBack = rememberBackAction(navController)
+        val goBack = rememberBackAction(navController)
 
         ScreenTitle(
             title = "App Policy",

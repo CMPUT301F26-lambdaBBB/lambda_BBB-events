@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.RoleDropdownSwitcher
 import com.example.lambda_bbb_events.view.ui.components.campsite.HorizontalCardSection
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar

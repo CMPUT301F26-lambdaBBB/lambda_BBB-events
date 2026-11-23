@@ -28,8 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lambda_bbb_events.model.Reservation
-import com.example.lambda_bbb_events.model.ReservationStatus
+import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
