@@ -75,7 +75,7 @@ fun AdminHomeScreen(
                             text = "Admin Tools",
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.padding(bottom = 15.dp)
+                            modifier = Modifier.padding(top = 15.dp, bottom = 15.dp)
                         )
                     }
 
@@ -91,7 +91,7 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Campsites",
                                     icon = Icons.Outlined.House,
-                                    onClick = { /* TODO */ },
+                                    onClick = { navController.navigate("admin_campsites") },
                                     modifier = Modifier.weight(1f)
                                 )
                                 AdminToolTile(
