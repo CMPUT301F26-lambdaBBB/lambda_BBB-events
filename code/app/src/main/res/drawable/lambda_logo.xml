@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The app's logo: a tent shaped like the letter lambda under a night sky.
+    Converted from doc/logo/lambda-logo.svg; change both together.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Rounded square the whole logo sits inside -->
+    <clip-path android:pathData="M112,0 H400 A112,112 0 0 1 512,112 V400 A112,112 0 0 1 400,512 H112 A112,112 0 0 1 0,400 V112 A112,112 0 0 1 112,0 Z" />
+
+    <!-- Night sky in the app's primary blue, darkening towards the top -->
+    <path android:pathData="M0,0 H512 V512 H0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="0"
+                android:endY="512"
+                android:startColor="#FF1E3242"
+                android:endColor="#FF3D647F" />
+        </aapt:attr>
+    </path>
+
+    <!-- Moon and stars -->
+    <path
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M392,92 a44,44 0 1,0 34,72 a36,36 0 1,1 -34,-72 z" />
+    <path
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M107,104 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 z" />
+    <path
+        android:fillAlpha="0.8"
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M164.5,64 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 z" />
+    <path
+        android:fillAlpha="0.9"
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M296,84 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 z" />
+    <path
+        android:fillAlpha="0.7"
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M81,196 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 z" />
+    <path
+        android:fillAlpha="0.8"
+        android:fillColor="#FFE6EDF3"
+        android:pathData="M442.5,236 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 z" />
+
+    <!-- Hills -->
+    <path
+        android:fillColor="#FF2B4659"
+        android:pathData="M0,360 C90,318 170,330 256,352 C342,374 420,336 512,318 V512 H0 Z" />
+    <path
+        android:fillColor="#FF1E3242"
+        android:pathData="M0,404 C120,384 220,392 300,404 C380,416 450,400 512,392 V512 H0 Z" />
+
+    <!-- Light in the tent's doorway -->
+    <path android:pathData="M276,292 L236,404 H316 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="276"
+                android:centerY="387"
+                android:gradientRadius="84"
+                android:startColor="#FFFFD98A"
+                android:endColor="#FFF2A93B" />
+        </aapt:attr>
+    </path>
+
+    <!-- The tent, drawn as a lambda: the long stroke is the main pole, which pokes out
+         above the peak, and the short stroke is the other side of the tent -->
+    <path
+        android:pathData="M188,120 L355,390"
+        android:strokeColor="#FFF6F8FA"
+        android:strokeLineCap="round"
+        android:strokeWidth="34" />
+    <path
+        android:pathData="M262,240 L158,390"
+        android:strokeColor="#FFF6F8FA"
+        android:strokeLineCap="round"
+        android:strokeWidth="34" />
+
+    <!-- Ground the tent stands on -->
+    <path
+        android:pathData="M116,404 H396"
+        android:strokeColor="#FFF6F8FA"
+        android:strokeLineCap="round"
+        android:strokeWidth="14" />
+</vector>

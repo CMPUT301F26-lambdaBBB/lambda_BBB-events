@@ -2,7 +2,6 @@ package com.example.lambda_bbb_events.view.ui.user_screens.signup
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -27,12 +25,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
-import kotlinx.coroutines.launch
-import com.example.lambda_bbb_events.model.formatting.formatPhoneNumber
-import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
 import com.example.lambda_bbb_events.model.formatting.DEFAULT_COUNTRY_CODE
+import com.example.lambda_bbb_events.model.formatting.formatPhoneNumber
+import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
+import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import kotlinx.coroutines.launch
 
 /*
  * Provides the signup screen for creating a new entrant account.
@@ -89,22 +88,7 @@ fun SignupScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // placeholder for logo, change with real logo later if were even adding one
-        Box(
-            modifier = Modifier
-                .size(width = 240.dp, height = 120.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(12.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "LOGO",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        AppLogo(size = 120.dp)
         Text(
             text = "Lambda Camping",
             style = MaterialTheme.typography.headlineMedium,
