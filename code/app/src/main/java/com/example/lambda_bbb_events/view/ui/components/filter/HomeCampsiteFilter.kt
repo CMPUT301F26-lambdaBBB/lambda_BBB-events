@@ -69,8 +69,10 @@ fun HomeCampsiteFilter(
         else -> false
     }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+    // Opens straight to fully expanded, with no half-open state
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
     )
 
     ModalBottomSheet(

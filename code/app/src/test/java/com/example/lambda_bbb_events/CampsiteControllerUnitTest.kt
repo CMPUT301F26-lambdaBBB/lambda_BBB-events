@@ -6,6 +6,7 @@ import com.example.lambda_bbb_events.model.local.InMemoryRecentlyViewedStore
 import com.example.lambda_bbb_events.store.CampsiteStore
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
@@ -13,6 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CampsiteControllerUnitTest {
     private val store = mockk<CampsiteStore>()
     private val campsites = mutableMapOf<String, Campsite>()

@@ -1,8 +1,8 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.os.Build
-import android.provider.MediaStore
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -159,10 +159,9 @@ fun CreateScreen(
                                                             )
                                                         )
                                                     } else {
-                                                        MediaStore.Images.Media.getBitmap(
-                                                            context.contentResolver,
-                                                            uri
-                                                        )
+                                                        context.contentResolver.openInputStream(uri)
+                                                            ?.use { BitmapFactory.decodeStream(it) }
+                                                            ?: error("Could not read the selected image.")
                                                     }
 
                                                 imageMetaData += imageProcessor.uploadImage(
