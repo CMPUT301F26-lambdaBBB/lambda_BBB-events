@@ -30,6 +30,9 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.model.formatPhoneNumber
+import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
+import com.example.lambda_bbb_events.model.DEFAULT_COUNTRY_CODE
 
 /*
  * Provides the signup screen for creating a new entrant account.
@@ -65,6 +68,7 @@ fun SignupScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var phoneCountry by remember { mutableStateOf(DEFAULT_COUNTRY_CODE) }
     var phone by remember { mutableStateOf("") }
     var showCreationError by remember { mutableStateOf(false) }
 
@@ -76,7 +80,7 @@ fun SignupScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(vertical = 12.dp)
             .testTag("signupScreen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -127,11 +131,12 @@ fun SignupScreen(
             titleTag = "emailLabel"
         )
 
-        FormTextFieldWithTitle(
+        PhoneNumberFieldWithTitle(
             title = "Phone Number",
-            value = phone,
-            onValueChange = { phone = it },
-            placeholder = "+1",
+            country = phoneCountry,
+            onCountryChange = { phoneCountry = it },
+            number = phone,
+            onNumberChange = { phone = it },
             modifier = Modifier.testTag("phonenumberInput"),
             titleTag = "phonenumberLabel"
         )
@@ -145,7 +150,7 @@ fun SignupScreen(
                     val successful = onCreateEntrant(
                         name.trim(),
                         email.trim(),
-                        phone.trim()
+                        formatPhoneNumber(phoneCountry, phone)
                     )
 
                     if (!successful) {

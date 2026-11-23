@@ -104,7 +104,6 @@ fun LotteryBookingsScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
                 .testTag("lottery_bookings")
         ) {
             ScreenTitle(

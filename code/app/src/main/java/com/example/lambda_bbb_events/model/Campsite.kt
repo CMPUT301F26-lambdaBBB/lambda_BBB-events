@@ -42,6 +42,11 @@ data class Campsite(
     val availability: AvailabilitySchedule = AvailabilitySchedule(),
     var active: Boolean = true
 ) {
+    /**
+     * Whether the campsite has a real location. Campsites saved without one have 0, 0.
+     */
+    fun hasLocation(): Boolean = latitude != 0.0 || longitude != 0.0
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Campsite) return false

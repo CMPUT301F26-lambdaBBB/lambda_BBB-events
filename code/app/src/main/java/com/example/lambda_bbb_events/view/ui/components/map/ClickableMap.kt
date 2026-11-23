@@ -9,20 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
-import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.util.Locale
 
 
@@ -30,6 +21,44 @@ import java.util.Locale
  * Provides an interactive Google Map for selecting campsite locations
  */
 
+/**
+ * Builds the JavaScript for a map with one draggable marker. Tapping the map or dragging
+ * the marker moves it and sends a `locationSelected` event with its coordinates.
+ *
+ * @param initialLocation Where the marker and map start.
+ */
+internal fun clickableMapScript(initialLocation: LatLng): String = """
+    const start = { lat: ${initialLocation.latitude}, lng: ${initialLocation.longitude} };
+
+    async function initMap() {
+      const { Map } = await google.maps.importLibrary('maps');
+      const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+
+      const map = new Map(document.getElementById('map'), {
+        center: start,
+        zoom: 13,
+        mapId: 'DEMO_MAP_ID',
+        gestureHandling: 'greedy',
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        keyboardShortcuts: false,
+        clickableIcons: false
+      });
+      const marker = new AdvancedMarkerElement({ map: map, position: start, title: 'Selected Location', gmpDraggable: true });
+
+      function select(latLng) {
+        marker.position = latLng;
+        send('locationSelected', { lat: latLng.lat(), lng: latLng.lng() });
+      }
+
+      map.addListener('click', function (event) { select(event.latLng); });
+      marker.addListener('dragend', function () {
+        const position = marker.position;
+        send('locationSelected', { lat: position.lat, lng: position.lng });
+      });
+    }
+""".trimIndent()
 
 /**
  * Composable for displaying a clickable map with a marker.
@@ -47,11 +76,7 @@ fun ClickableMap(
     onLocationSelected: (coordinates: LatLng, address: String, postalCode: String) -> Unit
 ) {
     val context = LocalContext.current
-    var selectedPosition by remember { mutableStateOf(initialLocation) }
-    val markerState = rememberUpdatedMarkerState(position = selectedPosition)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialLocation, 13f)
-    }
+    val html = remember(initialLocation) { mapPageHtml(clickableMapScript(initialLocation)) }
 
     Card(
         modifier = modifier
@@ -59,34 +84,20 @@ fun ClickableMap(
             .height(height.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
-        GoogleMap(
+        MapsJavaScriptView(
+            html = html,
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            onMapClick = { latLng ->
-                selectedPosition = latLng
-                markerState.position = latLng
+            onEvent = { name, data ->
+                if (name == "locationSelected") {
+                    val latLng = LatLng(data.optDouble("lat"), data.optDouble("lng"))
 
-                // Reverse geocode coordinates to retrieve address and postal code
-                fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->
-                    onLocationSelected(latLng, fetchedAddress, fetchedPostalCode)
+                    // Reverse geocode coordinates to retrieve address and postal code
+                    fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->
+                        onLocationSelected(latLng, fetchedAddress, fetchedPostalCode)
+                    }
                 }
             }
-        ) {
-            Marker(
-                state = markerState,
-                title = "Selected Location",
-                snippet = "Lat: %.4f, Lng: %.4f".format(
-                    selectedPosition.latitude,
-                    selectedPosition.longitude
-                ),
-                onClick = {
-                    fetchAddressAndPostalCodeFromLatLng(context, selectedPosition) { fetchedAddress, fetchedPostalCode ->
-                        onLocationSelected(selectedPosition, fetchedAddress, fetchedPostalCode)
-                    }
-                    false
-                }
-            )
-        }
+        )
     }
 }
 

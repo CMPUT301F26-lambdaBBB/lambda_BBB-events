@@ -40,6 +40,14 @@ class ModelUnitTest {
         assertNotEquals(campsite, campsite.copy(campsiteId = "b"))
     }
 
+    @Test
+    fun campsiteHasLocationUnlessCoordinatesAreUnset() {
+        assertFalse(Campsite().hasLocation())
+        assertTrue(Campsite(latitude = 53.5, longitude = -113.5).hasLocation())
+        assertTrue(Campsite(latitude = 0.0, longitude = -113.5).hasLocation())
+        assertTrue(Campsite(latitude = 53.5, longitude = 0.0).hasLocation())
+    }
+
     // User
 
     @Test

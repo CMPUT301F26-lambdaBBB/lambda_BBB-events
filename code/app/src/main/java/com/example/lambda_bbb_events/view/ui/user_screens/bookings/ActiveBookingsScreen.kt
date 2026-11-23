@@ -64,7 +64,6 @@ fun ActiveBookingsScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
                 .testTag("screen_bookings")
         ) {
             ScreenTitle(

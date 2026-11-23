@@ -57,8 +57,7 @@ fun RegistrationStatusScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ScreenTitle(

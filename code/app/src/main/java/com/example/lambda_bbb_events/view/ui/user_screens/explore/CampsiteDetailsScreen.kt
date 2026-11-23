@@ -31,6 +31,7 @@ import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import androidx.compose.ui.draw.clip
+import com.example.lambda_bbb_events.view.ui.components.map.CampsiteMap
 /*
  * Displays campsite information, including ratings, location,
  * tags, description, and reservation availability.
@@ -108,7 +109,6 @@ fun CampsiteDetailsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("screen_campsite_details")
-            .padding(horizontal = 16.dp)
     ) {
         // Fixed title
         ScreenTitle(
@@ -300,22 +300,13 @@ fun CampsiteDetailsScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    Box(
+                    CampsiteMap(
+                        campsites = listOf(campsite),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(320.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(12.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Google Map",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                            .clip(RoundedCornerShape(12.dp))
+                    )
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant

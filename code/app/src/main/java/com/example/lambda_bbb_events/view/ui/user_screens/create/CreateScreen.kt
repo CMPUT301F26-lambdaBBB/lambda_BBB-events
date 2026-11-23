@@ -70,8 +70,7 @@ fun CreateScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             ScreenTitle(title = "Create Campsite", navController = navController)

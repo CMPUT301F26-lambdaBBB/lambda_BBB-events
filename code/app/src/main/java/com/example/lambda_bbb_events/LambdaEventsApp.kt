@@ -2,6 +2,7 @@ package com.example.lambda_bbb_events
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -79,7 +80,7 @@ fun LambdaEventsApp(
             Box(
                 Modifier
                     .padding(innerPadding)
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 SignupScreen(rememberNavController(), controllers)
             }
@@ -104,16 +105,16 @@ private fun MainApp(
     darkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit
 ) {
-    // NOTE: Screen looks too zoomed on small phone so cant login, someone test
-    // and try to fix if happens for u too thx
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "home",
+            // Screens with their own Scaffold must not apply the system bar insets again
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 32.dp)
+                .consumeWindowInsets(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             composable("signup") { SignupScreen(navController, controllers) }
             composable("home") { HomeScreen(navController, controllers) }

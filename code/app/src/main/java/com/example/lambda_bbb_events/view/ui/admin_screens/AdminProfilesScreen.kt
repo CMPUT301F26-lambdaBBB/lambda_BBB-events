@@ -78,7 +78,6 @@ fun AdminProfilesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Profiles",

@@ -33,6 +33,9 @@ import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWith
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
+import com.example.lambda_bbb_events.model.formatPhoneNumber
+import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
+import com.example.lambda_bbb_events.model.parsePhoneNumber
 
 /*
  * Provides a screen for editing the current user's profile.
@@ -56,7 +59,9 @@ fun EditProfileScreen(
 
     var name by remember { mutableStateOf(user.name) }
     var email by remember { mutableStateOf(user.email) }
-    var phone by remember { mutableStateOf(user.phone) }
+    val savedPhone = remember(user.phone) { parsePhoneNumber(user.phone) }
+    var phoneCountry by remember { mutableStateOf(savedPhone.first) }
+    var phone by remember { mutableStateOf(savedPhone.second) }
     var showCreationError by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -66,7 +71,7 @@ fun EditProfileScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -102,11 +107,12 @@ fun EditProfileScreen(
             modifier = Modifier.testTag("edit_profile_email")
         )
 
-        FormTextFieldWithTitle(
+        PhoneNumberFieldWithTitle(
             title = "Phone Number",
-            value = phone,
-            onValueChange = { phone = it },
-            placeholder = "+1",
+            country = phoneCountry,
+            onCountryChange = { phoneCountry = it },
+            number = phone,
+            onNumberChange = { phone = it },
             modifier = Modifier.testTag("edit_profile_phone")
         )
 
@@ -118,7 +124,7 @@ fun EditProfileScreen(
                     val successful = controllers.users.updateEntrant(
                         name.trim(),
                         email.trim(),
-                        phone.trim()
+                        formatPhoneNumber(phoneCountry, phone)
                     )
 
                     if (successful) {

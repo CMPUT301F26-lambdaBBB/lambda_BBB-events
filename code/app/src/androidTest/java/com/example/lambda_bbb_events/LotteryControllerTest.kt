@@ -70,6 +70,10 @@ class LotteryControllerTest {
             lotteryId = "past",
             campsiteIds = listOf(campsiteId),
             status = LotteryStatus.OPEN,
+            // registration dates in the past too, otherwise they default to "now" and the
+            // lottery can still count as open if the test runs within the same millisecond
+            registrationStart = Date(System.currentTimeMillis() - 3 * 86400000L),
+            registrationEnd = Date(System.currentTimeMillis() - 2 * 86400000L),
             bookingEnd = Date(System.currentTimeMillis() - 86400000L)
         )
 
@@ -101,6 +105,10 @@ class LotteryControllerTest {
             lotteryId = "past",
             campsiteIds = listOf(campsiteId),
             status = LotteryStatus.OPEN,
+            // registration dates in the past too, otherwise they default to "now" and the
+            // lottery can still count as open if the test runs within the same millisecond
+            registrationStart = Date(System.currentTimeMillis() - 3 * 86400000L),
+            registrationEnd = Date(System.currentTimeMillis() - 2 * 86400000L),
             bookingEnd = Date(System.currentTimeMillis() - 86400000L)
         )
 
@@ -150,6 +158,10 @@ class LotteryControllerTest {
             lotteryId = "past",
             campsiteIds = listOf(campsiteId),
             status = LotteryStatus.OPEN,
+            // registration dates in the past too, otherwise they default to "now" and the
+            // lottery can still count as open if the test runs within the same millisecond
+            registrationStart = Date(System.currentTimeMillis() - 3 * 86400000L),
+            registrationEnd = Date(System.currentTimeMillis() - 2 * 86400000L),
             bookingEnd = Date(System.currentTimeMillis() - 86400000L)
         )
 

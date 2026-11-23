@@ -92,6 +92,16 @@ class CampsiteDetailsScreenUITest {
     }
 
     @Test
+    fun campsiteWithoutLocationShowsMapPlaceholder() {
+        setup()
+
+        composeTestRule.onNodeWithText("Location not available")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithTag("campsite_map").assertDoesNotExist()
+    }
+
+    @Test
     fun navigateToCheckAvailability() {
         setup()
 

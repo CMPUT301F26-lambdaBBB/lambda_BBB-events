@@ -39,7 +39,6 @@ fun AppPoliciesScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("screen_app_policies")
-            .padding(horizontal = 16.dp)
     ) {
     val goBack = rememberBackAction(navController)
 

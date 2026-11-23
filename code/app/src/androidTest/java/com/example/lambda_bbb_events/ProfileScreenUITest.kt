@@ -148,7 +148,7 @@ class ProfileScreenUITest {
             userController.updateEntrant(
                 "Updated User",
                 "updated@example.com",
-                "7809876543"
+                "+1 7809876543"
             )
         }
 

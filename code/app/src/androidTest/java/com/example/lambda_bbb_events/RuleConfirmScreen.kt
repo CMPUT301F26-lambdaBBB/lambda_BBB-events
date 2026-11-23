@@ -67,6 +67,16 @@ class RuleConfirmScreenTest {
         return controllers
     }
 
+    /**
+     * Scrolls the rules to the end, which is required before Confirm is enabled. On small
+     * screens the rules do not fit, so tapping Confirm straight away does nothing.
+     */
+    private fun readAllRules() {
+        val rules = composeTestRule.onNode(hasScrollAction())
+        repeat(5) { rules.performTouchInput { swipeUp() } }
+        composeTestRule.onNodeWithText("Confirm").assertIsEnabled()
+    }
+
     @Test
     fun ruleConfirmScreenDisplaysTitleAndRules() {
         val lottery = Lottery(
@@ -113,6 +123,8 @@ class RuleConfirmScreenTest {
             callback(true, "Success")
         }
 
+        readAllRules()
+
         composeTestRule.onNodeWithText("Confirm")
             .assertIsDisplayed()
             .performClick()
@@ -152,6 +164,8 @@ class RuleConfirmScreenTest {
             val callback = arg<(Boolean, String) -> Unit>(3)
             callback(false, "Failed to join lottery")
         }
+
+        readAllRules()
 
         composeTestRule.onNodeWithText("Confirm")
             .assertIsDisplayed()
