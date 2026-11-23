@@ -16,6 +16,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import java.time.LocalDate
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays campsite rules and lottery service policies for user confirmation.
@@ -43,6 +44,8 @@ fun RuleConfirmScreen(
     endDate: LocalDate,
     numPeople: Int
 ) {
+    val goBack = rememberBackAction(navController)
+
     val campsite = controllers.campsites.getCampsite(campsiteId)
     val lottery = controllers.lotteries.getOpenLotteryForCampsite(campsiteId)
 
@@ -173,7 +176,7 @@ fun RuleConfirmScreen(
         ) {
             OutlinedButton(
                 onClick = {
-                    navController.popBackStack()
+                    goBack()
                 },
                 modifier = Modifier.weight(1f),
                 enabled = !isJoining

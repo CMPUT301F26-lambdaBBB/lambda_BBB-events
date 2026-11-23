@@ -39,7 +39,7 @@ class ExploreScreenUITest {
         val campsite = mockk<Campsite>(relaxed = true)
         every { campsite.campsiteId } returns "test-campsite-1"
         every { campsite.campsiteName } returns "Test Campsite"
-        every { controllers.campsites.campsites } returns listOf(campsite)
+        every { controllers.campsites.campsites } returns mapOf("test-campsite-1" to campsite)
         every {
             controllers.campsites.getCampsite("test-campsite-1")
         } returns campsite

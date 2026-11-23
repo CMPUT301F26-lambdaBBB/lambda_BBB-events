@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Screen where a campsite owner can edit a lottery for their campsite.
@@ -57,6 +58,8 @@ fun EditLotteryScreen(
     controllers: AppControllers,
     lotteryId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     var lottery by remember { mutableStateOf<Lottery?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -172,7 +175,7 @@ fun EditLotteryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = goBack,
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -197,7 +200,7 @@ fun EditLotteryScreen(
                             )
 
                             if (error == null) {
-                                navController.popBackStack()
+                                goBack()
                             } else {
                                 errorMessage = error
                             }

@@ -56,15 +56,17 @@ class WaitlistEntryRepository(
      */
     override suspend fun delete(item: WaitlistEntry) {
         val entryRef = collectionRef.document(item.entryId)
-        val lotteryRef = db.collection("lotteries")
-            .document(item.lotteryId)
         val batch = db.batch()
         batch.delete(entryRef)
-        batch.update(
-            lotteryRef,
-            "entryIds",
-            FieldValue.arrayRemove(item.entryId)
-        )
+
+        // an entry without a lottery has no lottery to remove it from
+        if (item.lotteryId.isNotBlank()) {
+            batch.update(
+                db.collection("lotteries").document(item.lotteryId),
+                "entryIds",
+                FieldValue.arrayRemove(item.entryId)
+            )
+        }
 
         batch.commit().await()
         removeFromCache(item.entryId)

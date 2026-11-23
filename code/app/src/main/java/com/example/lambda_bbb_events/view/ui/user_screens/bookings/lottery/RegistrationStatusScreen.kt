@@ -20,6 +20,7 @@ import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStat
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays the registration status of a waitlist entry.
@@ -38,6 +39,8 @@ fun RegistrationStatusScreen(
     controllers: AppControllers,
     entryId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val entry = controllers.waitlistEntries.getEntryById(entryId)
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
@@ -168,7 +171,7 @@ fun RegistrationStatusScreen(
                                 controllers.waitlistEntries.leaveWaitlist(entry)
 
                                 showLeaveDialog = false
-                                navController.popBackStack()
+                                goBack()
                             } catch (e: Exception) {
                                 errorMessage =
                                     e.message ?: "Failed to leave waitlist."

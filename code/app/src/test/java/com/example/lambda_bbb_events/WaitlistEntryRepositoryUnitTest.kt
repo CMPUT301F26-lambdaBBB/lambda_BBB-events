@@ -66,6 +66,17 @@ class WaitlistEntryRepositoryUnitTest {
     }
 
     @Test
+    fun deletingEntryWithoutLotteryOnlyDeletesEntry() = runTest {
+        repository.deleteWaitlistEntry(WaitlistEntry(entryId = "orphan"))
+
+        verifyOrder {
+            batch.delete(entries.document("orphan"))
+            batch.commit()
+        }
+        verify(exactly = 0) { batch.update(any<com.google.firebase.firestore.DocumentReference>(), any<String>(), any()) }
+    }
+
+    @Test
     fun deleteByIdLooksUpEntryToRemoveItFromLottery() = runTest {
         emitAll()
 

@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
 
@@ -63,7 +64,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.startRegistration,
             onValueChange = { form.startRegistration = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_start_registration")
         )
 
         Text(
@@ -75,7 +78,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.endRegistration,
             onValueChange = { form.endRegistration = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_end_registration")
         )
 
         Text(
@@ -87,7 +92,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.startBooking,
             onValueChange = { form.startBooking = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_start_booking")
         )
 
         Text(
@@ -99,7 +106,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.endBooking,
             onValueChange = { form.endBooking = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_end_booking")
         )
 
         Row(

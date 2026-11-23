@@ -60,6 +60,10 @@ fun CampsiteDetailsScreen(
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
+    LaunchedEffect(campsiteId) {
+        controllers.campsites.markViewed(campsiteId)
+    }
+
     val entrantId = controllers.users.deviceId
 
     val lottery = controllers.lotteries

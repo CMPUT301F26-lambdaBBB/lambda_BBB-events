@@ -28,13 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import androidx.compose.ui.draw.clip
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /*
  * Provides a screen for editing campsite details.
@@ -58,6 +58,8 @@ fun EditCampsiteScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
@@ -242,7 +244,7 @@ fun EditCampsiteScreen(
         ) {
             OutlinedButton(
                 onClick = {
-                    navController.popBackStack()
+                    goBack()
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -259,21 +261,20 @@ fun EditCampsiteScreen(
             Button(
                 onClick = {
                     val saved = controllers.campsites.updateCampsite(
-                        campsiteId,
-                        Campsite(campsiteId = name,
-                            ownerId = address,
-                            campsiteName = maxOccupancy,
-                            description = description,
-                            address = rulesPolicies,
-                            tags = tags
-                        ),
+                        campsiteId = campsiteId,
+                        name = name,
+                        address = address,
+                        maxOccupancyText = maxOccupancy,
+                        description = description,
+                        rulesPolicies = rulesPolicies,
+                        tags = tags
                     )
 
-                        if (saved) {
-                            navController.popBackStack()
-                        } else {
-                            showError = true
-                        }
+                    if (saved) {
+                        goBack()
+                    } else {
+                        showError = true
+                    }
                 },
                 modifier = Modifier
                     .weight(1f)

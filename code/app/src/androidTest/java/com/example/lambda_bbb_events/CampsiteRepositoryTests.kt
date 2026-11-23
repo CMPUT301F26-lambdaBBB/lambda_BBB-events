@@ -1,171 +1,119 @@
 package com.example.lambda_bbb_events
 
+import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Test
+import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * Tests [CampsiteRepository] against the real Firestore database.
+ *
+ * Every campsite uses a random ID and is deleted afterwards.
+ */
 class CampsiteRepositoryTests {
-    @Test
-    fun addingCampsiteToDBAndGetCampsites() = runTest {
-        val campsite = Campsite(
-            campsiteId = UUID.randomUUID().toString(),
-            ownerId = "Test Location"
-        )
-        val campsiteRepository = CampsiteRepository()
-        campsiteRepository.addCampsite(campsite)
-        assertEquals(campsite, campsiteRepository.get(campsite.campsiteId))
-        campsiteRepository.deleteCampsite(campsite)
-        campsiteRepository.close()
+    private val repository = CampsiteRepository()
+    private val created = mutableListOf<String>()
+
+    private fun newCampsite(ownerId: String = "owner-${UUID.randomUUID()}") = Campsite(
+        campsiteId = "test-${UUID.randomUUID()}",
+        ownerId = ownerId,
+        campsiteName = "Test Campsite",
+        address = "1 Test Rd",
+        maxOccupancy = 4,
+        tags = listOf("lake")
+    ).also { created.add(it.campsiteId) }
+
+    @After
+    fun cleanUp() = runTest {
+        created.forEach { repository.deleteCampsite(it) }
     }
 
     @Test
-    fun campsiteGetsDeleted() = runTest {
-        val campsite = Campsite(
-            campsiteId = UUID.randomUUID().toString(),
-            ownerId = "Test Location"
-        )
-        val campsiteRepository = CampsiteRepository()
-        campsiteRepository.addCampsite(campsite)
-        campsiteRepository.deleteCampsite(campsite)
-        assertEquals(null, campsiteRepository.get(campsite.campsiteId))
-        campsiteRepository.close()
-    }
-
-    @Test
-    fun updateCampsiteWithNewDetails() = runTest {
-        val campsite = Campsite(
-            campsiteId = UUID.randomUUID().toString(),
-            ownerId = "Test Location"
-        )
-
-        val updatedCampsite = campsite.copy(
-            ownerId = "Updated Test Location"
-        )
-
-        val repository = CampsiteRepository()
+    fun addedCampsiteCanBeReadBack() = runTest {
+        val campsite = newCampsite()
 
         repository.addCampsite(campsite)
-        repository.updateCampsite(updatedCampsite)
+        val stored = repository.get(campsite.campsiteId)
 
-        assertEquals(
-            updatedCampsite,
-            repository.get(campsite.campsiteId)
-        )
-
-        repository.deleteCampsite(updatedCampsite)
-        repository.close()
+        assertEquals(campsite, stored)
+        assertEquals("1 Test Rd", stored?.address)
+        assertEquals(4, stored?.maxOccupancy)
+        assertEquals(listOf("lake"), stored?.tags)
     }
 
     @Test
-    fun checkCampsitesReceivedAreValidByOwner() = runTest {
+    fun availabilityDatesSurviveTheRoundTrip() = runTest {
+        val availability = AvailabilitySchedule().apply {
+            addAvailableDates(LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 3))
+            addNewBooking(LocalDate.of(2026, 7, 2), ownerID = "ed")
+        }
+        val campsite = newCampsite().copy(availability = availability)
+
+        repository.addCampsite(campsite)
+
+        assertEquals(availability.dates, repository.get(campsite.campsiteId)?.availability?.dates)
+    }
+
+    @Test
+    fun deletedCampsiteIsGone() = runTest {
+        val campsite = newCampsite()
+        repository.addCampsite(campsite)
+
+        repository.deleteCampsite(campsite.campsiteId)
+
+        assertNull(repository.get(campsite.campsiteId))
+        assertNull(repository.getCached(campsite.campsiteId))
+    }
+
+    @Test
+    fun updateReplacesCampsiteDetails() = runTest {
+        val campsite = newCampsite()
+        repository.addCampsite(campsite)
+
+        repository.updateCampsite(campsite.campsiteId, campsite.copy(description = "Updated", maxOccupancy = 6))
+        val stored = repository.get(campsite.campsiteId)
+
+        assertEquals("Updated", stored?.description)
+        assertEquals(6, stored?.maxOccupancy)
+    }
+
+    @Test
+    fun getAllCampsitesIncludesOnlyExistingCampsites() = runTest {
         val ownerId = "owner-${UUID.randomUUID()}"
+        val first = newCampsite(ownerId)
+        val second = newCampsite(ownerId)
+        repository.addCampsite(first)
+        repository.addCampsite(second)
+        repository.deleteCampsite(second.campsiteId)
 
-        val ownerCampsites = listOf(
-            Campsite("Yuta Man Site 1", ownerId),
-            Campsite("Test Man Site 2", ownerId),
-            Campsite("Test Man Site 3", ownerId)
-        )
+        val all = repository.getAllCampsites()
 
-        val repository = CampsiteRepository(
-            enableListener = false
-        )
-        ownerCampsites.forEach {
-            repository.addCampsite(it)
-        }
-
-        val result = repository.getCampsitesByOwner(ownerId)
-
-        ownerCampsites.forEach {
-            assertTrue(result.contains(it))
-        }
-
-        ownerCampsites.forEach {
-            repository.deleteCampsite(it)
-        }
-        repository.close()
-
+        assertTrue(first.campsiteId in all)
+        assertFalse(second.campsiteId in all)
+        assertEquals(listOf(first.campsiteId), all.values.filter { it.ownerId == ownerId }.map { it.campsiteId })
     }
 
     @Test
-    fun checkCampsitesReceivedAreInvalidByOwner() = runTest {
-        val ownerCampsites = listOf(
-            Campsite("Yuta Man Site 1", "Yokai Toyota"),
-            Campsite("Test Man Site 2", "Yokai Toyota"),
-            Campsite("Test Man Site 3", "Yokai Toyota")
-        )
-        val campsiteRepository = CampsiteRepository()
+    fun observeAllCampsitesIncludesAddedCampsite() = runTest {
+        val campsite = newCampsite()
+        repository.addCampsite(campsite)
 
-        for (campsite in ownerCampsites) {
-            campsiteRepository.addCampsite(campsite)
-        }
-        assertTrue(campsiteRepository.getCampsitesByOwner("Yutah").isEmpty())
+        val observed = repository.observeAllCampsites().first { campsite.campsiteId in it }
 
-        for (campsite in ownerCampsites) {
-            campsiteRepository.deleteCampsite(campsite)
-        }
-        campsiteRepository.close()
+        assertEquals(campsite, observed[campsite.campsiteId])
     }
 
     @Test
-    fun filterCampsitesCheck() = runTest {
-        val ownerCampsites = listOf(
-            Campsite("Yuta Man Site 1", "Yokai Toyota"),
-            Campsite("Test Man Site 2", "Yokai Toyota"),
-            Campsite("Test Man Site 3", "Yokai Toyota")
-        )
-        val campsiteRepository = CampsiteRepository()
-
-        for (campsite in ownerCampsites) {
-            campsiteRepository.addCampsite(campsite)
-        }
-
-        campsiteRepository.filterCampsites(
-            startDate = null,
-            endDate = null,
-            location = "",
-            minGuests = 0,
-            maxGuests = 100,
-            minRating = null
-        )
-
-        val filteredIds = campsiteRepository.filteredCampsites
-            .map { it.campsiteId }
-
-        ownerCampsites.forEach {
-            assertTrue(it.campsiteId in filteredIds)
-        }
-
-        for (campsite in ownerCampsites) {
-            campsiteRepository.deleteCampsite(campsite)
-        }
-    }
-
-    @Test
-    fun clearingFilter() = runTest {
-        val repository = CampsiteRepository()
-
-        repository.filterCampsites(
-            startDate = null,
-            endDate = null,
-            location = "",
-            minGuests = 0,
-            maxGuests = 100,
-            minRating = null
-        )
-
-        repository.clearExploreFilters()
-
-        assertTrue(repository.filteredCampsites.isEmpty())
-        assertFalse(repository.isExploreFiltered)
-        assertFalse(repository.isFiltering)
-        assertNull(repository.filterError)
-
-        repository.close()
+    fun missingCampsiteIsNull() = runTest {
+        assertNull(repository.get("this-campsite-does-not-exist-${UUID.randomUUID()}"))
     }
 }

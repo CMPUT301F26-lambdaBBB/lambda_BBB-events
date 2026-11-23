@@ -49,6 +49,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWith
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Screen where a campsite owner can create a lottery for their campsite.
@@ -63,6 +64,8 @@ fun CreateLotteryScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
@@ -144,7 +147,7 @@ fun CreateLotteryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = goBack,
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -170,7 +173,7 @@ fun CreateLotteryScreen(
                             )
 
                             if (error == null) {
-                                navController.popBackStack()
+                                goBack()
                             } else {
                                 errorMessage = error
                             }
