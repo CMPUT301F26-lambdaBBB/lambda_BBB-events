@@ -1,14 +1,13 @@
 package com.example.lambda_bbb_events.model.repository
 
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 /**
@@ -33,6 +32,7 @@ import java.time.LocalDate
  * @property ratingCount The number of ratings of the campsite.
  * @property availability The campsite's availability schedule.
  * @property active Whether the campsite listing is active.
+ * @property createdAt When the campsite was created, in milliseconds since 1970.
  */
 data class FirestoreCampsite(
     val campsiteId: String = "",
@@ -50,7 +50,8 @@ data class FirestoreCampsite(
     val rating: Float = 0f, // average
     val ratingCount: Int = 0,
     val availability: FirestoreAvailabilitySchedule = FirestoreAvailabilitySchedule(),
-    var active: Boolean = true
+    var active: Boolean = true,
+    val createdAt: Long = 0L
 )
 
 data class FirestoreAvailabilitySchedule(
@@ -79,7 +80,8 @@ fun Campsite.toFirestore() = FirestoreCampsite(
     availability = FirestoreAvailabilitySchedule(
         dates = availability.dates.mapKeys { it.key.toString() }.toMutableMap()
     ),
-    active = active
+    active = active,
+    createdAt = createdAt
 )
 
 /**
@@ -106,7 +108,8 @@ fun FirestoreCampsite.toCampsite(id: String = campsiteId) = Campsite(
     availability = AvailabilitySchedule(
         dates = availability.dates.mapKeys { LocalDate.parse(it.key) }.toMutableMap()
     ),
-    active = active
+    active = active,
+    createdAt = createdAt
 )
 
 /**
@@ -138,6 +141,41 @@ class CampsiteRepository(
     suspend fun deleteCampsite(campsiteID: String) = delete(campsiteID)
 
     /**
+     * Archives every campsite owned by a user by setting it inactive. The campsites are
+     * kept for past bookings and records, but no longer shown to anyone browsing. Reads
+     * Firestore rather than the cache, so campsites not loaded yet are archived too.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The archived campsites. Empty if [ownerId] is blank.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String): List<Campsite> {
+        if (ownerId.isBlank()) {
+            return emptyList()
+        }
+        val snapshot = collectionRef.whereEqualTo("ownerId", ownerId).get().await()
+
+        // Archive them all at once, so they are never left partly archived
+        val batch = db.batch()
+        for (document in snapshot.documents) {
+            batch.update(document.reference, "active", false)
+        }
+        batch.commit().await()
+
+        val archived = mutableListOf<Campsite>()
+        for (document in snapshot.documents) {
+            val campsite = try {
+                fromDocument(document)
+            } catch (e: Exception) {
+                null // archived in Firestore, but not a valid campsite to cache
+            } ?: continue
+            val inactive = campsite.copy(active = false)
+            putInCache(inactive)
+            archived.add(inactive)
+        }
+        return archived
+    }
+
+    /**
      * Saves a campsite to Firestore under the given ID, creating it if absent.
      *
      * @param campsiteID The ID of the campsite to update.
@@ -149,12 +187,11 @@ class CampsiteRepository(
     /**
      * Grabs all campsites that exist and returns them keyed by campsite ID.
      */
-    suspend fun getAllCampsites(): MutableMap<String, Campsite> =
-        getAll().associateBy { it.campsiteId }.toMutableMap()
-
-    /**
-     * Streams all campsites keyed by campsite ID, emitting each time the collection changes.
-     */
-    fun observeAllCampsites(): Flow<Map<String, Campsite>> =
-        observeAll().map { campsites -> campsites.associateBy { it.campsiteId } }
+    suspend fun getAllCampsites(): MutableMap<String, Campsite> {
+        val campsites = mutableMapOf<String, Campsite>()
+        for (campsite in getAll()) {
+            campsites[campsite.campsiteId] = campsite
+        }
+        return campsites
+    }
 }

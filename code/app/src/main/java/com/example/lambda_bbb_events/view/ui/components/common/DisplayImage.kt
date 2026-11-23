@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,42 +15,76 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageProcessor
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.services.ImageProcessor
+import kotlinx.coroutines.launch
 
 /*
  * Provides reusable composables for displaying images stored in the database.
  */
 
-/**
- * The [ImageProcessor] used to load images, shared so loaded images are cached app-wide.
- */
-val LocalImageProcessor = staticCompositionLocalOf { ImageProcessor() }
+/** Width of the photo on list cards, the campsite's thumbnail. */
+val THUMBNAIL_WIDTH = 120.dp
 
-private sealed interface ImageLoadState {
-    data object Loading : ImageLoadState
-    data class Loaded(val bitmap: Bitmap) : ImageLoadState
-    data object Failed : ImageLoadState
+/** Height of list cards, and so of their thumbnail. */
+val THUMBNAIL_HEIGHT = 130.dp
+
+/**
+ * How a stored image fits the space it is shown in.
+ */
+enum class ImageFraming {
+    /** Fills the space, cropping around the image's focus point. */
+    CROP,
+
+    /** Shows the whole image, with a blurred copy filling the space around it. */
+    WHOLE,
+
+    /**
+     * Shows exactly what the campsite's thumbnail shows, the same shape cropped around the
+     * same focus point, with a blurred copy filling the space around it.
+     */
+    THUMBNAIL
+}
+
+/** Loads every image shown on screen, shared so each loaded image is cached once for the whole app. */
+private val sharedImageProcessor = ImageProcessor()
+
+/**
+ * Loads a stored image no wider or taller than [maxSize] pixels, such as for editing it.
+ *
+ * @return The image, or `null` if it could not be loaded.
+ */
+suspend fun loadStoredImage(imageId: String, maxSize: Int): Bitmap? {
+    return sharedImageProcessor.getBitmap(imageId, maxSize, maxSize)
 }
 
 /**
@@ -58,57 +93,111 @@ private sealed interface ImageLoadState {
  * The image is decoded at the size it is drawn at, and a themed loading indicator or
  * error icon fills the same space until it is ready. [modifier] should give a bounded size.
  *
+ * By default the image is cropped to fill the space, keeping its focus point in view. See
+ * [ImageFraming] for the other ways it can fit.
+ *
  * @param imageId The ID of the image to display.
  * @param modifier Sets the size and shape of the image.
  * @param contentDescription Description for accessibility.
- * @param contentScale How the image is scaled into its bounds. Crops to fill by default.
+ * @param focusX How far across the image its most important part is, from 0 to 1.
+ * @param focusY How far down the image its most important part is, from 0 to 1.
+ * @param framing How the image fits the space.
  */
 @Composable
 fun StoredImage(
     imageId: String,
     modifier: Modifier = Modifier,
     contentDescription: String = "",
-    contentScale: ContentScale = ContentScale.Crop
+    focusX: Float = 0.5f,
+    focusY: Float = 0.5f,
+    framing: ImageFraming = ImageFraming.CROP
 ) {
-    val imageProcessor = LocalImageProcessor.current
-
     BoxWithConstraints(
         modifier = modifier
             .clipToBounds()
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
-        val targetWidth = constraints.maxWidth.takeIf { constraints.hasBoundedWidth }
-        val targetHeight = constraints.maxHeight.takeIf { constraints.hasBoundedHeight }
+        // Load the image at the size it is drawn at, or full size if that size is unlimited
+        var targetWidth: Int? = null
+        if (constraints.hasBoundedWidth) {
+            targetWidth = constraints.maxWidth
+        }
+        var targetHeight: Int? = null
+        if (constraints.hasBoundedHeight) {
+            targetHeight = constraints.maxHeight
+        }
 
-        val state by produceState<ImageLoadState>(
-            initialValue = imageProcessor.getCachedBitmap(imageId, targetWidth, targetHeight)
-                ?.let { ImageLoadState.Loaded(it) } ?: ImageLoadState.Loading,
-            imageId, targetWidth, targetHeight
-        ) {
-            if (value !is ImageLoadState.Loaded) {
-                value = imageProcessor.getBitmap(imageId, targetWidth, targetHeight)
-                    ?.let { ImageLoadState.Loaded(it) } ?: ImageLoadState.Failed
+        // Start with the image straight away if it was already loaded at this size
+        var bitmap by remember(imageId, targetWidth, targetHeight) {
+            mutableStateOf(sharedImageProcessor.getCachedBitmap(imageId, targetWidth, targetHeight))
+        }
+        var failed by remember(imageId, targetWidth, targetHeight) {
+            mutableStateOf(false)
+        }
+
+        LaunchedEffect(imageId, targetWidth, targetHeight) {
+            if (bitmap == null) {
+                bitmap = sharedImageProcessor.getBitmap(imageId, targetWidth, targetHeight)
+                failed = bitmap == null
             }
         }
 
-        when (val current = state) {
-            ImageLoadState.Loading -> CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp
-            )
+        val loadedBitmap = bitmap
+        if (loadedBitmap != null) {
+            val image = loadedBitmap.asImageBitmap()
 
-            is ImageLoadState.Loaded -> Image(
-                bitmap = current.bitmap.asImageBitmap(),
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = Modifier.fillMaxSize()
-            )
+            if (framing == ImageFraming.CROP) {
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    alignment = focusAlignment(focusX, focusY),
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // A blurred copy fills the space around the image
+                Image(
+                    bitmap = image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(12.dp)
+                )
+            }
 
-            ImageLoadState.Failed -> Icon(
+            if (framing == ImageFraming.WHOLE) {
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            if (framing == ImageFraming.THUMBNAIL) {
+                // As large as fits, in the thumbnail's shape, showing what the thumbnail shows
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    alignment = focusAlignment(focusX, focusY),
+                    modifier = Modifier
+                        .aspectRatio(THUMBNAIL_WIDTH / THUMBNAIL_HEIGHT, matchHeightConstraintsFirst = true)
+                        .testTag("thumbnail_framed_image")
+                )
+            }
+        } else if (failed) {
+            Icon(
                 imageVector = Icons.Outlined.BrokenImage,
                 contentDescription = "Unable to load image",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.dp
             )
         }
     }
@@ -150,28 +239,35 @@ fun NoImagePlaceholder(
  *
  * @param campsite The campsite to show an image of.
  * @param modifier Sets the size and shape of the image.
+ * @param framing How the image fits the space. Crops to fill it by default.
  */
 @Composable
 fun CampsiteThumbnail(
     campsite: Campsite?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    framing: ImageFraming = ImageFraming.CROP
 ) {
-    val imageId = campsite?.imageIds?.firstOrNull()?.imageId
+    val thumbnail = campsite?.imageIds?.firstOrNull()
 
-    if (imageId == null) {
+    if (thumbnail == null) {
         NoImagePlaceholder(modifier = modifier)
     } else {
         StoredImage(
-            imageId = imageId,
+            imageId = thumbnail.imageId,
             contentDescription = campsite.campsiteName,
+            focusX = thumbnail.focusX,
+            focusY = thumbnail.focusY,
+            framing = framing,
             modifier = modifier
         )
     }
 }
 
 /**
- * Displays a swipeable carousel of a campsite's images, with a page indicator when there
- * is more than one. Shows a placeholder if the campsite has no images.
+ * Displays a carousel of a campsite's images, starting with its thumbnail (the first image).
+ *
+ * When there is more than one image, Previous and Next buttons and a page indicator are
+ * shown, and the images can also be swiped. Shows a placeholder if the campsite has no images.
  *
  * @param campsite The campsite whose images are displayed.
  * @param modifier Sets the size and shape of the carousel.
@@ -189,6 +285,9 @@ fun CampsiteImageCarousel(
     }
 
     val pagerState = rememberPagerState { images.size }
+    val scope = rememberCoroutineScope()
+    val isFirstImage = pagerState.currentPage == 0
+    val isLastImage = pagerState.currentPage == images.size - 1
 
     Box(modifier = modifier.testTag("campsite_image_carousel")) {
         HorizontalPager(
@@ -198,11 +297,44 @@ fun CampsiteImageCarousel(
             StoredImage(
                 imageId = images[page].imageId,
                 contentDescription = "${campsite.campsiteName} image ${page + 1} of ${images.size}",
-                modifier = Modifier.fillMaxSize()
+                focusX = images[page].focusX,
+                focusY = images[page].focusY,
+                // Each photo is framed like the campsite's thumbnail, so the two match
+                framing = ImageFraming.THUMBNAIL,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("carousel_image_${page + 1}")
             )
         }
 
         if (images.size > 1) {
+            if (!isFirstImage) {
+                CarouselButton(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Previous image",
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                        .testTag("carousel_previous")
+                )
+            }
+            if (!isLastImage) {
+                CarouselButton(
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next image",
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp)
+                        .testTag("carousel_next")
+                )
+            }
+
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -232,6 +364,33 @@ fun CampsiteImageCarousel(
 }
 
 /**
+ * Displays a round button over the carousel images for moving between them.
+ *
+ * @param icon The arrow shown on the button.
+ * @param contentDescription Description for accessibility.
+ * @param onClick Called when the button is tapped.
+ * @param modifier Sets the position of the button.
+ */
+@Composable
+private fun CarouselButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f),
+            contentColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = modifier
+    ) {
+        Icon(imageVector = icon, contentDescription = contentDescription)
+    }
+}
+
+/**
  * Displays a user's profile picture as a circle, or a default icon if they have none.
  *
  * @param imageId The ID of the user's profile picture, blank if they have none.
@@ -252,9 +411,11 @@ fun ProfilePicture(
             tint = MaterialTheme.colorScheme.primary
         )
     } else {
+        // The whole picture is shown, so nothing important is cropped out of the small circle
         StoredImage(
             imageId = imageId,
             contentDescription = "Profile picture",
+            framing = ImageFraming.WHOLE,
             modifier = modifier
                 .size(size)
                 .clip(CircleShape)

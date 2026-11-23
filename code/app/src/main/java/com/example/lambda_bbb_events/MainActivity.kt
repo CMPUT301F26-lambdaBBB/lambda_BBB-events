@@ -1,11 +1,19 @@
 package com.example.lambda_bbb_events
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
@@ -13,26 +21,20 @@ import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
+import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
 import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
+import com.example.lambda_bbb_events.model.services.ImageProcessor
+import com.example.lambda_bbb_events.store.CampsiteStore
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import com.example.lambda_bbb_events.model.ImageProcessor
-import com.example.lambda_bbb_events.store.CampsiteStore
-import androidx.compose.runtime.CompositionLocalProvider
-import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
 
 /*
  * Defines the application's main Android activity.
@@ -71,7 +73,11 @@ class MainActivity : ComponentActivity() {
         }
 
         val controllers = AppControllers(
-            users = UserController(userRepository, deviceId),
+            users = UserController(
+                userRepository,
+                deviceId,
+                SharedPreferencesSessionStore(applicationContext)
+            ),
             campsites = CampsiteController(
                 campsiteStore,
                 SqliteRecentlyViewedStore(LocalDatabase(applicationContext))
@@ -83,22 +89,31 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            val systemDarkTheme = isSystemInDarkTheme()
+            // Follow Android's dark mode setting, unless the user picked a theme in the app.
+            // Only their choice is saved, so changing Android's setting still takes effect.
+            var chosenDarkTheme by rememberSaveable {
+                mutableStateOf<Boolean?>(null)
+            }
+            val darkTheme = chosenDarkTheme ?: isSystemInDarkTheme()
 
-            var darkTheme by rememberSaveable {
-                mutableStateOf(systemDarkTheme)
+            // Light or dark status bar icons to match the app's theme, not Android's setting
+            LaunchedEffect(darkTheme) {
+                val barStyle = if (darkTheme) {
+                    SystemBarStyle.dark(Color.TRANSPARENT)
+                } else {
+                    SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                }
+                enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
             }
 
             Lambda_BBBeventsTheme(
                 darkTheme = darkTheme
             ){
-                CompositionLocalProvider(LocalImageProcessor provides controllers.images) {
-                    LambdaEventsApp(
-                        controllers = controllers,
-                        darkTheme = darkTheme,
-                        onDarkThemeChange = { darkTheme = it }
-                    )
-                }
+                LambdaEventsApp(
+                    controllers = controllers,
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = { chosenDarkTheme = it }
+                )
             }
         }
     }

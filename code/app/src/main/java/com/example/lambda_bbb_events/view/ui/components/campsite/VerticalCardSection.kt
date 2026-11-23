@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.campsite.Campsite
 
 /**
  * Displays a section of vertically arranged campsite cards.

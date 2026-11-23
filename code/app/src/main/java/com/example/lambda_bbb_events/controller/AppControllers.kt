@@ -1,7 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.ImageProcessor
-import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.services.ImageProcessor
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 
 /**
  * Groups the application's controllers into a single container.

@@ -3,10 +3,10 @@ package com.example.lambda_bbb_events.model.repository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.model.roles.Admin
-import com.example.lambda_bbb_events.model.roles.CampsiteOwner
-import com.example.lambda_bbb_events.model.roles.Entrant
+import com.example.lambda_bbb_events.model.user.User
+import com.example.lambda_bbb_events.model.user.Admin
+import com.example.lambda_bbb_events.model.user.CampsiteOwner
+import com.example.lambda_bbb_events.model.user.Entrant
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore

@@ -13,17 +13,19 @@ import androidx.navigation.NavController
 /**
  * Goes back one screen, but only if [screenLifecycle] belongs to the screen currently shown.
  *
- * Once a screen starts leaving, its lifecycle drops below [Lifecycle.State.RESUMED], so
- * repeated taps while it animates out are ignored instead of popping the screens behind it.
+ * The screen currently shown is RESUMED. Once a screen starts leaving, it is no longer
+ * RESUMED, so repeated taps while it animates out are ignored instead of popping the
+ * screens behind it.
  *
+ * @param navController The controller used for navigation.
  * @param screenLifecycle The lifecycle of the screen asking to go back.
- * @return `true` if the back stack was popped, `false` if the request was ignored.
+ * @return `true` if the app went back, `false` if the request was ignored.
  */
-fun NavController.popBackStackIfResumed(screenLifecycle: Lifecycle): Boolean {
-    if (!screenLifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+fun goBackIfShown(navController: NavController, screenLifecycle: Lifecycle): Boolean {
+    if (screenLifecycle.currentState != Lifecycle.State.RESUMED) {
         return false
     }
-    return popBackStack()
+    return navController.popBackStack()
 }
 
 /**
@@ -39,6 +41,6 @@ fun NavController.popBackStackIfResumed(screenLifecycle: Lifecycle): Boolean {
 fun rememberBackAction(navController: NavController): () -> Unit {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     return remember(navController, lifecycle) {
-        { navController.popBackStackIfResumed(lifecycle) }
+        { goBackIfShown(navController, lifecycle) }
     }
 }

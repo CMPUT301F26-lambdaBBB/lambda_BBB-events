@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.generateQR
-import com.example.lambda_bbb_events.model.saveBitmapToGallery
+import com.example.lambda_bbb_events.model.services.generateQR
+import com.example.lambda_bbb_events.model.services.saveBitmapToGallery
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
@@ -48,8 +48,7 @@ fun QRCodeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ScreenTitle(

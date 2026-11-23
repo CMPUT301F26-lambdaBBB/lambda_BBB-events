@@ -1,10 +1,16 @@
 package com.example.lambda_bbb_events.controller
 
 import android.util.Patterns
-import com.example.lambda_bbb_events.model.User
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.lambda_bbb_events.model.formatting.parsePhoneNumber
+import com.example.lambda_bbb_events.model.local.InMemorySessionStore
+import com.example.lambda_bbb_events.model.local.SessionStore
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
-import com.example.lambda_bbb_events.model.roles.CampsiteOwner
-import com.example.lambda_bbb_events.model.roles.Entrant
+import com.example.lambda_bbb_events.model.user.CampsiteOwner
+import com.example.lambda_bbb_events.model.user.Entrant
 
 /*
  * Manages user profiles, roles, and notification settings
@@ -17,15 +23,24 @@ import com.example.lambda_bbb_events.model.roles.Entrant
  *
  * @property userRepository The repository for users.
  * @property deviceId The device ID of the user.
+ * @param sessionStore Remembers whether the user has logged out.
  *
  */
 class UserController(
     val userRepository: UserRepository,
-    val deviceId: String
+    val deviceId: String,
+    private val sessionStore: SessionStore = InMemorySessionStore()
 ) {
-    /** The current user, or null if not found. */
+    /** Whether the user has logged out. Kept as Compose state so the screens update. */
+    private var loggedOut by mutableStateOf(sessionStore.loggedOut)
+
+    /** The current user, or null if not found or logged out. */
     val currentUser: User? // null if user not found in database
-        get() = userRepository.getCachedUser(deviceId)
+        get() = if (loggedOut) null else userRepository.getCachedUser(deviceId)
+
+    /** Whether this device has an account, even if the user has logged out of it. */
+    val hasAccountOnDevice: Boolean
+        get() = userRepository.getCachedUser(deviceId) != null
 
     // use this var for signed in user. only use inside the main app when a user exists
     // so we dont need to consider null exceptions
@@ -48,7 +63,8 @@ class UserController(
      * or a user already exists.
      */
     suspend fun createEntrant(name: String, email: String, phone: String): Boolean {
-        if (currentUser != null || !isValidProfile(name, email, phone)) return false
+        // A logged out account still owns this device ID, so signing up would replace it
+        if (hasAccountOnDevice || !isValidProfile(name, email, phone)) return false
 
         userRepository.addUser(
             Entrant(
@@ -58,7 +74,51 @@ class UserController(
                 phone = phone
             )
         )
+        saveLoggedOut(false)
         return true
+    }
+
+    /**
+     * Logs back in to this device's account. Accounts cannot move to other devices, so
+     * the email and phone number are checked against the account made on this device.
+     *
+     * The email is compared ignoring case. Phone numbers are compared by country code and
+     * digits, so formatting differences and numbers saved before country codes were added
+     * still match.
+     *
+     * @param email The account's email address.
+     * @param phone The account's phone number, including its country code.
+     * @return `true` if logged in, `false` if this device has no account or the email or
+     * phone number does not match it.
+     */
+    fun login(email: String, phone: String): Boolean {
+        val account = userRepository.getCachedUser(deviceId) ?: return false
+        val emailMatches = account.email.trim().equals(email.trim(), ignoreCase = true)
+        if (!emailMatches || normalizePhone(account.phone) != normalizePhone(phone)) {
+            return false
+        }
+
+        saveLoggedOut(false)
+        return true
+    }
+
+    /**
+     * Logs out of this device's account. The account is kept, and the user can log back in
+     * with its email and phone number.
+     */
+    fun logOut() {
+        saveLoggedOut(true)
+    }
+
+    private fun saveLoggedOut(value: Boolean) {
+        loggedOut = value
+        sessionStore.loggedOut = value
+    }
+
+    /** Turns a phone number into its country code and digits, such as "+17805551234". */
+    private fun normalizePhone(phone: String): String {
+        val parsed = parsePhoneNumber(phone)
+        return parsed.country.dialCode + parsed.localNumber
     }
 
 
@@ -72,17 +132,30 @@ class UserController(
      * the input is invalid or no user exists.
      */
     suspend fun updateEntrant(name: String, email: String, phone: String): Boolean {
-        if (currentUser == null || !isValidProfile(name, email, phone)) return false
+        val user = currentUser
+        if (user == null || !isValidProfile(name, email, phone)) return false
 
-        userRepository.updateUser(
-            Entrant(
-                deviceId = deviceId,
-                name = name,
-                email = email,
-                phone = phone
-            )
-        )
+        // Change only these details, so the user keeps their role, profile picture,
+        // settings, campsites, and waitlist entries
+        user.updateProfile(name = name, email = email, phone = phone)
+        userRepository.updateUser(user)
         return true
+    }
+
+    /**
+     * Sets the current user's profile picture.
+     *
+     * @param imageId The ID of the uploaded picture, or an empty string to remove it.
+     * @return The ID of the picture it replaced, empty if there was none, or `null` if
+     * there is no signed-in user.
+     */
+    suspend fun updateProfilePicture(imageId: String): String? {
+        val user = currentUser ?: return null
+
+        val oldImageId = user.profilePictureImageId
+        user.profilePictureImageId = imageId
+        userRepository.updateUser(user)
+        return oldImageId
     }
 
     /**

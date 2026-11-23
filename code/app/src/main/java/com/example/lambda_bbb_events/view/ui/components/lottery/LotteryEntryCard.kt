@@ -28,9 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

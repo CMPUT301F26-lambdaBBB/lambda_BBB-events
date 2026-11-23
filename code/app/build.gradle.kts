@@ -38,6 +38,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["MAPS_API_KEY"] = apiKey
+        // Used by the Maps JavaScript API pages shown in WebViews
+        buildConfigField("String", "MAPS_API_KEY", "\"$apiKey\"")
 
     }
 
@@ -53,6 +55,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_25
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
@@ -84,6 +87,7 @@ dependencies {
     implementation(libs.core)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.libphonenumber)
     implementation(libs.maps.compose)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit)

@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.model.user.User
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminProfileListCard
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -78,7 +78,6 @@ fun AdminProfilesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Profiles",

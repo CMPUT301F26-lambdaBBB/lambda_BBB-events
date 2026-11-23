@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
@@ -57,8 +57,7 @@ fun RegistrationStatusScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ScreenTitle(

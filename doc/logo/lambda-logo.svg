@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="title">
+  <title id="title">Lambda logo: a tent shaped like the letter λ under a night sky</title>
+  <defs>
+    <!-- Night sky in the app's primary blue, darkening towards the top -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E3242"/>
+      <stop offset="1" stop-color="#3D647F"/>
+    </linearGradient>
+    <!-- Warm light coming from inside the tent -->
+    <radialGradient id="glow" cx="0.5" cy="0.85" r="0.75">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="1" stop-color="#F2A93B"/>
+    </radialGradient>
+    <clipPath id="badge">
+      <rect width="512" height="512" rx="112"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#badge)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+
+    <!-- Moon and stars -->
+    <path d="M392 92a44 44 0 1 0 34 72a36 36 0 1 1-34-72z" fill="#E6EDF3"/>
+    <circle cx="112" cy="104" r="5" fill="#E6EDF3"/>
+    <circle cx="168" cy="64" r="3.5" fill="#E6EDF3" opacity="0.8"/>
+    <circle cx="300" cy="84" r="4" fill="#E6EDF3" opacity="0.9"/>
+    <circle cx="84" cy="196" r="3" fill="#E6EDF3" opacity="0.7"/>
+    <circle cx="446" cy="236" r="3.5" fill="#E6EDF3" opacity="0.8"/>
+
+    <!-- Hills -->
+    <path d="M0 360 C90 318 170 330 256 352 C342 374 420 336 512 318 V512 H0z" fill="#2B4659"/>
+    <path d="M0 404 C120 384 220 392 300 404 C380 416 450 400 512 392 V512 H0z" fill="#1E3242"/>
+
+    <!-- Light in the tent's doorway -->
+    <path d="M276 292 L236 404 H316 Z" fill="url(#glow)"/>
+
+    <!-- The tent, drawn as a lambda: the long stroke is the main pole, which pokes out
+         above the peak, and the short stroke is the other side of the tent -->
+    <g fill="none" stroke="#F6F8FA" stroke-linecap="round" stroke-linejoin="round" stroke-width="34">
+      <path d="M188 120 L355 390"/>
+      <path d="M262 240 L158 390"/>
+    </g>
+
+    <!-- Ground the tent stands on -->
+    <path d="M116 404 H396" stroke="#F6F8FA" stroke-width="14" stroke-linecap="round"/>
+  </g>
+</svg>

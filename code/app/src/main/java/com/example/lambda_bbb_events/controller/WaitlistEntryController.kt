@@ -1,8 +1,8 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 
 /**

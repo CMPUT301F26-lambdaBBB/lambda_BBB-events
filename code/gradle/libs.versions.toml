@@ -11,6 +11,7 @@ kotlinxCoroutinesTest = "1.11.0"
 lifecycleRuntimeKtx = "2.11.1"
 activityCompose = "1.13.0"
 kotlin = "2.4.21"
+libphonenumber = "9.0.43"
 composeBom = "2026.11.01"
 mapsCompose = "9.0.1"
 mockk = "1.14.12"
@@ -44,6 +45,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }

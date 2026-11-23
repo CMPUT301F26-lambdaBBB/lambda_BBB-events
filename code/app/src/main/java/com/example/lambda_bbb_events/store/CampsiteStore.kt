@@ -2,9 +2,9 @@ package com.example.lambda_bbb_events.store
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +57,8 @@ class CampsiteStore(
                 rating = rating,
                 ratingCount = ratingCount,
                 availability = availability,
-                active = active
+                active = active,
+                createdAt = System.currentTimeMillis()
             )
 
             campsites[campsite.campsiteId] = campsite
@@ -84,6 +85,22 @@ class CampsiteStore(
         catch (e: Exception) {
             returnMessage.value = e.message.toString()
             return false
+        }
+    }
+
+    /**
+     * Archives every campsite owned by a user by setting it inactive, and waits until
+     * Firestore has saved it. The campsites stay in [campsites] so records can still show them.
+     *
+     * @param ownerId The device ID of the owner.
+     * @throws Exception if Firestore fails, in which case no campsite is archived.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String) {
+        for (campsite in campsiteRepo.archiveCampsitesByOwner(ownerId)) {
+            // Campsite.equals ignores `active`, so the map would keep the old copy if the
+            // archived one were just put over it
+            campsites.remove(campsite.campsiteId)
+            campsites[campsite.campsiteId] = campsite
         }
     }
 

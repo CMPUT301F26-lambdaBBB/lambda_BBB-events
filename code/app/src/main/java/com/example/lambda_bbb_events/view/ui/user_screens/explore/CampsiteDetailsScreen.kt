@@ -26,11 +26,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.generateQR
+import com.example.lambda_bbb_events.model.services.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import androidx.compose.ui.draw.clip
+import com.example.lambda_bbb_events.view.ui.components.map.CampsiteMap
 /*
  * Displays campsite information, including ratings, location,
  * tags, description, and reservation availability.
@@ -87,15 +88,18 @@ fun CampsiteDetailsScreen(
         generateQR(campsiteId, 300, 300)
     }
 
-    if (campsite == null) {
+    // Archived campsites are kept for records but cannot be viewed or booked, even from
+    // an old link or QR code
+    if (campsite == null || !campsite.active) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.background)
+                .testTag("campsiteUnavailable"),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Campsite not found",
+                text = if (campsite == null) "Campsite not found" else "This campsite is no longer available",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -108,7 +112,6 @@ fun CampsiteDetailsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("screen_campsite_details")
-            .padding(horizontal = 16.dp)
     ) {
         // Fixed title
         ScreenTitle(
@@ -300,22 +303,13 @@ fun CampsiteDetailsScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    Box(
+                    CampsiteMap(
+                        campsites = listOf(campsite),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(320.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(12.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Google Map",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                            .clip(RoundedCornerShape(12.dp))
+                    )
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant
