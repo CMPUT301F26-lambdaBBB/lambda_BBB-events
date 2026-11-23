@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -84,5 +85,13 @@ class HomeScreenUITest {
     fun featuredCampsitesIsDisplayed() {
         composeTestRule.onNodeWithTag("featuredCampsitesSection")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun recentlyAddedIsDisplayed() {
+        composeTestRule.onNodeWithTag("recentlyAddedSection")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Recently Added").assertExists()
     }
 }

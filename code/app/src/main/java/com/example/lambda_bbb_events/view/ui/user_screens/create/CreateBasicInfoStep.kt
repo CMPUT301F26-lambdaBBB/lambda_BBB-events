@@ -1,5 +1,7 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,10 +23,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CenterFocusStrong
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
@@ -35,20 +39,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.example.lambda_bbb_events.model.services.decodePhoto
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.PhotoFocusDialog
 
 /** Most digits the max occupancy can have, so the value always fits in an Int. */
 internal const val MAX_OCCUPANCY_DIGITS = 4
@@ -61,6 +70,23 @@ internal fun CreateBasicInfoStep(
     var showOccupancyError by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
     var isAddingTag by remember { mutableStateOf(false) }
+
+    // The photo whose focus point is being chosen, and that photo loaded for the dialog
+    val context = LocalContext.current
+    var focusingUri by remember { mutableStateOf<Uri?>(null) }
+    var focusingPhoto by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(focusingUri) {
+        val uri = focusingUri
+        focusingPhoto = null
+        if (uri != null) {
+            try {
+                focusingPhoto = decodePhoto(context, uri, maxSize = 1080)
+            } catch (e: Exception) {
+                // The photo could not be read, so there is nothing to choose a focus on
+                focusingUri = null
+            }
+        }
+    }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
@@ -247,9 +273,27 @@ internal fun CreateBasicInfoStep(
                                 .align(Alignment.TopEnd)
                                 .clickable { form.selectedImageUris.remove(uri) }
                         )
+                        Icon(
+                            imageVector = Icons.Default.CenterFocusStrong,
+                            contentDescription = "Choose what stays in view",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(2.dp)
+                                .size(22.dp)
+                                .clickable { focusingUri = uri }
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .padding(3.dp)
+                                .testTag("create_photo_focus_$index")
+                        )
                     }
                 }
             }
+            Text(
+                text = "Tap the target button on a photo to choose what stays in view when it is cropped.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             if (form.selectedImageUris.size > 1) {
                 Text(
                     text = "The thumbnail is shown on campsite cards. Tap another photo to make it the thumbnail.",
@@ -319,5 +363,21 @@ internal fun CreateBasicInfoStep(
             Text("Add Locations →", style = MaterialTheme.typography.labelLarge)
         }
         Spacer(modifier = Modifier.height(24.dp))
+    }
+
+    val uri = focusingUri
+    val photo = focusingPhoto
+    if (uri != null && photo != null) {
+        val focus = form.photoFocus[uri] ?: Offset(0.5f, 0.5f)
+        PhotoFocusDialog(
+            photo = photo,
+            initialFocusX = focus.x,
+            initialFocusY = focus.y,
+            onDismiss = { focusingUri = null },
+            onSave = { x, y ->
+                form.photoFocus[uri] = Offset(x, y)
+                focusingUri = null
+            }
+        )
     }
 }

@@ -2,6 +2,7 @@ package com.example.lambda_bbb_events.data
 
 import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -105,6 +106,27 @@ class CampsiteRepositoryTests {
         assertTrue(first.campsiteId in all)
         assertFalse(second.campsiteId in all)
         assertEquals(listOf(first.campsiteId), all.values.filter { it.ownerId == ownerId }.map { it.campsiteId })
+    }
+
+    @Test
+    fun photoFocusPointsSurviveTheRoundTrip() = runTest {
+        val photo = ImageMetaData(imageId = "photo-1", focusX = 0.25f, focusY = 0.8f)
+        val campsite = newCampsite().copy(imageIds = listOf(photo))
+
+        repository.addCampsite(campsite)
+        val stored = repository.get(campsite.campsiteId)?.imageIds?.first()
+
+        assertEquals(0.25f, stored?.focusX)
+        assertEquals(0.8f, stored?.focusY)
+    }
+
+    @Test
+    fun creationTimeSurvivesTheRoundTrip() = runTest {
+        val campsite = newCampsite().copy(createdAt = 1_795_000_000_000L)
+
+        repository.addCampsite(campsite)
+
+        assertEquals(1_795_000_000_000L, repository.get(campsite.campsiteId)?.createdAt)
     }
 
     @Test

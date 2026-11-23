@@ -12,12 +12,18 @@ package com.example.lambda_bbb_events.model.image
  * @property uploaderUserId The ID of the user who uploaded the image.
  * @property chunkCount The number of chunks the image was split into.
  * @property uploadTimestamp The timestamp of when the image was uploaded.
+ * @property focusX How far across the image its most important part is, from 0 (left edge)
+ * to 1 (right edge). When the image is cropped to fit a space, this part stays in view.
+ * @property focusY How far down the image its most important part is, from 0 (top edge)
+ * to 1 (bottom edge).
  */
 data class ImageMetaData(
     val imageId: String = "",
     val uploaderUserId: String = "",
     val chunkCount: Int = 0,
-    val uploadTimestamp: Long = System.currentTimeMillis()
+    val uploadTimestamp: Long = System.currentTimeMillis(),
+    val focusX: Float = 0.5f,
+    val focusY: Float = 0.5f
 )
 
 data class ImageChunk(

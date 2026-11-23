@@ -3,14 +3,22 @@ package com.example.lambda_bbb_events.controller
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
+import com.example.lambda_bbb_events.model.user.User
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -287,5 +295,32 @@ class UserControllerTest {
         coVerify(exactly = 0) {
             repository.updateUser(any())
         }
+    }
+
+    @Test
+    fun updateEntrantKeepsRolePictureAndCampsites() = runTest {
+        val owner = CampsiteOwner(
+            deviceId = deviceId,
+            name = "Olive",
+            email = "olive@example.com",
+            phone = "7805551234",
+            profilePictureImageId = "img-1",
+            notificationsEnabled = false,
+            ownedCampsiteIds = listOf("site-1")
+        )
+        every { repository.getCachedUser(deviceId) } returns owner
+        val saved = slot<User>()
+        coEvery { repository.updateUser(capture(saved)) } just runs
+
+        controller.updateEntrant("Olivia", "olivia@example.com", "7805550000")
+
+        val updated = saved.captured
+        assertTrue(updated is CampsiteOwner)
+        assertEquals("Olivia", updated.name)
+        assertEquals("olivia@example.com", updated.email)
+        assertEquals("7805550000", updated.phone)
+        assertEquals("img-1", updated.profilePictureImageId)
+        assertFalse(updated.notificationsEnabled)
+        assertEquals(listOf("site-1"), (updated as CampsiteOwner).ownedCampsiteIds)
     }
 }

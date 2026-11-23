@@ -146,4 +146,34 @@ class UserControllerUnitTest {
 
         coVerify(exactly = 1) { repository.deleteUser(entrant) }
     }
+
+    @Test
+    fun updateProfilePictureSavesNewPictureAndReturnsOldOne() = runTest {
+        signIn(entrant)
+        val saved = slot<User>()
+        coEvery { repository.updateUser(capture(saved)) } just runs
+
+        val oldPicture = controller.updateProfilePicture("img-2")
+
+        assertEquals("img-1", oldPicture)
+        assertEquals("img-2", saved.captured.profilePictureImageId)
+        assertEquals("Ed", saved.captured.name)
+    }
+
+    @Test
+    fun removingProfilePictureSavesEmptyId() = runTest {
+        signIn(entrant)
+        val saved = slot<User>()
+        coEvery { repository.updateUser(capture(saved)) } just runs
+
+        controller.updateProfilePicture("")
+
+        assertEquals("", saved.captured.profilePictureImageId)
+    }
+
+    @Test
+    fun updateProfilePictureWithoutUserDoesNothing() = runTest {
+        assertNull(controller.updateProfilePicture("img-2"))
+        coVerify(exactly = 0) { repository.updateUser(any()) }
+    }
 }

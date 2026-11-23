@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
+import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_HEIGHT
+import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_WIDTH
 
 /*
  * Defines a clickable campsite card.
@@ -56,7 +58,7 @@ fun VerticalCampsiteCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(130.dp)
+            .height(THUMBNAIL_HEIGHT)
             .clip(cardShape)
             .border(
                 width = 1.dp,
@@ -70,7 +72,7 @@ fun VerticalCampsiteCard(
         CampsiteThumbnail(
             campsite = campsite,
             modifier = Modifier
-                .width(120.dp)
+                .width(THUMBNAIL_WIDTH)
                 .fillMaxHeight()
         )
         Column(

@@ -1,7 +1,9 @@
 
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,11 +38,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.PhotoFocusDialog
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.common.StoredImage
+import com.example.lambda_bbb_events.view.ui.components.common.loadStoredImage
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 import com.example.lambda_bbb_events.view.ui.user_screens.create.MAX_OCCUPANCY_DIGITS
 
@@ -99,6 +109,11 @@ fun EditCampsiteScreen(
         campsite.tags.toMutableStateList()
     }
 
+    // The photos, kept here so a changed focus point shows straight away
+    var photos by remember(campsiteId) {
+        mutableStateOf(campsite.imageIds)
+    }
+
     var showError by remember(campsiteId) {
         mutableStateOf(false)
     }
@@ -132,12 +147,25 @@ fun EditCampsiteScreen(
 
             // Photos
             CampsiteImageCarousel(
-                campsite = campsite,
+                campsite = campsite.copy(imageIds = photos),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(16.dp))
             )
+
+            if (photos.isNotEmpty()) {
+                PhotoFocusRow(
+                    photos = photos,
+                    onFocusChange = { changed ->
+                        val updated = photos.map { photo ->
+                            if (photo.imageId == changed.imageId) changed else photo
+                        }
+                        photos = updated
+                        controllers.campsites.updateCampsite(campsiteId, campsite.copy(imageIds = updated))
+                    }
+                )
+            }
 
             OutlinedButton(
                 onClick = {
@@ -292,5 +320,69 @@ fun EditCampsiteScreen(
                 )
             }
         }
+    }
+}
+
+/**
+ * Displays a campsite's photos so the owner can tap one and choose what stays in view when
+ * it is cropped on cards and thumbnails.
+ *
+ * @param photos The campsite's photos.
+ * @param onFocusChange Called with a photo whose focus point was changed.
+ */
+@Composable
+private fun PhotoFocusRow(
+    photos: List<ImageMetaData>,
+    onFocusChange: (ImageMetaData) -> Unit
+) {
+    // The photo being changed, and that photo loaded for the dialog
+    var editing by remember { mutableStateOf<ImageMetaData?>(null) }
+    var loadedPhoto by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(editing) {
+        loadedPhoto = null
+        val photo = editing
+        if (photo != null) {
+            loadedPhoto = loadStoredImage(photo.imageId, maxSize = 1080)
+            if (loadedPhoto == null) {
+                // The photo could not be loaded, so there is nothing to choose a focus on
+                editing = null
+            }
+        }
+    }
+
+    Text(
+        text = "Tap a photo to choose what stays in view on cards.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        itemsIndexed(photos) { index, photo ->
+            StoredImage(
+                imageId = photo.imageId,
+                contentDescription = "Photo ${index + 1}",
+                focusX = photo.focusX,
+                focusY = photo.focusY,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { editing = photo }
+                    .testTag("edit_photo_focus_$index")
+            )
+        }
+    }
+
+    val photo = editing
+    val bitmap = loadedPhoto
+    if (photo != null && bitmap != null) {
+        PhotoFocusDialog(
+            photo = bitmap,
+            initialFocusX = photo.focusX,
+            initialFocusY = photo.focusY,
+            onDismiss = { editing = null },
+            onSave = { x, y ->
+                onFocusChange(photo.copy(focusX = x, focusY = y))
+                editing = null
+            }
+        )
     }
 }

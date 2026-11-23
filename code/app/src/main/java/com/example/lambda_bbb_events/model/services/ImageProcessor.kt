@@ -199,10 +199,23 @@ class ImageProcessor(
         return options.outWidth
     }
 
+    /**
+     * Shrinks an image, splits it into chunks, and uploads it.
+     *
+     * @param imageId The ID to store the image under.
+     * @param uploaderUserId The ID of the user uploading it.
+     * @param bitmap The image.
+     * @param focusX How far across the image its most important part is, from 0 to 1.
+     * @param focusY How far down the image its most important part is, from 0 to 1.
+     * @return The uploaded image's details.
+     * @throws IllegalStateException if the upload failed.
+     */
     suspend fun uploadImage(
         imageId: String,
         uploaderUserId: String,
-        bitmap: Bitmap
+        bitmap: Bitmap,
+        focusX: Float = 0.5f,
+        focusY: Float = 0.5f
     ): ImageMetaData {
 
         // Shrinking and compressing a photo is slow, so it is done off the main thread
@@ -211,10 +224,29 @@ class ImageProcessor(
             splitImage(imageId, scaledBitmap)
         }
 
-        val metadata = ImageMetaData(imageId = imageId, uploaderUserId = uploaderUserId, chunkCount = chunks.size)
+        val metadata = ImageMetaData(
+            imageId = imageId,
+            uploaderUserId = uploaderUserId,
+            chunkCount = chunks.size,
+            focusX = focusX,
+            focusY = focusY
+        )
 
-        imageRepository.uploadImage(metadata = metadata, chunks = chunks)
+        val uploaded = imageRepository.uploadImage(metadata = metadata, chunks = chunks)
+        if (!uploaded) {
+            throw IllegalStateException("Could not upload the image.")
+        }
 
         return metadata
+    }
+
+    /**
+     * Deletes an uploaded image.
+     *
+     * @param imageId The ID of the image to delete.
+     * @return `true` if it was deleted, `false` if deleting it failed.
+     */
+    suspend fun deleteImage(imageId: String): Boolean {
+        return imageRepository.deleteImage(imageId)
     }
 }

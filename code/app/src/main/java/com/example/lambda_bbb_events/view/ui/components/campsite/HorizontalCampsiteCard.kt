@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
+import com.example.lambda_bbb_events.view.ui.components.common.ImageFraming
 
 /*
  * Defines a compact campsite card for horizontally scrolling lists.
@@ -65,8 +66,10 @@ fun HorizontalCampsiteCard(
             .testTag("horizontal_campsite_card_${campsite.campsiteId}")
     ) {
         // Campsite image
+        // Framed like the list thumbnail and campsite details, so they all match
         CampsiteThumbnail(
             campsite = campsite,
+            framing = ImageFraming.THUMBNAIL,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(130.dp)

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Lambda_BBBevents" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+    The window shown while the app starts, before the app draws its own screen. Its
+    background matches the app's background so there is no flash of a different colour.
+    res/values-night/themes.xml has the dark version, used when Android is in dark mode.
+    -->
+    <style name="Theme.Lambda_BBBevents" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
 </resources>

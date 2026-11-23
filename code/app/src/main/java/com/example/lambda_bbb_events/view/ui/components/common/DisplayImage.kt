@@ -1,11 +1,13 @@
 package com.example.lambda_bbb_events.view.ui.components.common
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.asImageBitmap
@@ -49,8 +52,40 @@ import kotlinx.coroutines.launch
  * Provides reusable composables for displaying images stored in the database.
  */
 
+/** Width of the photo on list cards, the campsite's thumbnail. */
+val THUMBNAIL_WIDTH = 120.dp
+
+/** Height of list cards, and so of their thumbnail. */
+val THUMBNAIL_HEIGHT = 130.dp
+
+/**
+ * How a stored image fits the space it is shown in.
+ */
+enum class ImageFraming {
+    /** Fills the space, cropping around the image's focus point. */
+    CROP,
+
+    /** Shows the whole image, with a blurred copy filling the space around it. */
+    WHOLE,
+
+    /**
+     * Shows exactly what the campsite's thumbnail shows, the same shape cropped around the
+     * same focus point, with a blurred copy filling the space around it.
+     */
+    THUMBNAIL
+}
+
 /** Loads every image shown on screen, shared so each loaded image is cached once for the whole app. */
 private val sharedImageProcessor = ImageProcessor()
+
+/**
+ * Loads a stored image no wider or taller than [maxSize] pixels, such as for editing it.
+ *
+ * @return The image, or `null` if it could not be loaded.
+ */
+suspend fun loadStoredImage(imageId: String, maxSize: Int): Bitmap? {
+    return sharedImageProcessor.getBitmap(imageId, maxSize, maxSize)
+}
 
 /**
  * Displays an image stored in the database, filling the space given by [modifier].
@@ -58,17 +93,24 @@ private val sharedImageProcessor = ImageProcessor()
  * The image is decoded at the size it is drawn at, and a themed loading indicator or
  * error icon fills the same space until it is ready. [modifier] should give a bounded size.
  *
+ * By default the image is cropped to fill the space, keeping its focus point in view. See
+ * [ImageFraming] for the other ways it can fit.
+ *
  * @param imageId The ID of the image to display.
  * @param modifier Sets the size and shape of the image.
  * @param contentDescription Description for accessibility.
- * @param contentScale How the image is scaled into its bounds. Crops to fill by default.
+ * @param focusX How far across the image its most important part is, from 0 to 1.
+ * @param focusY How far down the image its most important part is, from 0 to 1.
+ * @param framing How the image fits the space.
  */
 @Composable
 fun StoredImage(
     imageId: String,
     modifier: Modifier = Modifier,
     contentDescription: String = "",
-    contentScale: ContentScale = ContentScale.Crop
+    focusX: Float = 0.5f,
+    focusY: Float = 0.5f,
+    framing: ImageFraming = ImageFraming.CROP
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -103,12 +145,49 @@ fun StoredImage(
 
         val loadedBitmap = bitmap
         if (loadedBitmap != null) {
-            Image(
-                bitmap = loadedBitmap.asImageBitmap(),
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = Modifier.fillMaxSize()
-            )
+            val image = loadedBitmap.asImageBitmap()
+
+            if (framing == ImageFraming.CROP) {
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    alignment = focusAlignment(focusX, focusY),
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // A blurred copy fills the space around the image
+                Image(
+                    bitmap = image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(12.dp)
+                )
+            }
+
+            if (framing == ImageFraming.WHOLE) {
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            if (framing == ImageFraming.THUMBNAIL) {
+                // As large as fits, in the thumbnail's shape, showing what the thumbnail shows
+                Image(
+                    bitmap = image,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    alignment = focusAlignment(focusX, focusY),
+                    modifier = Modifier
+                        .aspectRatio(THUMBNAIL_WIDTH / THUMBNAIL_HEIGHT, matchHeightConstraintsFirst = true)
+                        .testTag("thumbnail_framed_image")
+                )
+            }
         } else if (failed) {
             Icon(
                 imageVector = Icons.Outlined.BrokenImage,
@@ -160,20 +239,25 @@ fun NoImagePlaceholder(
  *
  * @param campsite The campsite to show an image of.
  * @param modifier Sets the size and shape of the image.
+ * @param framing How the image fits the space. Crops to fill it by default.
  */
 @Composable
 fun CampsiteThumbnail(
     campsite: Campsite?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    framing: ImageFraming = ImageFraming.CROP
 ) {
-    val imageId = campsite?.imageIds?.firstOrNull()?.imageId
+    val thumbnail = campsite?.imageIds?.firstOrNull()
 
-    if (imageId == null) {
+    if (thumbnail == null) {
         NoImagePlaceholder(modifier = modifier)
     } else {
         StoredImage(
-            imageId = imageId,
+            imageId = thumbnail.imageId,
             contentDescription = campsite.campsiteName,
+            focusX = thumbnail.focusX,
+            focusY = thumbnail.focusY,
+            framing = framing,
             modifier = modifier
         )
     }
@@ -213,6 +297,10 @@ fun CampsiteImageCarousel(
             StoredImage(
                 imageId = images[page].imageId,
                 contentDescription = "${campsite.campsiteName} image ${page + 1} of ${images.size}",
+                focusX = images[page].focusX,
+                focusY = images[page].focusY,
+                // Each photo is framed like the campsite's thumbnail, so the two match
+                framing = ImageFraming.THUMBNAIL,
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("carousel_image_${page + 1}")
@@ -323,9 +411,11 @@ fun ProfilePicture(
             tint = MaterialTheme.colorScheme.primary
         )
     } else {
+        // The whole picture is shown, so nothing important is cropped out of the small circle
         StoredImage(
             imageId = imageId,
             contentDescription = "Profile picture",
+            framing = ImageFraming.WHOLE,
             modifier = modifier
                 .size(size)
                 .clip(CircleShape)

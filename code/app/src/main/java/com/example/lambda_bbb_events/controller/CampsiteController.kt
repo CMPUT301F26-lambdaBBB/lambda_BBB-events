@@ -30,6 +30,10 @@ class CampsiteController(
     companion object {
         const val MAX_RECENTLY_VIEWED = 10
         const val MAX_FEATURED = 10
+
+        /** The lowest average rating, in stars, that counts as positive reviews. */
+        const val MIN_FEATURED_RATING = 4f
+        const val MAX_RECENTLY_ADDED = 10
     }
 
     private var _searchQuery = ""
@@ -88,15 +92,35 @@ class CampsiteController(
             return result
         }
 
-    /** Active campsites with the highest ratings, best first. */
+    /**
+     * Active campsites ranked by their reviews. Campsites with positive reviews (an average
+     * of at least [MIN_FEATURED_RATING] stars) come first, and within each group the
+     * campsites with the most points from reviews come first. Campsites with equal points
+     * are ordered by average rating, then newest first, so until campsites are reviewed this
+     * is the same as the most recently added.
+     *
+     * @see Campsite.totalPoints
+     */
     val featuredCampsites: List<Campsite>
         get() = campsites.values
             .filter { it.active }
             .sortedWith(
-                compareByDescending<Campsite> { it.rating }
-                    .thenByDescending { it.ratingCount }
+                compareByDescending<Campsite> { hasPositiveReviews(it) }
+                    .thenByDescending { it.totalPoints() }
+                    .thenByDescending { it.rating }
+                    .thenByDescending { it.createdAt }
             )
             .take(MAX_FEATURED)
+
+    /**
+     * Active campsites, newest first. Campsites created before creation times were
+     * recorded come last.
+     */
+    val recentlyAddedCampsites: List<Campsite>
+        get() = campsites.values
+            .filter { it.active }
+            .sortedByDescending { it.createdAt }
+            .take(MAX_RECENTLY_ADDED)
 
     /**
      * Records that a campsite was viewed, moving it to the front of [recentlyViewed]
@@ -119,6 +143,11 @@ class CampsiteController(
         scope.launch {
             recentlyViewedStore.record(campsiteId, viewedAt, MAX_RECENTLY_VIEWED)
         }
+    }
+
+    /** Whether a campsite has been reviewed and averages at least [MIN_FEATURED_RATING] stars. */
+    private fun hasPositiveReviews(campsite: Campsite): Boolean {
+        return campsite.ratingCount > 0 && campsite.rating >= MIN_FEATURED_RATING
     }
 
     private fun trimRecentlyViewed() {

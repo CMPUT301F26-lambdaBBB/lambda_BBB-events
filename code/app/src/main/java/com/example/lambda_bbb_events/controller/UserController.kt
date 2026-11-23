@@ -72,17 +72,30 @@ class UserController(
      * the input is invalid or no user exists.
      */
     suspend fun updateEntrant(name: String, email: String, phone: String): Boolean {
-        if (currentUser == null || !isValidProfile(name, email, phone)) return false
+        val user = currentUser
+        if (user == null || !isValidProfile(name, email, phone)) return false
 
-        userRepository.updateUser(
-            Entrant(
-                deviceId = deviceId,
-                name = name,
-                email = email,
-                phone = phone
-            )
-        )
+        // Change only these details, so the user keeps their role, profile picture,
+        // settings, campsites, and waitlist entries
+        user.updateProfile(name = name, email = email, phone = phone)
+        userRepository.updateUser(user)
         return true
+    }
+
+    /**
+     * Sets the current user's profile picture.
+     *
+     * @param imageId The ID of the uploaded picture, or an empty string to remove it.
+     * @return The ID of the picture it replaced, empty if there was none, or `null` if
+     * there is no signed-in user.
+     */
+    suspend fun updateProfilePicture(imageId: String): String? {
+        val user = currentUser ?: return null
+
+        val oldImageId = user.profilePictureImageId
+        user.profilePictureImageId = imageId
+        userRepository.updateUser(user)
+        return oldImageId
     }
 
     /**

@@ -57,7 +57,8 @@ class CampsiteStore(
                 rating = rating,
                 ratingCount = ratingCount,
                 availability = availability,
-                active = active
+                active = active,
+                createdAt = System.currentTimeMillis()
             )
 
             campsites[campsite.campsiteId] = campsite

@@ -74,4 +74,15 @@ class CampsiteStoreUnitTest {
         assertEquals("Success", message.value)
         coVerify(exactly = 1) { repo.deleteCampsite("site-1") }
     }
+
+    @Test
+    fun newCampsitesRecordWhenTheyWereCreated() = scope.runTest {
+        val before = System.currentTimeMillis()
+
+        store.addCampsite(campsiteId = "site-3", campsiteName = "Meadow", returnMessage = mutableStateOf(""))
+
+        val createdAt = store.campsites.getValue("site-3").createdAt
+        assertTrue(createdAt >= before)
+        assertTrue(createdAt <= System.currentTimeMillis())
+    }
 }

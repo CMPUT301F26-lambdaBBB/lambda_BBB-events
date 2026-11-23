@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.model.campsite
 
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -29,5 +30,19 @@ class CampsiteUnitTest {
         assertTrue(Campsite(latitude = 53.5, longitude = -113.5).hasLocation())
         assertTrue(Campsite(latitude = 0.0, longitude = -113.5).hasLocation())
         assertTrue(Campsite(latitude = 53.5, longitude = 0.0).hasLocation())
+    }
+
+    @Test
+    fun photosKeepTheirCentreInViewUntilAFocusIsChosen() {
+        val photo = ImageMetaData(imageId = "photo-1")
+
+        assertEquals(0.5f, photo.focusX)
+        assertEquals(0.5f, photo.focusY)
+    }
+
+    @Test
+    fun totalPointsAreAllStarsReceived() {
+        assertEquals(135f, Campsite(rating = 4.5f, ratingCount = 30).totalPoints(), 0.001f)
+        assertEquals(0f, Campsite().totalPoints(), 0.001f)
     }
 }

@@ -168,6 +168,24 @@ fun HomeScreen(
                         }
                     )
                 }
+
+                Box(
+                    modifier = Modifier.testTag("recentlyAddedSection")
+                ) {
+                    HorizontalCardSection(
+                        title = "Recently Added",
+                        campsites = controllers.campsites.recentlyAddedCampsites,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        emptyMessage = "New campsites will appear here.",
+                        onSeeAll = {
+                            // TODO: Implement See All navigation.
+                        }
+                    )
+                }
             }
         }
     }

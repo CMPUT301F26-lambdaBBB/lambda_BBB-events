@@ -31,6 +31,7 @@ import java.time.LocalDate
  * @property ratingCount The number of ratings of the campsite.
  * @property availability The campsite's availability schedule.
  * @property active Whether the campsite listing is active.
+ * @property createdAt When the campsite was created, in milliseconds since 1970.
  */
 data class FirestoreCampsite(
     val campsiteId: String = "",
@@ -48,7 +49,8 @@ data class FirestoreCampsite(
     val rating: Float = 0f, // average
     val ratingCount: Int = 0,
     val availability: FirestoreAvailabilitySchedule = FirestoreAvailabilitySchedule(),
-    var active: Boolean = true
+    var active: Boolean = true,
+    val createdAt: Long = 0L
 )
 
 data class FirestoreAvailabilitySchedule(
@@ -77,7 +79,8 @@ fun Campsite.toFirestore() = FirestoreCampsite(
     availability = FirestoreAvailabilitySchedule(
         dates = availability.dates.mapKeys { it.key.toString() }.toMutableMap()
     ),
-    active = active
+    active = active,
+    createdAt = createdAt
 )
 
 /**
@@ -104,7 +107,8 @@ fun FirestoreCampsite.toCampsite(id: String = campsiteId) = Campsite(
     availability = AvailabilitySchedule(
         dates = availability.dates.mapKeys { LocalDate.parse(it.key) }.toMutableMap()
     ),
-    active = active
+    active = active,
+    createdAt = createdAt
 )
 
 /**

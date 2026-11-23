@@ -1,8 +1,5 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
-import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
-import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,11 +33,8 @@ import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndicator
 import androidx.compose.ui.platform.LocalContext
 import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
-import android.content.Context
-import android.graphics.Bitmap
-import android.net.Uri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.lambda_bbb_events.model.services.decodePhoto
+import androidx.compose.ui.geometry.Offset
 
 
 /**
@@ -149,12 +143,15 @@ fun CreateScreen(
                                             val imageMetaData = mutableListOf<ImageMetaData>()
 
                                             for (uri in form.selectedImageUris) {
-                                                val bitmap = decodeSelectedPhoto(context, uri)
+                                                val bitmap = decodePhoto(context, uri)
+                                                val focus = form.photoFocus[uri] ?: Offset(0.5f, 0.5f)
 
                                                 imageMetaData += imageProcessor.uploadImage(
                                                     imageId = UUID.randomUUID().toString(),
                                                     uploaderUserId = ownerId,
-                                                    bitmap = bitmap
+                                                    bitmap = bitmap,
+                                                    focusX = focus.x,
+                                                    focusY = focus.y
                                                 )
                                             }
 
@@ -201,28 +198,6 @@ fun CreateScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-/**
- * Reads a photo the user picked into a bitmap. Reading a large photo is slow, so it is done
- * off the main thread to keep the screen responsive.
- *
- * @param context Used to open the photo.
- * @param uri The picked photo.
- * @return The photo as a bitmap.
- */
-private suspend fun decodeSelectedPhoto(context: Context, uri: Uri): Bitmap {
-    return withContext(Dispatchers.IO) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
-        } else {
-            val stream = context.contentResolver.openInputStream(uri)
-                ?: throw IllegalStateException("Could not read the selected image.")
-            val decoded = BitmapFactory.decodeStream(stream)
-            stream.close()
-            decoded
         }
     }
 }
