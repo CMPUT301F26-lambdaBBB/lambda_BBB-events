@@ -41,7 +41,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
  * Defines the home screen with campsite searching,
  * filtering, and featured listing sections.
  *
- * TODO: Display actual recently viewed and featured campsites.
  * TODO: Implement the See All actions for both sections.
  */
 
@@ -140,6 +139,13 @@ fun HomeScreen(
                 ) {
                     HorizontalCardSection(
                         title = "Recently Viewed",
+                        campsites = controllers.campsites.recentlyViewed,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        emptyMessage = "Campsites you view will appear here.",
                         onSeeAll = {
                             // TODO: Implement See All navigation.
                         }
@@ -151,6 +157,12 @@ fun HomeScreen(
                 ) {
                     HorizontalCardSection(
                         title = "Featured Campsites",
+                        campsites = controllers.campsites.featuredCampsites,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
                         onSeeAll = {
                             // TODO: Implement See All navigation.
                         }

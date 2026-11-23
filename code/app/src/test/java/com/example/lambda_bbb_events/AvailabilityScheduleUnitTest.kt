@@ -1,187 +1,108 @@
 package com.example.lambda_bbb_events
 
 import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import org.junit.Test
-import org.junit.Assert.assertTrue
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import java.time.LocalDate
 
 
 class AvailabilityScheduleUnitTest {
-    @Test
-    fun checkingLocalDatesWithEmptySchedule() {
-        val availabilitySchedule = AvailabilitySchedule()
+    private fun day(n: Int): LocalDate = LocalDate.of(2026, 1, n)
 
-        assertTrue(availabilitySchedule.getAvailableLocalDates().isEmpty())
+    // Days 1 to 7 offered, nothing booked
+    private fun weekSchedule(): AvailabilitySchedule {
+        val schedule = AvailabilitySchedule()
+        schedule.addAvailableDates(day(1), day(7))
+        return schedule
     }
 
     @Test
-    fun checkingLocalDatesWithSchedule() {
-        val availabilitySchedule = AvailabilitySchedule(
-            availableDates = listOf("2026-01-03", "2026-01-04")
-        )
-        assertEquals(setOf<LocalDate>(
-            LocalDate.parse("2026-01-03"),
-            LocalDate.parse("2026-01-04")),
-            availabilitySchedule.getAvailableLocalDates()
-        )
+    fun fullWeekIsAvailable() {
+        assertTrue(weekSchedule().isAvailable(day(1), day(7)))
     }
 
     @Test
-    fun checkingLocalDatesWithDuplicatedSchedule() {
-        val availabilitySchedule = AvailabilitySchedule(
-            availableDates = listOf("2026-01-03", "2026-01-04", "2026-01-03")
-        )
-        assertEquals(setOf<LocalDate>(
-            LocalDate.parse("2026-01-03"),
-            LocalDate.parse("2026-01-04")),
-            availabilitySchedule.getAvailableLocalDates()
-        )
+    fun rangeOutsideOfferedDatesIsUnavailable() {
+        assertFalse(weekSchedule().isAvailable(day(6), day(8)))
     }
 
     @Test
-    fun checkingBookedLocalDatesWithEmptySchedule() {
-        val availabilitySchedule = AvailabilitySchedule()
-
-        assertTrue(availabilitySchedule.getBookedLocalDates().isEmpty())
+    fun endBeforeStartIsUnavailable() {
+        assertFalse(weekSchedule().isAvailable(day(5), day(3)))
     }
 
     @Test
-    fun checkingBookedDatesWithSchedule() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02")
-        )
+    fun bookingTwoDaysLeavesOtherFiveOpen() {
+        val schedule = weekSchedule()
 
-        assertEquals(setOf<LocalDate>(
-            LocalDate.parse("2026-01-01"),
-            LocalDate.parse("2026-01-02")),
-            availabilitySchedule.getBookedLocalDates()
-        )
+        assertTrue(schedule.addNewBooking(day(1), day(2), ownerID = "a"))
+
+        assertFalse(schedule.isAvailable(day(1), day(2)))
+        assertTrue(schedule.isAvailable(day(3), day(7)))
+        assertTrue(schedule.addNewBooking(day(3), day(7), ownerID = "b"))
     }
 
     @Test
-    fun checkingBookedDatesWithDuplicatedSchedule() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02", "2026-01-01")
-        )
-        assertEquals(setOf<LocalDate>(
-            LocalDate.parse("2026-01-01"),
-            LocalDate.parse("2026-01-02")),
-            availabilitySchedule.getBookedLocalDates()
-        )
+    fun bookingInTheMiddleLeavesBothSidesOpen() {
+        val schedule = weekSchedule()
+
+        assertTrue(schedule.addNewBooking(day(4), day(6), ownerID = "a"))
+
+        assertTrue(schedule.isAvailable(day(1), day(3)))
+        assertTrue(schedule.isAvailable(day(7), day(7)))
+        assertTrue(schedule.addNewBooking(day(1), day(3), ownerID = "b"))
+        assertTrue(schedule.addNewBooking(day(7), ownerID = "c"))
     }
 
     @Test
-    fun checkingIsAvailableFalse() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-03", "2026-01-04")
-        )
+    fun rangeOverlappingBookingIsUnavailable() {
+        val schedule = weekSchedule()
+        schedule.addNewBooking(day(4), day(6), ownerID = "a")
 
-        assertFalse(availabilitySchedule.isAvailable(listOf(LocalDate.parse("2026-01-02"),
-            LocalDate.parse("2026-01-03"))))
+        assertFalse(schedule.isAvailable(day(3), day(4)))
+        assertFalse(schedule.isAvailable(day(6), day(7)))
+        assertFalse(schedule.isAvailable(day(1), day(7)))
+        assertFalse(schedule.addNewBooking(day(2), day(5), ownerID = "b"))
     }
 
     @Test
-    fun checkingIsAvailableTrue() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-03", "2026-01-04")
-        )
+    fun failedBookingChangesNothing() {
+        val schedule = weekSchedule()
+        schedule.addNewBooking(day(4), day(6), ownerID = "a")
 
-        assertTrue(availabilitySchedule.isAvailable(listOf(LocalDate.parse("2026-01-03"),
-            LocalDate.parse("2026-01-04"))))
+        schedule.addNewBooking(day(2), day(5), ownerID = "b")
+
+        assertTrue(schedule.isAvailable(day(1), day(3)))
+        assertFalse("b" in schedule.currentBookings)
     }
 
     @Test
-    fun checkingIsAvailableOutsideAvailableDates() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-03", "2026-01-04")
-        )
+    fun singleDayBooking() {
+        val schedule = weekSchedule()
 
-        assertFalse(availabilitySchedule.isAvailable(listOf(LocalDate.parse("2026-02-02"))))
+        assertTrue(schedule.addNewBooking(day(3), ownerID = "a"))
+
+        assertEquals(day(3)..day(3), schedule.currentBookings["a"])
+        assertTrue(schedule.isAvailable(day(1), day(2)))
+        assertTrue(schedule.isAvailable(day(4), day(7)))
     }
 
     @Test
-    fun noDatesThatAreFree() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-        )
+    fun cancellingFreesOnlyThatBooking() {
+        val schedule = weekSchedule()
+        schedule.addNewBooking(day(1), day(3), ownerID = "a")
+        schedule.addNewBooking(day(4), day(6), ownerID = "b")
 
-        assertTrue(availabilitySchedule.freeDates().isEmpty())
+        assertTrue(schedule.cancelBooking("b"))
+
+        assertTrue(schedule.isAvailable(day(4), day(7)))
+        assertFalse(schedule.isAvailable(day(1), day(3)))
     }
 
     @Test
-    fun datesFreeInSortedList() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-04", "2026-01-03", "2026-01-05")
-        )
-
-        assertEquals(
-            listOf(LocalDate.parse("2026-01-03"),
-                LocalDate.parse("2026-01-04"),
-                LocalDate.parse("2026-01-05")),
-            availabilitySchedule.freeDates()
-        )
-    }
-
-    @Test
-    fun standardUseOfBookMarked() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-04", "2026-01-03", "2026-01-05")
-        )
-
-        availabilitySchedule.markAsBooked(listOf(LocalDate.parse("2026-01-04")))
-        assertEquals(setOf<LocalDate>(LocalDate.parse("2026-01-01"),
-                                        LocalDate.parse("2026-01-02"),
-                                        LocalDate.parse("2026-01-04")),
-                        availabilitySchedule.getBookedLocalDates()
-        )
-    }
-
-    @Test
-    fun bookingDateNotAvailable() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-03", "2026-01-05")
-        )
-
-        availabilitySchedule.markAsBooked(listOf(LocalDate.parse("2026-01-04")))
-        assertEquals(setOf<LocalDate>(LocalDate.parse("2026-01-01"),
-            LocalDate.parse("2026-01-02")),
-            availabilitySchedule.getBookedLocalDates()
-        )
-    }
-
-    @Test
-    fun cancellingBookingWithInvalidDates() {
-        val availabilitySchedule = AvailabilitySchedule(
-            bookedDates = listOf("2026-01-01", "2026-01-02"),
-            availableDates = listOf("2026-01-03", "2026-01-05")
-        )
-
-        availabilitySchedule.markAsBooked(listOf(LocalDate.parse("2026-01-01")))
-        assertEquals(setOf<LocalDate>(LocalDate.parse("2026-01-01"),
-            LocalDate.parse("2026-01-02")),
-            availabilitySchedule.getBookedLocalDates()
-        )
-    }
-
-    @Test
-    fun addAvailableDates() {
-        val availabilitySchedule = AvailabilitySchedule()
-        availabilitySchedule.addAvailableDates(listOf(LocalDate.parse("2026-01-01")))
-        assertTrue(availabilitySchedule.availableDates.contains("2026-01-01"))
-    }
-
-    @Test
-    fun removeAvailableDates() {
-        val availabilitySchedule = AvailabilitySchedule(listOf("2026-01-01"))
-        availabilitySchedule.removeAvailableDates(listOf(LocalDate.parse("2026-01-01")))
-        assertTrue(availabilitySchedule.availableDates.isEmpty())
+    fun cancellingUnknownBookingFails() {
+        assertFalse(weekSchedule().cancelBooking("nobody"))
     }
 }

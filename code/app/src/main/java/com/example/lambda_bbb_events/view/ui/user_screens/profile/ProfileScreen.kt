@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.HorizontalDivider
@@ -38,18 +37,18 @@ import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigat
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileRow
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Displays the current user's profile information and account settings.
  *
  * TODO: no test tags for log out dialog yet and log out does not allow re log-in
- * TODO: Replace the placeholder profile picture when profile image support is added.
  */
 
 /**
  * Displays the user's profile and account options.
  *
- * Shows the user's name, email, and a placeholder profile picture.
+ * Shows the user's name, email, and their profile picture.
  * Provides options for settings, editing the profile, and logging out.
  *
  * @param navController The [NavController] used to navigate between screens.
@@ -88,12 +87,10 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Placeholder for profile picture
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profile picture",
-                    modifier = Modifier.size(165.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                // Profile picture
+                ProfilePicture(
+                    imageId = user.profilePictureImageId,
+                    size = 165.dp
                 )
 
                 Text(

@@ -4,12 +4,18 @@ import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.ImageMetaData
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /**
  * Represents a Firestore campsite listing.
+ *
+ * Exists to allow for defined conversion between the normal class used by our app and still be able
+ * to upload information defined in ways Firebase doesn't support normally.
  *
  * @property campsiteId The unique ID of the campsite.
  * @property ownerId The device ID of the campsite owner.
@@ -45,121 +51,110 @@ data class FirestoreCampsite(
     val ratingCount: Int = 0,
     val availability: FirestoreAvailabilitySchedule = FirestoreAvailabilitySchedule(),
     var active: Boolean = true
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Campsite) return false
-
-        return campsiteId == other.campsiteId &&
-                ownerId == other.ownerId &&
-                campsiteName == other.campsiteName
-    }
-
-    override fun hashCode(): Int {
-        var result = campsiteId.hashCode()
-        result = 31 * result + ownerId.hashCode()
-        result = 31 * result + campsiteName.hashCode()
-        return result
-    }
-}
+)
 
 data class FirestoreAvailabilitySchedule(
     var dates: MutableMap<String, Int> = mutableMapOf()
 )
 
 /**
- * Does all the data operations related to databases.
+ * Converts a [Campsite] into its Firestore representation. Availability dates are stored
+ * as ISO-8601 strings since Firestore cannot store [LocalDate] keys.
  */
-class CampsiteRepository {
-    private val db = Firebase.firestore
-    private val campsitesRef = db.collection("campsites")
+fun Campsite.toFirestore() = FirestoreCampsite(
+    campsiteId = campsiteId,
+    ownerId = ownerId,
+    campsiteName = campsiteName,
+    description = description,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    maxOccupancy = maxOccupancy,
+    rulesPolicies = rulesPolicies,
+    amenities = amenities,
+    tags = tags,
+    imageIds = imageIds,
+    rating = rating,
+    ratingCount = ratingCount,
+    availability = FirestoreAvailabilitySchedule(
+        dates = availability.dates.mapKeys { it.key.toString() }.toMutableMap()
+    ),
+    active = active
+)
 
-    // private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+/**
+ * Converts a [FirestoreCampsite] back into a [Campsite].
+ *
+ * @param id The ID of the campsite, defaults to the stored campsite ID.
+ * @throws java.time.format.DateTimeParseException if an availability date is malformed.
+ */
+fun FirestoreCampsite.toCampsite(id: String = campsiteId) = Campsite(
+    campsiteId = id,
+    ownerId = ownerId,
+    campsiteName = campsiteName,
+    description = description,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    maxOccupancy = maxOccupancy,
+    rulesPolicies = rulesPolicies,
+    amenities = amenities,
+    tags = tags,
+    imageIds = imageIds,
+    rating = rating,
+    ratingCount = ratingCount,
+    availability = AvailabilitySchedule(
+        dates = availability.dates.mapKeys { LocalDate.parse(it.key) }.toMutableMap()
+    ),
+    active = active
+)
+
+/**
+ * Handles the data in the Firestore database for the [Campsite] class.
+ */
+class CampsiteRepository(
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<Campsite>("campsites", db) {
+
+    override fun idOf(item: Campsite) = item.campsiteId
+
+    override fun fromDocument(document: DocumentSnapshot): Campsite? =
+        document.toObject(FirestoreCampsite::class.java)?.toCampsite(document.id)
+
+    override fun toDocument(item: Campsite): Any = item.toFirestore()
 
     /**
-     * Gets all campsites from the database.
+     * Adds a new campsite to the Firestore database.
+     *
+     * @param campsite The campsite to add.
      */
-    suspend fun addCampsite(campsite: Campsite) {
-        val firestoreDates = campsite.availability.dates.mapKeys { it.key.toString() }.toMutableMap()
+    suspend fun addCampsite(campsite: Campsite) = add(campsite)
 
-        val firestoreCampsite = FirestoreCampsite(campsiteId = campsite.campsiteId,
-                ownerId = campsite.ownerId,
-                campsiteName = campsite.campsiteName,
-                description = campsite.description,
-                address = campsite.address,
-                latitude = campsite.latitude,
-                longitude = campsite.longitude,
-                maxOccupancy = campsite.maxOccupancy,
-                rulesPolicies = campsite.rulesPolicies,
-                amenities = campsite.amenities,
-                tags = campsite.tags,
-                imageIds = campsite.imageIds,
-                rating = campsite.rating,
-                ratingCount = campsite.ratingCount,
-                availability = FirestoreAvailabilitySchedule(dates = firestoreDates),
-                active = campsite.active
-            )
-        campsitesRef.add(firestoreCampsite).await()
-    }
+    /**
+     * Deletes a specific campsite defined by its campsite id.
+     *
+     * @param campsiteID The ID of the campsite to delete.
+     */
+    suspend fun deleteCampsite(campsiteID: String) = delete(campsiteID)
 
-    suspend fun deleteCampsite(campsiteID: String) {
-        campsitesRef.document(campsiteID).delete().await()
-    }
+    /**
+     * Saves a campsite to Firestore under the given ID, creating it if absent.
+     *
+     * @param campsiteID The ID of the campsite to update.
+     * @param updatedCampsite The new campsite data.
+     */
+    suspend fun updateCampsite(campsiteID: String, updatedCampsite: Campsite) =
+        update(updatedCampsite.copy(campsiteId = campsiteID))
 
-    suspend fun updateCampsite(campsiteID: String, updatedCampsite: Campsite) {
-        val firestoreDates = updatedCampsite.availability.dates.mapKeys { it.key.toString() }.toMutableMap()
+    /**
+     * Grabs all campsites that exist and returns them keyed by campsite ID.
+     */
+    suspend fun getAllCampsites(): MutableMap<String, Campsite> =
+        getAll().associateBy { it.campsiteId }.toMutableMap()
 
-        val firestoreCampsite = FirestoreCampsite(campsiteId = updatedCampsite.campsiteId,
-                ownerId = updatedCampsite.ownerId,
-                campsiteName = updatedCampsite.campsiteName,
-                description = updatedCampsite.description,
-                address = updatedCampsite.address,
-                latitude = updatedCampsite.latitude,
-                longitude = updatedCampsite.longitude,
-                maxOccupancy = updatedCampsite.maxOccupancy,
-                rulesPolicies = updatedCampsite.rulesPolicies,
-                amenities = updatedCampsite.amenities,
-                tags = updatedCampsite.tags,
-                imageIds = updatedCampsite.imageIds,
-                rating = updatedCampsite.rating,
-                ratingCount = updatedCampsite.ratingCount,
-                availability = FirestoreAvailabilitySchedule(dates = firestoreDates),
-                active = updatedCampsite.active
-            )
-        campsitesRef.document(campsiteID).set(firestoreCampsite).await()
-    }
-
-    suspend fun getAllCampsites(): MutableMap<String, Campsite> {
-        val campsites = mutableMapOf<String, Campsite>()
-        val snapshot = campsitesRef.get().await()
-        campsites.clear()
-        for (document in snapshot.documents) {
-            val firestoreCampsite = document.toObject(FirestoreCampsite::class.java)
-            if (firestoreCampsite != null) {
-                val campsite = Campsite(
-                    campsiteId = firestoreCampsite.campsiteId,
-                    ownerId = firestoreCampsite.ownerId,
-                    campsiteName = firestoreCampsite.campsiteName,
-                    description = firestoreCampsite.description,
-                    address = firestoreCampsite.address,
-                    latitude = firestoreCampsite.latitude,
-                    longitude = firestoreCampsite.longitude,
-                    maxOccupancy = firestoreCampsite.maxOccupancy,
-                    rulesPolicies = firestoreCampsite.rulesPolicies,
-                    amenities = firestoreCampsite.amenities,
-                    tags = firestoreCampsite.tags,
-                    imageIds = firestoreCampsite.imageIds,
-                    rating = firestoreCampsite.rating,
-                    ratingCount = firestoreCampsite.ratingCount,
-                    availability = AvailabilitySchedule(dates = firestoreCampsite.availability.dates
-                        .mapKeys { LocalDate.parse(it.key) }
-                        .toMutableMap()
-                    ),
-                    active = firestoreCampsite.active
-                )
-                campsites[campsite.campsiteId] = campsite
-            }
-        }
-        return campsites
-    }
+    /**
+     * Streams all campsites keyed by campsite ID, emitting each time the collection changes.
+     */
+    fun observeAllCampsites(): Flow<Map<String, Campsite>> =
+        observeAll().map { campsites -> campsites.associateBy { it.campsiteId } }
 }

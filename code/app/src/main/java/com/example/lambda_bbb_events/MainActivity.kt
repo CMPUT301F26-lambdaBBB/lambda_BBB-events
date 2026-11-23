@@ -12,6 +12,8 @@ import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
+import com.example.lambda_bbb_events.model.local.LocalDatabase
+import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
@@ -29,6 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.store.CampsiteStore
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
 
 /*
  * Defines the application's main Android activity.
@@ -68,7 +72,10 @@ class MainActivity : ComponentActivity() {
 
         val controllers = AppControllers(
             users = UserController(userRepository, deviceId),
-            campsites = CampsiteController(campsiteStore),
+            campsites = CampsiteController(
+                campsiteStore,
+                SqliteRecentlyViewedStore(LocalDatabase(applicationContext))
+            ),
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
@@ -85,11 +92,13 @@ class MainActivity : ComponentActivity() {
             Lambda_BBBeventsTheme(
                 darkTheme = darkTheme
             ){
-                LambdaEventsApp(
-                    controllers = controllers,
-                    darkTheme = darkTheme,
-                    onDarkThemeChange = { darkTheme = it }
-                )
+                CompositionLocalProvider(LocalImageProcessor provides controllers.images) {
+                    LambdaEventsApp(
+                        controllers = controllers,
+                        darkTheme = darkTheme,
+                        onDarkThemeChange = { darkTheme = it }
+                    )
+                }
             }
         }
     }

@@ -1,8 +1,8 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.os.Build
-import android.provider.MediaStore
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -28,7 +28,6 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.ImageMetaData
-import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import java.time.LocalDate
@@ -38,6 +37,7 @@ import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndi
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
 
 
 /**
@@ -59,7 +59,7 @@ fun CreateScreen(
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    val imageProcessor = ImageProcessor()
+    val imageProcessor = LocalImageProcessor.current
     val context = LocalContext.current
 
     Scaffold(
@@ -159,10 +159,9 @@ fun CreateScreen(
                                                             )
                                                         )
                                                     } else {
-                                                        MediaStore.Images.Media.getBitmap(
-                                                            context.contentResolver,
-                                                            uri
-                                                        )
+                                                        context.contentResolver.openInputStream(uri)
+                                                            ?.use { BitmapFactory.decodeStream(it) }
+                                                            ?: error("Could not read the selected image.")
                                                     }
 
                                                 imageMetaData += imageProcessor.uploadImage(

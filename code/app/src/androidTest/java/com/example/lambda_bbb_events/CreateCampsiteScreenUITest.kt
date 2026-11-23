@@ -73,9 +73,9 @@ class CreateCampsiteScreenUITest {
             controllers.campsites.getCampsite("test-campsite-1")
         } returns campsite
 
-        coEvery {
+        every {
             controllers.campsites.updateCampsite(
-                any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any<List<String>>()
             )
         } returns true
 
@@ -181,6 +181,19 @@ class CreateCampsiteScreenUITest {
         }
     }
 
+    private fun enterLotteryDates() {
+        listOf(
+            "create_start_registration" to "20300101",
+            "create_end_registration" to "20300105",
+            "create_start_booking" to "20300110",
+            "create_end_booking" to "20300115"
+        ).forEach { (tag, digits) ->
+            composeTestRule.onNodeWithTag(tag)
+                .performScrollTo()
+                .performTextInput(digits)
+        }
+    }
+
     private fun openMyCampsites() {
         composeTestRule.runOnIdle {
             navController.navigate("my_campsites")
@@ -272,9 +285,6 @@ class CreateCampsiteScreenUITest {
             .performScrollTo()
             .performClick()
 
-        composeTestRule.onNodeWithText("Lottery Date *")
-            .assertExists()
-
         composeTestRule.onNodeWithText("Start Registration *")
             .assertExists()
 
@@ -332,8 +342,10 @@ class CreateCampsiteScreenUITest {
             .performScrollTo()
             .performClick()
 
-        composeTestRule.onNodeWithText("Lottery Date *")
+        composeTestRule.onNodeWithText("Start Registration *")
             .assertExists()
+
+        enterLotteryDates()
 
         composeTestRule.onNodeWithText("Done")
             .performScrollTo()
@@ -344,13 +356,25 @@ class CreateCampsiteScreenUITest {
         composeTestRule.onNodeWithTag("test_home")
             .assertIsDisplayed()
 
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
             controllers.campsites.addCampsite(
-                match {
-                    it.campsiteName == "Test campsite" &&
-                            it.description == "Test description" &&
-                            it.address == "123 Test St, T6G 2R3"
-                }
+                campsiteId = any(),
+                ownerId = any(),
+                campsiteName = "Test campsite",
+                description = "Test description",
+                address = "123 Test St, T6G 2R3",
+                latitude = any(),
+                longitude = any(),
+                maxOccupancy = any(),
+                rulesPolicies = any(),
+                amenities = any(),
+                tags = any(),
+                imageIds = any(),
+                rating = any(),
+                ratingCount = any(),
+                availability = any(),
+                active = any(),
+                returnMessage = any()
             )
         }
     }
@@ -396,7 +420,6 @@ class CreateCampsiteScreenUITest {
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("Save changes")
-            .performScrollTo()
             .performClick()
 
         composeTestRule.waitForIdle()
@@ -406,15 +429,15 @@ class CreateCampsiteScreenUITest {
 
         val campsiteController = controllers.campsites
 
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
             campsiteController.updateCampsite(
-                "test-campsite-1",
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
+                campsiteId = "test-campsite-1",
+                name = "Test campsite",
+                address = "123 Test St",
+                maxOccupancyText = "4",
+                description = "Test description",
+                rulesPolicies = "No fires",
+                tags = match { it.isEmpty() }
             )
         }
     }

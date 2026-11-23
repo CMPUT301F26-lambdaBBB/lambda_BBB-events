@@ -1,13 +1,14 @@
 package com.example.lambda_bbb_events.model.repository
 
-import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.LotteryStatus
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -21,52 +22,40 @@ import java.util.Date
 /**
  * Handles the data in the Firestore database for the [Lottery] class.
  */
-class LotteryRepository {
-    private val db = Firebase.firestore
-    private val lotteriesRef = db.collection("lotteries")
-
-    private val _lotteries = mutableStateListOf<Lottery>()
+class LotteryRepository(
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<Lottery>("lotteries", db) {
 
     init {
-        lotteriesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-
-            _lotteries.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val lottery = document.toObject(Lottery::class.java)
-                if (lottery != null) {
-                    _lotteries.add(lottery)
-                }
-            }
-        }
+        startListening()
     }
+
+    override fun idOf(item: Lottery) = item.lotteryId
+
+    override fun fromDocument(document: DocumentSnapshot): Lottery? =
+        document.toObject(Lottery::class.java)
 
     /** Cached lotteries synchronized with Firestore. */
     val lotteries: List<Lottery>
-        get() = _lotteries
+        get() = cached
 
     /**
      * Adds a new lottery to the Firestore database.
      *
      * @param lottery The lottery to add.
      */
-    suspend fun addLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).set(lottery).await()
-    }
+    suspend fun addLottery(lottery: Lottery) = add(lottery)
 
     /**
      * Deletes a lottery from the Firestore database, along with every waitlist entry
      * for it and every entrant's reference to those entries.
      *
-     * @param lottery The lottery to be deleted.
+     * @param id The `lotteryId` of the lottery to be deleted.
      */
-    suspend fun deleteLottery(lottery: Lottery) {
+    override suspend fun delete(id: String) {
         // find every waitlist entry that has this lottery id
         val entriesSnapshot = db.collection("waitlistEntries")
-            .whereEqualTo("lotteryId", lottery.lotteryId)
+            .whereEqualTo("lotteryId", id)
             .get()
             .await()
 
@@ -80,17 +69,26 @@ class LotteryRepository {
                 .await()
 
             for (userDoc in usersSnapshot.documents) {
-                batch.update(userDoc.reference, "entryIds",
+                batch.update(userDoc.reference, "waitlistEntryIds",
                     FieldValue.arrayRemove(entryDocument.id))
             }
 
             batch.delete(entryDocument.reference)
         }
 
-        batch.delete(lotteriesRef.document(lottery.lotteryId))
+        batch.delete(collectionRef.document(id))
 
         batch.commit().await()
+        removeFromCache(id)
     }
+
+    /**
+     * Deletes a lottery from the Firestore database, along with every waitlist entry
+     * for it and every entrant's reference to those entries.
+     *
+     * @param lottery The lottery to be deleted.
+     */
+    suspend fun deleteLottery(lottery: Lottery) = delete(lottery)
 
 
     /**
@@ -98,9 +96,7 @@ class LotteryRepository {
      *
      * @param updatedLottery The lottery data to save.
      */
-    suspend fun updateLottery(updatedLottery: Lottery) {
-        lotteriesRef.document(updatedLottery.lotteryId).set(updatedLottery).await()
-    }
+    suspend fun updateLottery(updatedLottery: Lottery) = update(updatedLottery)
 
     /**
      * Gets a [Lottery] object from the database given its lotteryId.
@@ -108,10 +104,7 @@ class LotteryRepository {
      * @param lotteryId The `lotteryId` to search for.
      * @return The [Lottery] object with the specified lotteryId if it exists. `null` otherwise.
      */
-    suspend fun getLottery(lotteryId: String): Lottery? {
-        return lotteriesRef.document(lotteryId).get().await()
-            .toObject(Lottery::class.java)
-    }
+    suspend fun getLottery(lotteryId: String): Lottery? = get(lotteryId)
 
     /**
      * Adds a waitlist entry to a specified lottery if there is enough space left.
@@ -133,7 +126,7 @@ class LotteryRepository {
         }
 
         // valid conditions, union the old entryIds with the new entryId (add)
-        lotteriesRef.document(lottery.lotteryId)
+        collectionRef.document(lottery.lotteryId)
             .update("entryIds", FieldValue.arrayUnion(waitlistEntry.entryId)).await()
 
         return true
@@ -149,7 +142,7 @@ class LotteryRepository {
     suspend fun removeWaitlistFromLottery(lottery: Lottery, waitlistEntry: WaitlistEntry) {
         // check if this entry is on the waitlist
         if (waitlistEntry.entryId in lottery.entryIds) {
-            lotteriesRef.document(lottery.lotteryId)
+            collectionRef.document(lottery.lotteryId)
                 .update("entryIds", FieldValue.arrayRemove(waitlistEntry.entryId)).await()
         }
     }
@@ -164,7 +157,7 @@ class LotteryRepository {
     fun getLotteriesForCampsite(campsiteId: String): List<Lottery> {
         val result = mutableListOf<Lottery>()
 
-        for (lottery in _lotteries) {
+        for (lottery in cached) {
             if (campsiteId in lottery.campsiteIds) {
                 result.add(lottery)
             }
@@ -196,7 +189,7 @@ class LotteryRepository {
             return
         }
 
-        val lotteryRef = lotteriesRef.document(lotteryId)
+        val lotteryRef = collectionRef.document(lotteryId)
         val entryId = "${lotteryId}_${entrantId}"
         val entryRef = db.collection("waitlistEntries").document(entryId)
 
@@ -248,7 +241,7 @@ class LotteryRepository {
      * @return `null` if the winners were drawn successfully, an error message otherwise.
      */
     suspend fun drawWinners(lotteryId: String): String? {
-        val lotteryRef = lotteriesRef.document(lotteryId)
+        val lotteryRef = collectionRef.document(lotteryId)
         val entriesRef = db.collection("waitlistEntries")
         var errorMessage: String? = null
 

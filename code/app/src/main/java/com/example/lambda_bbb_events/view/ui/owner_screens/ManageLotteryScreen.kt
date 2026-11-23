@@ -27,6 +27,7 @@ import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 
 /*
  * Defines the campsite owner's lottery management screen.
@@ -101,22 +102,13 @@ fun OwnerManageLotteryScreen(
                         )
                     ) {
                         Row {
-                            // Image placeholder
-                            Box(
+                            // Campsite image
+                            CampsiteThumbnail(
+                                campsite = campsite,
                                 modifier = Modifier
                                     .width(120.dp)
                                     .fillMaxHeight()
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "image",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            )
 
                             Column(
                                 modifier = Modifier

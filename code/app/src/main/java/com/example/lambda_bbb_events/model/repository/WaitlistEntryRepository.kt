@@ -1,12 +1,14 @@
 package com.example.lambda_bbb_events.model.repository
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -19,41 +21,70 @@ import kotlinx.coroutines.tasks.await
 /**
  * Handles the data in the Firestore database for the [WaitlistEntry] class.
  */
-class WaitlistEntryRepository {
-    private val db = Firebase.firestore
-    private val entriesRef = db.collection("waitlistEntries")
-
-    private val _waitlistEntries = mutableStateListOf<WaitlistEntry>()
+class WaitlistEntryRepository(
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<WaitlistEntry>("waitlistEntries", db) {
 
     init {
-        entriesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                Log.e("WaitlistEntryRepo", "listener error", error)
-                return@addSnapshotListener
-            }
+        startListening()
+    }
 
-            _waitlistEntries.clear()
+    override fun idOf(item: WaitlistEntry) = item.entryId
 
-            snapshot?.documents?.forEach { document ->
-                val entry = document.toObject(WaitlistEntry::class.java)
-                if (entry != null) {
-                    _waitlistEntries.add(entry)
-                }
-            }
-        }
+    override fun fromDocument(document: DocumentSnapshot): WaitlistEntry? =
+        document.toObject(WaitlistEntry::class.java)
+
+    override fun onListenError(error: FirebaseFirestoreException) {
+        Log.e("WaitlistEntryRepo", "listener error", error)
     }
 
     /** Cached waitlist entries synchronized with Firestore. */
     val waitlistEntries: List<WaitlistEntry>
-        get() = _waitlistEntries
+        get() = cached
 
     /**
      * Adds a new waitlist entry to the Firestore database.
      *
      * @param entry The waitlist entry to add.
      */
-    suspend fun addWaitlistEntry(entry: WaitlistEntry) {
-        entriesRef.document(entry.entryId).set(entry).await()
+    suspend fun addWaitlistEntry(entry: WaitlistEntry) = add(entry)
+
+    /**
+     * Deletes a waitlist entry from the Firestore database and removes it from its lottery.
+     *
+     * @param item The waitlist entry to be deleted.
+     */
+    override suspend fun delete(item: WaitlistEntry) {
+        val entryRef = collectionRef.document(item.entryId)
+        val batch = db.batch()
+        batch.delete(entryRef)
+
+        // an entry without a lottery has no lottery to remove it from
+        if (item.lotteryId.isNotBlank()) {
+            batch.update(
+                db.collection("lotteries").document(item.lotteryId),
+                "entryIds",
+                FieldValue.arrayRemove(item.entryId)
+            )
+        }
+
+        batch.commit().await()
+        removeFromCache(item.entryId)
+    }
+
+    /**
+     * Deletes the waitlist entry with the given ID, also removing it from its lottery
+     * if the entry can be found.
+     *
+     * @param id The `entryId` of the waitlist entry to be deleted.
+     */
+    override suspend fun delete(id: String) {
+        val entry = getCached(id) ?: get(id)
+        if (entry != null) {
+            delete(entry)
+        } else {
+            super.delete(id)
+        }
     }
 
     /**
@@ -61,20 +92,7 @@ class WaitlistEntryRepository {
      *
      * @param entry The waitlist entry to be deleted.
      */
-    suspend fun deleteWaitlistEntry(entry: WaitlistEntry) {
-        val entryRef = entriesRef.document(entry.entryId)
-        val lotteryRef = db.collection("lotteries")
-            .document(entry.lotteryId)
-        val batch = db.batch()
-        batch.delete(entryRef)
-        batch.update(
-            lotteryRef,
-            "entryIds",
-            FieldValue.arrayRemove(entry.entryId)
-        )
-
-        batch.commit().await()
-    }
+    suspend fun deleteWaitlistEntry(entry: WaitlistEntry) = delete(entry)
 
 
     /**
@@ -82,9 +100,7 @@ class WaitlistEntryRepository {
      *
      * @param updatedEntry The entry data to save.
      */
-    suspend fun updateWaitlistEntry(updatedEntry: WaitlistEntry) {
-        entriesRef.document(updatedEntry.entryId).set(updatedEntry).await()
-    }
+    suspend fun updateWaitlistEntry(updatedEntry: WaitlistEntry) = update(updatedEntry)
 
     /**
      * Gets a [WaitlistEntry] object from the database given its entryId.
@@ -92,12 +108,7 @@ class WaitlistEntryRepository {
      * @param entryId The `entryId` to search for.
      * @return The [WaitlistEntry] object with the specified entryId if it exists. `null` otherwise.
      */
-    suspend fun getWaitlistEntry(entryId: String): WaitlistEntry? {
-        if (entryId.isBlank()) {
-            return null
-        }
-        return entriesRef.document(entryId).get().await().toObject(WaitlistEntry::class.java)
-    }
+    suspend fun getWaitlistEntry(entryId: String): WaitlistEntry? = get(entryId)
 
     /**
      * Gets all the [WaitlistEntry] objects of a specified [Lottery].
@@ -108,7 +119,7 @@ class WaitlistEntryRepository {
     fun getEntries(lotteryId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
-        for (entry in _waitlistEntries) {
+        for (entry in cached) {
             if (entry.lotteryId == lotteryId) {
                 result.add(entry)
             }
@@ -126,7 +137,7 @@ class WaitlistEntryRepository {
     fun getEntriesForEntrant(entrantId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
-        for (entry in _waitlistEntries) {
+        for (entry in cached) {
             if (entry.entrantId == entrantId) {
                 result.add(entry)
             }
@@ -142,6 +153,6 @@ class WaitlistEntryRepository {
      * @param newStatus The new [WaitlistStatus] of the entry.
      */
     suspend fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
-        entriesRef.document(waitlistEntry.entryId).update("status", newStatus.name).await()
+        collectionRef.document(waitlistEntry.entryId).update("status", newStatus.name).await()
     }
 }

@@ -26,6 +26,8 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import java.time.LocalDate
 import java.time.YearMonth
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
+import androidx.compose.ui.draw.clip
 
 /*
  * Allows users to select campsite reservation dates
@@ -33,7 +35,6 @@ import java.time.YearMonth
  *
  * TODO: Integrate the campsite's availability schedule
  * into calendar selection and reservation validation.
- * TODO: Replace the campsite image placeholder.
  */
 
 /**
@@ -112,22 +113,13 @@ fun CampsiteCheckAvailabilityScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Campsite image placeholder
-            Box(
+            // Campsite image
+            CampsiteThumbnail(
+                campsite = campsite,
                 modifier = Modifier
                     .size(110.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Image",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
+                    .clip(RoundedCornerShape(12.dp))
+            )
 
             Column(
                 modifier = Modifier.weight(1f),

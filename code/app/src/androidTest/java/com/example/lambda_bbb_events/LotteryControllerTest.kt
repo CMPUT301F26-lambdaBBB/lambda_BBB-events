@@ -32,13 +32,23 @@ class LotteryControllerTest {
     }
 
     @Test
-    fun addLotteryDelegatesToRepository() = runTest {
-        val lottery = Lottery(lotteryId = lotteryId, campsiteIds = listOf(campsiteId))
+    fun createLotteryDelegatesToRepository() = runTest {
+        val today = java.time.LocalDate.now()
 
-        lotteryController.addLottery(lottery)
+        val error = lotteryController.createLottery(
+            ownerId = "testOwner",
+            campsiteId = campsiteId,
+            registrationStart = today,
+            registrationEnd = today.plusDays(2),
+            bookingStart = today.plusDays(3),
+            bookingEnd = today.plusDays(5),
+            numberOfWinnersString = "2",
+            waitlistCapacityString = "10"
+        )
 
+        assertNull(error)
         coVerify(exactly = 1) {
-            lotteryRepository.addLottery(lottery)
+            lotteryRepository.addLottery(match { it.campsiteIds == listOf(campsiteId) && it.ownerId == "testOwner" })
         }
     }
 

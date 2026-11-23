@@ -13,10 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +32,7 @@ import com.example.lambda_bbb_events.model.User
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Provides a screen for editing the current user's profile.
@@ -80,12 +78,10 @@ fun EditProfileScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Placeholder for profile picture
-        Icon(
-            imageVector = Icons.Default.AccountCircle,
-            contentDescription = "Profile picture",
-            modifier = Modifier.size(165.dp),
-            tint = MaterialTheme.colorScheme.primary
+        // Profile picture
+        ProfilePicture(
+            imageId = user.profilePictureImageId,
+            size = 165.dp
         )
 
         Spacer(Modifier.height(16.dp))

@@ -7,18 +7,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.lambda_bbb_events.model.Campsite
 
 /*
  * Defines a horizontally scrollable section of campsite cards
  * with a title and a "See All" action.
- *
- * TODO: Replace placeholder cards with actual campsite data.
  */
 
 /**
@@ -27,17 +27,20 @@ import androidx.compose.ui.unit.dp
  * Uses [HorizontalCampsiteCard] to render each campsite card.
  *
  * @param title The heading displayed above the campsite cards.
+ * @param campsites The list of [Campsite] objects to display.
+ * @param onCampsiteClick Callback invoked with the selected campsite.
  * @param onSeeAll Callback invoked when the user clicks "See All".
  * @param modifier Modifier used to customize the section layout.
- * @param itemCount Number of campsite cards to display.
- * Defaults to five.
+ * @param emptyMessage Text displayed when there are no campsites.
  */
 @Composable
 fun HorizontalCardSection(
     title: String,
+    campsites: List<Campsite>,
+    onCampsiteClick: (Campsite) -> Unit,
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier,
-    itemCount: Int = 5
+    emptyMessage: String = "No campsites found."
 ) {
     Column(
         modifier = modifier.padding(bottom = 25.dp),
@@ -64,11 +67,24 @@ fun HorizontalCardSection(
             )
         }
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(itemCount) {
-                HorizontalCampsiteCard()
+        if (campsites.isEmpty()) {
+            Text(
+                text = emptyMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(campsites, key = { it.campsiteId }) { campsite ->
+                    HorizontalCampsiteCard(
+                        campsite = campsite,
+                        onClick = {
+                            onCampsiteClick(campsite)
+                        }
+                    )
+                }
             }
         }
     }

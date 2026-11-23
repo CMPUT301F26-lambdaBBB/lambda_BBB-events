@@ -13,7 +13,7 @@ fun draw_winners(lottery: Lottery): MutableList< MutableList<String> >{
 
     val winners: MutableList<String> = mutableListOf()
     val losers: MutableList<String> = lottery.entryIds.toMutableList()
-    val numWinners = lottery.numberOfWinners
+    val numWinners = minOf(lottery.numberOfWinners, losers.size) // cannot draw more winners than entries
 
     for (i in 0..<numWinners){
         val value = (losers).random()

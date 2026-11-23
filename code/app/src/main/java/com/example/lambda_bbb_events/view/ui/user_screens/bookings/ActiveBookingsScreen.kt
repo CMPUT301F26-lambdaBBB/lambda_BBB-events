@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -31,6 +30,8 @@ import com.example.lambda_bbb_events.model.Reservation
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
+import androidx.compose.ui.draw.clip
 
 /**
  * Displays the user's active campsite reservations.
@@ -183,23 +184,13 @@ fun ReservationCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Campsite image placeholder
-                Box(
+                // Campsite image
+                CampsiteThumbnail(
+                    campsite = campsite,
                     modifier = Modifier
                         .size(92.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Image,
-                        contentDescription = "Campsite image",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
+                        .clip(RoundedCornerShape(8.dp))
+                )
 
                 Spacer(modifier = Modifier.width(12.dp))
 

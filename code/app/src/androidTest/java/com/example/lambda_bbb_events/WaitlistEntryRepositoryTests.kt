@@ -1,10 +1,8 @@
 package com.example.lambda_bbb_events
 
-import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
-import com.example.lambda_bbb_events.model.roles.Entrant
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
@@ -74,7 +72,7 @@ class WaitlistEntryRepositoryTests {
         repository.addWaitlistEntry(entryInLottery)
         repository.addWaitlistEntry(entryInOtherLottery)
 
-        val result = repository.getEntries(Lottery(lotteryId = "testLottery"))
+        val result = repository.getEntries("testLottery")
         val resultIds = mutableListOf<String>()
         for (entry in result) {
             resultIds.add(entry.entryId)
@@ -93,7 +91,7 @@ class WaitlistEntryRepositoryTests {
         repository.addWaitlistEntry(entryForEntrant)
         repository.addWaitlistEntry(entryForSomeoneElse)
 
-        val result = repository.getEntriesForEntrant(Entrant(deviceId = "testEntrant"))
+        val result = repository.getEntriesForEntrant("testEntrant")
         val resultIds = mutableListOf<String>()
         for (entry in result) {
             resultIds.add(entry.entryId)

@@ -22,6 +22,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.generateQR
 import com.example.lambda_bbb_events.model.saveBitmapToGallery
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays a full-screen view for a campsite's QR Code with option to download.
@@ -36,6 +37,8 @@ fun QRCodeScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val context = LocalContext.current
     val campsite = controllers.campsites.getCampsite(campsiteId)
     val qrBitmap = remember(campsiteId) {
@@ -135,7 +138,7 @@ fun QRCodeScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = { navController.popBackStack() },
+            onClick = goBack,
             modifier = Modifier
                 .fillMaxWidth(0.7f)
                 .height(48.dp),

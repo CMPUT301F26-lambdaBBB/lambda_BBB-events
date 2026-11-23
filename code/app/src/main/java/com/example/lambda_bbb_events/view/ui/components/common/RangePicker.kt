@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.RangeSliderState
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -31,7 +33,6 @@ import androidx.compose.ui.unit.dp
  * @param max The maximum selectable value.
  * @param modifier Modifier used to customize the component layout.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RangePicker(
     value: ClosedFloatingPointRange<Float>,
@@ -60,10 +61,23 @@ fun RangePicker(
             )
         }
 
+        val sliderState = remember(min, max) {
+            RangeSliderState(
+                startValue = value.start,
+                endValue = value.endInclusive,
+                trackRange = min..max
+            )
+        }
+
+        // Keep the slider in sync when the range is changed from outside, such as a reset
+        LaunchedEffect(value) {
+            sliderState.startValue = value.start
+            sliderState.endValue = value.endInclusive
+        }
+
         RangeSlider(
-            value = value,
+            state = sliderState,
             onValueChange = onValueChange,
-            valueRange = min..max,
             modifier = Modifier.fillMaxWidth(),
 
             colors = SliderDefaults.colors(

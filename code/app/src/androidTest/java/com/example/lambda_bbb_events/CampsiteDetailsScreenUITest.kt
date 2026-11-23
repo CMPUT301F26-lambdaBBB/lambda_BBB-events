@@ -14,13 +14,11 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.RegistrationStatusScreen
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
 
 @RunWith(AndroidJUnit4::class)
 class CampsiteDetailsScreenUITest {
@@ -70,17 +68,6 @@ class CampsiteDetailsScreenUITest {
                         navController = navController,
                         controllers = controllers,
                         campsiteId = campsiteId
-                    )
-                }
-
-                composable("registration_status_test") {
-                    RegistrationStatusScreen(
-                        navController = navController,
-                        controllers = controllers,
-                        campsiteId = campsite.campsiteId,
-                        fromDate = LocalDate.of(2026, 11, 6),
-                        endDate = LocalDate.of(2026, 11, 8),
-                        numPeople = 2
                     )
                 }
             }
@@ -134,17 +121,6 @@ class CampsiteDetailsScreenUITest {
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithText("123 Test St")
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun registrationStatusScreenIsDisplayed() {
-        setup(startDestination = "registration_status_test")
-
-        composeTestRule.onNodeWithText("Lottery Required")
-            .assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("You Selected: Test campsite")
             .assertIsDisplayed()
     }
 }

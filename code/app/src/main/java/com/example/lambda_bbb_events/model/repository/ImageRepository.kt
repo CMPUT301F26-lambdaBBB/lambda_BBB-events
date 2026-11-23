@@ -1,27 +1,52 @@
 package com.example.lambda_bbb_events.model.repository
 
-import android.graphics.Bitmap
 import com.example.lambda_bbb_events.model.ImageChunk
 import com.example.lambda_bbb_events.model.ImageMetaData
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Blob
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Handles the data in the Firestore database for images. Each image's [ImageMetaData] is
+ * stored as a document, and its [ImageChunk]s are stored in that document's `chunks`
+ * subcollection.
+ */
 class ImageRepository(
-    private val db: FirebaseFirestore = Firebase.firestore
-) {
-    private val imagesRef = db.collection("images")
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<ImageMetaData>("images", db) {
+
+    override fun idOf(item: ImageMetaData) = item.imageId
+
+    override fun fromDocument(document: DocumentSnapshot): ImageMetaData? =
+        document.toObject(ImageMetaData::class.java)
+
+    private fun chunksRef(imageId: String) =
+        collectionRef.document(imageId).collection("chunks")
+
+    /**
+     * Deletes an image's chunks, then its metadata.
+     *
+     * @param id The ID of the image to delete.
+     */
+    override suspend fun delete(id: String) {
+        val chunkDocs = chunksRef(id).get().await()
+
+        chunkDocs.documents.forEach { doc -> doc.reference.delete().await() }
+
+        super.delete(id)
+    }
 
     suspend fun uploadImage(
         metadata: ImageMetaData,
         chunks: List<ImageChunk>
     ): Boolean {
         try {
-            imagesRef.document(metadata.imageId).set(metadata).await()
+            add(metadata)
 
-            val chunkCollection = imagesRef.document(metadata.imageId).collection("chunks")
+            val chunkCollection = chunksRef(metadata.imageId)
 
             chunks.forEach { chunk -> chunkCollection.document(chunk.priority.toString())
                 .set(mapOf("imageId" to chunk.imageId, "priority" to chunk.priority, "bandHeight" to chunk.bandHeight, "imageBytes" to Blob.fromBytes(chunk.imageBytes)))
@@ -38,7 +63,7 @@ class ImageRepository(
     ): List<ImageChunk> {
 
         return try {
-            imagesRef.document(imageId).collection("chunks").get().await()
+            chunksRef(imageId).get().await()
                 .documents.mapNotNull { document ->
 
                     val blob = document.getBlob("imageBytes")
@@ -63,7 +88,7 @@ class ImageRepository(
         imageId: String
     ): ImageMetaData? {
         return try {
-            imagesRef.document(imageId).get().await().toObject(ImageMetaData::class.java)
+            get(imageId)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -89,12 +114,7 @@ class ImageRepository(
         imageId: String
     ): Boolean {
         return try {
-            val chunkDocs = imagesRef.document(imageId).collection("chunks").get().await()
-
-            chunkDocs.documents.forEach { doc -> doc.reference.delete().await() }
-
-            imagesRef.document(imageId).delete().await()
-
+            delete(imageId)
             true
         } catch (e: Exception) {
             e.printStackTrace()

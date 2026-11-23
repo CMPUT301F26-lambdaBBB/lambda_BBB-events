@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays a screen title with optional back and notification buttons.
@@ -35,6 +36,8 @@ fun ScreenTitle(
     showBack: Boolean = false,
     showNotifications: Boolean = true
 ) {
+    val goBack = rememberBackAction(navController)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -43,7 +46,7 @@ fun ScreenTitle(
         if (showBack) {
             IconButton(
                 onClick = {
-                    navController.popBackStack()
+                    goBack()
                 },
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
