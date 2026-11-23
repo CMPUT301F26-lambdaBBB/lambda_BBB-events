@@ -13,7 +13,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.CampsiteController
-import com.example.lambda_bbb_events.view.ui.components.HomeCampsiteFilter
+import com.example.lambda_bbb_events.view.ui.components.filter.HomeCampsiteFilter
 import io.mockk.mockk
 import org.junit.Assert.assertTrue
 import org.junit.Before

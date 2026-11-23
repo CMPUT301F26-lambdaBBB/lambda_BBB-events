@@ -1,73 +1,104 @@
 package com.example.lambda_bbb_events.model.repository
 
-import androidx.compose.runtime.mutableStateListOf
-import com.example.lambda_bbb_events.model.Image
+import android.graphics.Bitmap
+import com.example.lambda_bbb_events.model.ImageChunk
+import com.example.lambda_bbb_events.model.ImageMetaData
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.tasks.await
 
-/*
- * Stores and synchronizes image data using Firestore.
- */
-
-
-/**
- * Handles the data in the Firestore database for the [Image] class.
- *
- * @param db The Firestore database instance.
- */
 class ImageRepository(
     private val db: FirebaseFirestore = Firebase.firestore
 ) {
     private val imagesRef = db.collection("images")
-    private val _images = mutableStateListOf<Image>()
 
-    init {
-        imagesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
+    suspend fun uploadImage(
+        metadata: ImageMetaData,
+        chunks: List<ImageChunk>
+    ): Boolean {
+        try {
+            imagesRef.document(metadata.imageId).set(metadata).await()
 
-            _images.clear()
+            val chunkCollection = imagesRef.document(metadata.imageId).collection("chunks")
 
-            snapshot?.documents?.forEach { document ->
-                val image = document.toObject(Image::class.java)
-                if (image != null) {
-                    _images.add(image)
-                }
-            }
+            chunks.forEach { chunk -> chunkCollection.document(chunk.priority.toString())
+                .set(mapOf("imageId" to chunk.imageId, "priority" to chunk.priority, "bandHeight" to chunk.bandHeight, "imageBytes" to Blob.fromBytes(chunk.imageBytes)))
+                .await() }
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
     }
 
-    /** Cached images synchronized with Firestore. */
-    val images: List<Image>
-        get() = _images
+    suspend fun getImageChunks(
+        imageId: String
+    ): List<ImageChunk> {
 
-    /**
-     * Adds a new image to the Firestore database.
-     *
-     * @param image The image to add.
-     */
-    fun addImage(image: Image) {
-        imagesRef.document(image.imageId).set(image)
+        return try {
+            imagesRef.document(imageId).collection("chunks").get().await()
+                .documents.mapNotNull { document ->
+
+                    val blob = document.getBlob("imageBytes")
+                        ?: return@mapNotNull null
+
+                    ImageChunk(
+                        imageId = document.getString("imageId") ?: "",
+                        priority = document.getLong("priority")?.toInt() ?: 0,
+                        bandHeight = document.getLong("bandHeight")?.toInt() ?: 0,
+                        imageBytes = blob.toBytes()
+                    )
+                }
+                .sortedBy { it.priority }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
-    /**
-     * Deletes an image from the Firestore database.
-     *
-     * @param image The image to be deleted.
-     */
-    fun deleteImage(image: Image) {
-        imagesRef.document(image.imageId).delete()
+    suspend fun getImageMetadata(
+        imageId: String
+    ): ImageMetaData? {
+        return try {
+            imagesRef.document(imageId).get().await().toObject(ImageMetaData::class.java)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
-    /**
-     * Overwrites an existing image in the Firestore database with updated data.
-     *
-     * @param updatedImage The image to be updated. Must have the same `imageId`
-     * as the original document.
-     */
-    fun updateImage(updatedImage: Image) {
-        imagesRef.document(updatedImage.imageId).set(updatedImage)
+    suspend fun getImage(
+        imageId: String
+    ): List<ImageChunk> {
+
+        val metadata = getImageMetadata(imageId)
+            ?: throw IllegalStateException("Image metadata missing")
+
+        val chunks = getImageChunks(imageId)
+
+        if (chunks.size != metadata.chunkCount) {
+            throw IllegalStateException("Missing image chunks")
+        }
+        return chunks
+    }
+
+    suspend fun deleteImage(
+        imageId: String
+    ): Boolean {
+        return try {
+            val chunkDocs = imagesRef.document(imageId).collection("chunks").get().await()
+
+            chunkDocs.documents.forEach { doc -> doc.reference.delete().await() }
+
+            imagesRef.document(imageId).delete().await()
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 }

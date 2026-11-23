@@ -23,8 +23,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.view.ui.CampsiteDetailsScreen
-import com.example.lambda_bbb_events.view.ui.CreateScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen

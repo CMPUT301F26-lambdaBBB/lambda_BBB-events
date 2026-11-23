@@ -1,5 +1,8 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.ImageProcessor
+import com.example.lambda_bbb_events.model.WaitlistEntry
+
 /**
  * Groups the application's controllers into a single container.
  *
@@ -13,5 +16,7 @@ class AppControllers (
     val users: UserController,
     val campsites: CampsiteController,
     val lotteries: LotteryController,
-    val reservations: ReservationController
+    val reservations: ReservationController,
+    val waitlistEntries: WaitlistEntryController,
+    val images: ImageProcessor
 )

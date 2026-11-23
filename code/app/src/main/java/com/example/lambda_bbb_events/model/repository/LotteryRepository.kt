@@ -2,13 +2,15 @@ package com.example.lambda_bbb_events.model.repository
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.model.LotteryStatus
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
-import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 
 /*
  * Manages lottery and waitlist data in Firestore.
@@ -56,12 +58,38 @@ class LotteryRepository {
     }
 
     /**
-     * Deletes a lottery from the Firestore database.
+     * Deletes a lottery from the Firestore database, along with every waitlist entry
+     * for it and every entrant's reference to those entries.
      *
      * @param lottery The lottery to be deleted.
      */
     suspend fun deleteLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).delete().await()
+        // find every waitlist entry that has this lottery id
+        val entriesSnapshot = db.collection("waitlistEntries")
+            .whereEqualTo("lotteryId", lottery.lotteryId)
+            .get()
+            .await()
+
+        val batch = db.batch()
+
+        for (entryDocument in entriesSnapshot.documents) {
+            // remove this entry's ID from the waitlistEntryIds of whichever user has it
+            val usersSnapshot = db.collection("users")
+                .whereArrayContains("waitlistEntryIds", entryDocument.id)
+                .get()
+                .await()
+
+            for (userDoc in usersSnapshot.documents) {
+                batch.update(userDoc.reference, "entryIds",
+                    FieldValue.arrayRemove(entryDocument.id))
+            }
+
+            batch.delete(entryDocument.reference)
+        }
+
+        batch.delete(lotteriesRef.document(lottery.lotteryId))
+
+        batch.commit().await()
     }
 
 
@@ -81,14 +109,8 @@ class LotteryRepository {
      * @return The [Lottery] object with the specified lotteryId if it exists. `null` otherwise.
      */
     suspend fun getLottery(lotteryId: String): Lottery? {
-        // there's probably a faster way to do this but i dont understand all the stuff i read in google
-        // someone pls rewrite this, this is temporary
-        for (lottery in _lotteries) {
-            if (lottery.lotteryId == lotteryId) {
-                return lottery
-            }
-        }
-        return null
+        return lotteriesRef.document(lotteryId).get().await()
+            .toObject(Lottery::class.java)
     }
 
     /**
@@ -101,7 +123,7 @@ class LotteryRepository {
      */
     suspend fun addWaitlistToLottery(lottery: Lottery, waitlistEntry: WaitlistEntry): Boolean {
         // check if the waitlist is already full
-        if (lottery.entryIds.size >= lottery.waitlistCapacity) { // > should be impos, but include strict bound incase
+        if (lottery.isFull()) {
             return false
         }
 
@@ -215,5 +237,65 @@ class LotteryRepository {
         }.addOnFailureListener { exception ->
             onResult(false, exception.message ?: "Registration failed")
         }
+    }
+
+    /**
+     * Draws the winners of a lottery randomly from the waitlist. The status of the entries
+     * that gets drawn become WON, the non-winners become LOST, and the lottery status becomes
+     * DRAWN. The amount drawn is specified by the owner (in lottery object data).
+     *
+     * @param lotteryId The ID of the lottery to draw.
+     * @return `null` if the winners were drawn successfully, an error message otherwise.
+     */
+    suspend fun drawWinners(lotteryId: String): String? {
+        val lotteryRef = lotteriesRef.document(lotteryId)
+        val entriesRef = db.collection("waitlistEntries")
+        var errorMessage: String? = null
+
+        try {
+            db.runTransaction { transaction ->
+                errorMessage = null
+
+                val lottery = transaction.get(lotteryRef).toObject(Lottery::class.java)
+
+                if (lottery == null) {
+                    errorMessage = "This lottery no longer exists."
+                } else if (lottery.status != LotteryStatus.OPEN) {
+                    errorMessage = "The lottery is not open."
+                } else if (Date().before(lottery.registrationEnd)) {
+                    errorMessage = "Registration has not ended yet."
+                } else {
+                    val possibleWinners = mutableListOf<DocumentReference>()
+
+                    for (entryId in lottery.entryIds) {
+                        val entryRef = entriesRef.document(entryId)
+                        val entry = transaction.get(entryRef)
+                            .toObject(WaitlistEntry::class.java)
+
+                        if (entry != null && entry.status == WaitlistStatus.IN_WAITLIST) {
+                            possibleWinners.add(entryRef)
+                        }
+                    }
+
+                    possibleWinners.shuffle() // random
+                    val winnersCount = minOf(lottery.numberOfWinners, possibleWinners.size) // for cases when entries in waitlist < num of winners
+                    
+                    for (i in 0 until winnersCount) { // set winners status
+                        transaction.update(possibleWinners[i], "status", WaitlistStatus.WON.name)
+                    }
+                    for (i in winnersCount until possibleWinners.size) { // set losers status
+                        transaction.update(possibleWinners[i], "status", WaitlistStatus.LOST.name)
+                    }
+
+                    transaction.update(lotteryRef, "status", LotteryStatus.DRAWN.name)
+                }
+
+                null
+            }.await()
+        } catch (e: Exception) {
+            return "Could not draw the winners. Please try again."
+        }
+
+        return errorMessage
     }
 }

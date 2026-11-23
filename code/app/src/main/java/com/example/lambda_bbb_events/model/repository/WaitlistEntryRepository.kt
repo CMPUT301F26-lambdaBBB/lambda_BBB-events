@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.WaitlistEntry
 import com.example.lambda_bbb_events.model.WaitlistStatus
-import com.example.lambda_bbb_events.model.roles.Entrant
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -62,7 +62,18 @@ class WaitlistEntryRepository {
      * @param entry The waitlist entry to be deleted.
      */
     suspend fun deleteWaitlistEntry(entry: WaitlistEntry) {
-        entriesRef.document(entry.entryId).delete().await()
+        val entryRef = entriesRef.document(entry.entryId)
+        val lotteryRef = db.collection("lotteries")
+            .document(entry.lotteryId)
+        val batch = db.batch()
+        batch.delete(entryRef)
+        batch.update(
+            lotteryRef,
+            "entryIds",
+            FieldValue.arrayRemove(entry.entryId)
+        )
+
+        batch.commit().await()
     }
 
 
@@ -91,14 +102,14 @@ class WaitlistEntryRepository {
     /**
      * Gets all the [WaitlistEntry] objects of a specified [Lottery].
      *
-     * @param lottery The lottery to get entries from.
+     * @param lotteryId The lottery ID to get entries from.
      * @return The list of entries in the lottery.
      */
-    fun getEntries(lottery: Lottery): List<WaitlistEntry> {
+    fun getEntries(lotteryId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
         for (entry in _waitlistEntries) {
-            if (entry.lotteryId == lottery.lotteryId) {
+            if (entry.lotteryId == lotteryId) {
                 result.add(entry)
             }
         }
@@ -109,14 +120,14 @@ class WaitlistEntryRepository {
     /**
      * Gets all [WaitlistEntry] of a specific entrant.
      *
-     * @param entrant The entrant to get entries for.
+     * @param entrantId The entrant device ID to get entries for.
      * @return The list of entries made by the entrant.
      */
-    fun getEntriesForEntrant(entrant: Entrant): List<WaitlistEntry> {
+    fun getEntriesForEntrant(entrantId: String): List<WaitlistEntry> {
         val result = mutableListOf<WaitlistEntry>()
 
         for (entry in _waitlistEntries) {
-            if (entry.entrantId == entrant.deviceId) {
+            if (entry.entrantId == entrantId) {
                 result.add(entry)
             }
         }

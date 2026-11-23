@@ -41,7 +41,7 @@ data class Lottery (
     val bookingStart: Date = Date(),
     val bookingEnd: Date = Date(),
     val numberOfWinners: Int = 1,
-    val waitlistCapacity: Int = 1,
+    val waitlistCapacity: Int? = null, // optional, null if there is no limit
     val entryIds: List<String> = emptyList(),
     val status: LotteryStatus = LotteryStatus.OPEN
 ) {
@@ -52,7 +52,8 @@ data class Lottery (
      */
     @Exclude
     fun isFull(): Boolean {
-        return entryIds.size >= waitlistCapacity
+        val capacity = waitlistCapacity ?: return false
+        return entryIds.size >= capacity
     }
 
     /**

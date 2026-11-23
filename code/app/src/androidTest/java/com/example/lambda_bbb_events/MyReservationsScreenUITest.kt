@@ -10,9 +10,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.ActiveBookingsScreen
-import com.example.lambda_bbb_events.view.ui.PastBookingsScreen
-import com.example.lambda_bbb_events.view.ui.LotteryBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.PastBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
 import io.mockk.mockk
 import org.junit.Before
 import org.junit.Rule

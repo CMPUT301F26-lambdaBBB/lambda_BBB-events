@@ -10,7 +10,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.lambda_bbb_events.view.ui.SignupScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

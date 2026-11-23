@@ -1,17 +1,9 @@
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,28 +15,33 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.SectionTitle
-import com.example.lambda_bbb_events.view.ui.components.RatingSummary
-import com.example.lambda_bbb_events.view.ui.components.ScreenTitle
+import com.example.lambda_bbb_events.controller.ReservationFilter
+import com.example.lambda_bbb_events.model.Reservation
+import com.example.lambda_bbb_events.model.generateQR
+import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.reservation.OwnerReservationCard
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
 
 /*
  * Displays campsite details and provides management actions
  * for owners in managing lotteries.
  *
  * TODO: Replace the image carousel placeholder with campsite images.
- * TODO: Display actual upcoming, past, and cancelled reservations.
+ * TODO: Make the QR code scannable and navigate to campsite details.
  * TODO: Implement campsite deletion with confirmation.
  */
 
@@ -66,202 +63,291 @@ fun OwnerCampsiteDetailsScreen(
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
+    var showQrDialog by remember { mutableStateOf(false) }
+    val qrThumbnail = remember(campsiteId) {
+        generateQR(campsiteId, 300, 300)
+    }
+
+    var allReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var upcomingReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var pastReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var cancelledReservations by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var guestNames by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var isLoadingReservations by remember { mutableStateOf(true) }
+
+    LaunchedEffect(campsiteId) {
+        val loadedAll = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.ALL
+        )
+        val loadedUpcoming = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.UPCOMING
+        )
+        val loadedPast = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.PAST
+        )
+        val loadedCancelled = controllers.reservations.getReservationsForCampsite(
+            campsiteId,
+            ReservationFilter.CANCELLED
+        )
+
+        val loadedNames = mutableMapOf<String, String>()
+
+        for (reservation in loadedAll) {
+            if (!loadedNames.containsKey(reservation.entrantId)) {
+                loadedNames[reservation.entrantId] = controllers.users.getUserName(reservation.entrantId)
+            }
+        }
+
+        upcomingReservations = loadedUpcoming
+        pastReservations = loadedPast
+        cancelledReservations = loadedCancelled
+        guestNames = loadedNames
+        isLoadingReservations = false
+    }
+
     if (campsite == null) {
-        Text("Campsite not found")
+        Text(
+            text = "Campsite not found",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
+        )
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 ScreenTitle(
-                    campsite.campsiteName,
-                    navController,
+                    title = campsite.campsiteName,
+                    navController = navController,
                     showBack = true
                 )
 
-                // Image carousel placeholder
-                Box(
-                    modifier = Modifier
-                        .height(180.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("some images here")
-                }
-
-                RatingSummary(
-                    campsite.rating,
-                    campsite.ratingCount
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Outlined.LocationOn,
-                        contentDescription = "Location",
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = campsite.address,
-                        fontSize = 15.sp
-                    )
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = "Max People",
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Column(
-                        modifier = Modifier,
-                        verticalArrangement = Arrangement.spacedBy((-8).dp)
+                    // Image carousel placeholder
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Max Occupancy",
-                            color = Color.Gray,
-                            fontSize = 11.sp
-                        )
-                        Text(
-                            text = "${campsite.maxOccupancy} people",
-                            fontSize = 15.sp
+                            text = "some images here",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                }
-
-                // action buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OwnerActionButton(
-                        label = "Edit",
-                        icon = Icons.Outlined.Edit,
-                        backgroundColor = Color(0xFFEDE7FF),
-                        contentColor = Color.Black,
-                        onClick = { navController.navigate("edit_campsite/${campsite.campsiteId}") },
-                        modifier = Modifier.weight(1f)
+                    // Campsite rating
+                    RatingSummary(
+                        rating = campsite.rating,
+                        reviewCount = campsite.ratingCount
                     )
-                    OwnerActionButton(
-                        label = "View",
-                        icon = Icons.Outlined.Visibility,
-                        backgroundColor = Color(0xFFEDE7FF),
-                        contentColor = Color.Black,
-                        onClick = { navController.navigate("campsite_details/${campsite.campsiteId}") },
-                        modifier = Modifier.weight(1f)
+
+                    // Campsite address
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        Text(
+                            text = campsite.address,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Maximum occupancy
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = "Max People",
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = "Max Occupancy",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Text(
+                                text = "${campsite.maxOccupancy} people",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    // Owner management actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OwnerActionButton(
+                            label = "Edit",
+                            icon = Icons.Outlined.Edit,
+                            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            onClick = {
+                                navController.navigate(
+                                    "edit_campsite/${campsite.campsiteId}"
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OwnerActionButton(
+                            label = "View",
+                            icon = Icons.Outlined.Visibility,
+                            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            onClick = {
+                                navController.navigate(
+                                    "campsite_details/${campsite.campsiteId}"
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OwnerActionButton(
+                            label = "Manage Lottery",
+                            icon = Icons.Outlined.ManageAccounts,
+                            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            onClick = {
+                                navController.navigate(
+                                    "manage_lottery/${campsite.campsiteId}"
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OwnerActionButton(
+                            label = "Delete",
+                            icon = Icons.Outlined.Delete,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            onClick = {
+                                // TODO: Implement campsite deletion with confirmation.
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
-                    OwnerActionButton(
-                        label = "Manage Lottery",
-                        icon = Icons.Outlined.ManageAccounts,
-                        backgroundColor = Color(0xFFEDE7FF),
-                        contentColor = Color.Black,
-                        onClick = { navController.navigate("manage_lottery/${campsite.campsiteId}") },
-                        modifier = Modifier.weight(1f)
+
+                    // Campsite QR code box
+                    Text(
+                        text = "Campsite QR Code",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                    OwnerActionButton(
-                        label = "Delete",
-                        icon = Icons.Outlined.Delete,
-                        backgroundColor = Color(0xFFFADADD),
-                        contentColor = Color(0xFFB3261E),
-                        onClick = { /* ask if want to confirm delete */ },
-                        modifier = Modifier.weight(1f)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable {
+                                showQrDialog = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (qrThumbnail != null) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    bitmap = qrThumbnail.asImageBitmap(),
+                                    contentDescription = "QR Code Preview",
+                                    modifier = Modifier.size(110.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Tap to enlarge QR Code",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "Tap to view QR Code",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (showQrDialog) {
+                        QRCodeDialog(
+                            campsiteName = campsite.campsiteName,
+                            campsiteId = campsiteId,
+                            onDismiss = { showQrDialog = false }
+                        )
+                    }
+
+                    if (!isLoadingReservations &&
+                        upcomingReservations.isEmpty() &&
+                        pastReservations.isEmpty() &&
+                        cancelledReservations.isEmpty()) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        Text(
+                            text = "No reservations yet.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    ReservationSection("Upcoming Reservations", upcomingReservations, guestNames)
+                    ReservationSection("Past Reservations", pastReservations, guestNames)
+                    ReservationSection("Cancelled Reservations", cancelledReservations, guestNames)
+
+                    Spacer(
+                        modifier = Modifier.height(50.dp)
                     )
                 }
-
-                HorizontalDivider()
-
-                SectionTitle("Upcoming Reservations")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("upcoming")
-                }
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("lalalalala")
-                }
-
-                HorizontalDivider()
-
-                SectionTitle("Past Reservations")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("pssst")
-                }
-
-                HorizontalDivider()
-
-                SectionTitle("Cancelled Reservations")
-                // reservations placeholder
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("im a can")
-                }
-                Box(
-                    modifier = Modifier
-                        .height(120.dp)
-                        .background(
-                            color = Color.Gray,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("canada")
-                }
-
-                Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }
 }
-
 
 /**
  * Displays a customizable button for campsite management actions.
@@ -288,7 +374,7 @@ fun OwnerActionButton(
             .height(76.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -299,14 +385,53 @@ fun OwnerActionButton(
             tint = contentColor,
             modifier = Modifier.size(24.dp)
         )
-        Spacer(Modifier.height(4.dp))
+
+        Spacer(
+            modifier = Modifier.height(4.dp)
+        )
+
         Text(
             text = label,
             color = contentColor,
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.labelSmall,
             textAlign = TextAlign.Center,
-            lineHeight = 15.sp,
             maxLines = 2
+        )
+    }
+}
+
+/**
+ * Each reservation has a divider, title, and card with info in it. Nothing is shown when the
+ * list is empty, meaning a section is only shown if it has at least one reservation.
+ *
+ * @param title The section title.
+ * @param reservations The reservations in the section.
+ * @param guestNames The names of the guests.
+ */
+@Composable
+private fun ReservationSection(
+    title: String,
+    reservations: List<Reservation>,
+    guestNames: Map<String, String>
+) {
+    if (reservations.isEmpty()) {
+        return
+    }
+
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant
+    )
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+
+    for (reservation in reservations) {
+        OwnerReservationCard(
+            guestName = guestNames[reservation.entrantId] ?: "Unknown guest",
+            reservation = reservation
         )
     }
 }

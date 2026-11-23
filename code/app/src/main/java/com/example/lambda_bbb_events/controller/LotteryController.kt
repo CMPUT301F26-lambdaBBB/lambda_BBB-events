@@ -3,7 +3,10 @@ package com.example.lambda_bbb_events.controller
 import com.example.lambda_bbb_events.model.Lottery
 import com.example.lambda_bbb_events.model.LotteryStatus
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
+import java.util.UUID
 
 
 /*
@@ -15,9 +18,24 @@ import java.util.Date
  */
 enum class LotteryFilter {
     ALL,        // all lotteries
-    ACTIVE,     // the registration period still active
-    PAST,       // the registration period has ended
+    ACTIVE,     // the registration and/or booking period still active
+    PAST,       // the booking period has ended
     CANCELLED   // cancelled by the owner
+}
+
+/**
+ * The phase of a lottery.
+ *
+ * @property label The text shown to the user.
+ */
+enum class LotteryPhase(val label: String) {
+    UPCOMING("Upcoming"),                   // registration has not started
+    REGISTRATION_OPEN("Registration open"), // entrants can join the waitlist
+    AWAITING_DRAW("Awaiting draw"),         // registration ended, winners not drawn yet
+    WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
+    BOOKING_OPEN("Booking open"),           // winners can book
+    ENDED("Ended"),                         // booking period ended
+    CANCELLED("Cancelled")                  // cancelled by the owner
 }
 
 /**
@@ -28,15 +46,259 @@ enum class LotteryFilter {
 class LotteryController(
     val lotteryRepository: LotteryRepository
 ) {
+    /**
+     * Gets a [Lottery] given its lotteryId.
+     *
+     * @param lotteryId The `lotteryId` to search for.
+     * @return The [Lottery] with the specified lotteryId if it exists. `null` otherwise.
+     */
+    suspend fun getLottery(lotteryId: String): Lottery? {
+        return lotteryRepository.getLottery(lotteryId)
+    }
 
     /**
-     * Adds a lottery to the repository.
+     * Creates a lottery for a campsite. Includes input validation.
      *
-     * @param lottery The [Lottery] to add.
+     * @param ownerId The device ID of the owner of the lottery.
+     * @param campsiteId The ID of the campsite of the lottery.
+     * @param registrationStart The start date of the registration period.
+     * @param registrationEnd The end date of the registration period.
+     * @param bookingStart The start date of the booking period.
+     * @param bookingEnd The end date of the booking period.
+     * @param numberOfWinnersString The number of winners of the lottery (as a string).
+     * @param waitlistCapacityString The maximum number of entries (as a string).
+     * @return `null` if the lottery was created successfully. An error message otherwise.
      */
-    suspend fun addLottery(lottery: Lottery) {
-        lotteryRepository.addLottery(lottery)
+    suspend fun createLottery(
+        ownerId: String,
+        campsiteId: String,
+        registrationStart: LocalDate?,
+        registrationEnd: LocalDate?,
+        bookingStart: LocalDate?,
+        bookingEnd: LocalDate?,
+        numberOfWinnersString: String,
+        waitlistCapacityString: String
+    ): String? {
+        val today = LocalDate.now()
+
+        // inpuut check the dates
+        if (registrationStart == null || registrationEnd == null ||
+            bookingStart == null || bookingEnd == null) {
+            return "Please pick all four dates."
+        }
+
+        if (registrationEnd.isBefore(today)) {
+            return "The registration period must not end before today."
+        }
+
+        if (registrationEnd.isBefore(registrationStart)) {
+            return "The registration period must end after it starts."
+        }
+
+        if (!bookingStart.isAfter(registrationEnd)) {
+            return "The booking period must start after the registration period ends."
+        }
+
+        if (bookingEnd.isBefore(bookingStart)) {
+            return "The booking period must end after it starts."
+        }
+
+        // input check the num of winners
+        val numberOfWinners = numberOfWinnersString.trim().toIntOrNull()
+            ?: return "The number of winners is not a valid number."
+        if (numberOfWinners < 1) {
+            return "The number of winners must be at least 1."
+        }
+
+        // input check the capacity
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
+            return "The waitlist capacity must be at least the number of winners."
+        }
+
+        val newRegistrationStart = toStartOfDay(registrationStart)
+        val newRegistrationEnd = toEndOfDay(registrationEnd)
+
+        // a campsite shouldn't have multiple conflicting lottery periods / overlap
+        val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
+        for (existing in existingLotteries) {
+            val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
+                    !newRegistrationStart.after(existing.registrationEnd)
+
+            if (existing.status != LotteryStatus.CANCELLED && overlaps) {
+                return "This campsite already has a lottery with an overlapping registration period."
+            }
+        }
+
+        val newBookingStart = toStartOfDay(bookingStart)
+        val newBookingEnd = toEndOfDay(bookingEnd)
+
+        lotteryRepository.addLottery(
+            Lottery(
+                lotteryId = UUID.randomUUID().toString(),
+                campsiteIds = listOf(campsiteId),
+                ownerId = ownerId,
+                registrationStart = newRegistrationStart,
+                registrationEnd = newRegistrationEnd,
+                bookingStart = newBookingStart,
+                bookingEnd = newBookingEnd,
+                numberOfWinners = numberOfWinners,
+                waitlistCapacity = waitlistCapacity
+            )
+        )
+
+        return null
     }
+
+    /**
+     * Creates a lottery for a campsite. Includes input validation.
+     *
+     * @param ownerId The device ID of the owner of the lottery.
+     * @param campsiteId The ID of the campsite of the lottery.
+     * @param registrationStart The start date of the registration period.
+     * @param registrationEnd The end date of the registration period.
+     * @param bookingStart The start date of the booking period.
+     * @param bookingEnd The end date of the booking period.
+     * @param numberOfWinnersString The number of winners of the lottery (as a string).
+     * @param waitlistCapacityString The maximum number of entries (as a string).
+     * @return `null` if the lottery was created successfully. An error message otherwise.
+     */
+    suspend fun updateLottery(
+        lotteryId: String,
+        ownerId: String,
+        campsiteId: String,
+        registrationStart: LocalDate?,
+        registrationEnd: LocalDate?,
+        bookingStart: LocalDate?,
+        bookingEnd: LocalDate?,
+        numberOfWinnersString: String,
+        waitlistCapacityString: String
+    ): String? {
+        val existingLottery = lotteryRepository.getLottery(lotteryId)
+            ?: return "Lottery not found."
+
+        val today = LocalDate.now()
+
+        // inpuut check the dates
+        if (registrationStart == null || registrationEnd == null ||
+            bookingStart == null || bookingEnd == null) {
+            return "Please pick all four dates."
+        }
+
+        if (registrationEnd.isBefore(today)) {
+            return "The registration period must not end before today."
+        }
+
+        if (registrationEnd.isBefore(registrationStart)) {
+            return "The registration period must end after it starts."
+        }
+
+        if (!bookingStart.isAfter(registrationEnd)) {
+            return "The booking period must start after the registration period ends."
+        }
+
+        if (bookingEnd.isBefore(bookingStart)) {
+            return "The booking period must end after it starts."
+        }
+
+        // input check the num of winners
+        val numberOfWinners = numberOfWinnersString.trim().toIntOrNull()
+            ?: return "The number of winners is not a valid number."
+        if (numberOfWinners < 1) {
+            return "The number of winners must be at least 1."
+        }
+
+        // input check the capacity
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
+            return "The waitlist capacity must be at least the number of winners."
+        }
+        if (waitlistCapacity != null && waitlistCapacity < existingLottery.entryIds.size) {
+            return "The waitlist capacity must not be smaller than the number of entrants already on it."
+        }
+
+        val newRegistrationStart = toStartOfDay(registrationStart)
+        val newRegistrationEnd = toEndOfDay(registrationEnd)
+
+        // a campsite shouldn't have multiple conflicting lottery periods / overlap
+        val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
+        for (existing in existingLotteries) {
+            if (existing.lotteryId == lotteryId) {
+                continue
+            }
+            val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
+                    !newRegistrationStart.after(existing.registrationEnd)
+
+            if (existing.status != LotteryStatus.CANCELLED && overlaps) {
+                return "This campsite already has a lottery with an overlapping registration period."
+            }
+        }
+
+        val newBookingStart = toStartOfDay(bookingStart)
+        val newBookingEnd = toEndOfDay(bookingEnd)
+
+        lotteryRepository.updateLottery(
+            Lottery(
+                lotteryId = lotteryId,
+                campsiteIds = listOf(campsiteId),
+                ownerId = ownerId,
+                registrationStart = newRegistrationStart,
+                registrationEnd = newRegistrationEnd,
+                bookingStart = newBookingStart,
+                bookingEnd = newBookingEnd,
+                numberOfWinners = numberOfWinners,
+                waitlistCapacity = waitlistCapacity
+            )
+        )
+
+        return null
+    }
+
+    /**
+     * Deletes a lottery.
+     *
+     * @param lottery The lottery to delete.
+     */
+    suspend fun deleteLottery(lottery: Lottery) {
+        lotteryRepository.deleteLottery(lottery)
+    }
+
+    /**
+     * Converts a [LocalDate] date to the first timestamp of that day (so 00:00:00).
+     *
+     * @param date The date to convert.
+     * @return The [Date] at 00:00:00 of the given date.
+     */
+    private fun toStartOfDay(date: LocalDate): Date {
+        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+    }
+
+    /**
+     * Converts a [LocalDate] date to the last timestamp of that day (so 23:59:59).
+     *
+     * @param date The date to convert.
+     * @return The [Date] at 23:59:59 of the given date.
+     */
+    private fun toEndOfDay(date: LocalDate): Date {
+        return Date.from(date.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant())
+    }
+
     /**
      * Gets the lotteries of a campsite that match a filter.
      *
@@ -60,6 +322,46 @@ class LotteryController(
     }
 
     /**
+     * Gets where a lottery is in its timeline, using its current status and
+     * registration and booking dates.
+     *
+     * @param lottery The lottery to check.
+     * @return The [LotteryPhase] of the lottery right now.
+     */
+    fun getPhase(lottery: Lottery): LotteryPhase {
+        val today = Date()
+
+        if (lottery.status == LotteryStatus.CANCELLED) {
+            return LotteryPhase.CANCELLED
+        }
+
+        if (today.before(lottery.registrationStart)) { // today < reg start
+            return LotteryPhase.UPCOMING
+        }
+
+        if (!today.after(lottery.registrationEnd)) { // today <= reg end
+            return LotteryPhase.REGISTRATION_OPEN
+        }
+
+        if (lottery.status != LotteryStatus.DRAWN) {
+            if (!today.after(lottery.bookingEnd)) { // today <= book end
+                return LotteryPhase.AWAITING_DRAW
+            }
+            return LotteryPhase.ENDED // idk what we should do if booking period ends but owners havent drawn. ill just put ended for now
+        }
+
+        if (today.before(lottery.bookingStart)) { // today < book start
+            return LotteryPhase.WINNERS_DRAWN
+        }
+
+        if (!today.after(lottery.bookingEnd)) { // today <= book end
+            return LotteryPhase.BOOKING_OPEN
+        }
+
+        return LotteryPhase.ENDED
+    }
+
+    /**
      * Checks if a lottery matches a filter.
      *
      * @param lottery The lottery to check.
@@ -67,24 +369,42 @@ class LotteryController(
      * @return `true` if the lottery matches the filter, `false` otherwise.
      */
     private fun matchesFilter(lottery: Lottery, filter: LotteryFilter): Boolean {
-        val isCancelled = lottery.status == LotteryStatus.CANCELLED
-        val isOver = lottery.bookingEnd.before(Date())
+        val phase = getPhase(lottery)
 
         if (filter == LotteryFilter.ALL) {
             return true
         }
 
         if (filter == LotteryFilter.CANCELLED) {
-            return isCancelled
+            return phase == LotteryPhase.CANCELLED
         }
 
-        if (filter == LotteryFilter.ACTIVE) {
-            return !isCancelled && !isOver
+        if (filter == LotteryFilter.PAST) {
+            return phase == LotteryPhase.ENDED
         }
 
-        return !isCancelled && isOver
+        return phase != LotteryPhase.ENDED && phase != LotteryPhase.CANCELLED
     }
 
+    /**
+     * Checks if the owner can draw winners of the lottery at current time.
+     *
+     * @param lottery The lottery to check.
+     * @return `true` if the winners can be drawn, `false` otherwise.
+     */
+    fun canDrawWinners(lottery: Lottery): Boolean {
+        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW
+    }
+
+    /**
+     * Draws the winners of a lottery randomly from the waitlist.
+     *
+     * @param lotteryId The ID of the lottery to draw.
+     * @return `null` if the winners were drawn successfully, an error message otherwise.
+     */
+    suspend fun drawWinners(lotteryId: String): String? {
+        return lotteryRepository.drawWinners(lotteryId)
+    }
 
     /**
      * Retrieves the first lottery accepting registrations
