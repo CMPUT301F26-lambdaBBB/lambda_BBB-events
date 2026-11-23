@@ -6,24 +6,20 @@ import com.example.lambda_bbb_events.model.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.Campsite
 import com.example.lambda_bbb_events.model.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
-import com.example.lambda_bbb_events.model.services.generateQR
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
-class CampsiteStore {
-    val campsiteRepo = CampsiteRepository()
-    var campsites: MutableMap<String, Campsite> = mutableStateMapOf()
-
-    var filteredCampsites: MutableMap<String, Campsite> = mutableStateMapOf()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+class CampsiteStore(
+    val campsiteRepo: CampsiteRepository = CampsiteRepository(),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+) {
+    val campsites: MutableMap<String, Campsite> = mutableStateMapOf()
 
     init {
         scope.launch {
-            campsites = campsiteRepo.getAllCampsites()
-            filteredCampsites = campsites
+            campsites.putAll(campsiteRepo.getAllCampsites())
         }
     }
 
@@ -94,6 +90,9 @@ class CampsiteStore {
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
             campsites[campsiteID] = campsite
+            scope.launch {
+                campsiteRepo.updateCampsite(campsiteID, campsite)
+            }
             returnMessage.value = "Success"
         }
         catch (e: Exception) {
@@ -105,42 +104,5 @@ class CampsiteStore {
 
     fun getByOwner(ownerId: String): Campsite {
         return campsites[ownerId] ?: throw IllegalArgumentException("Campsite not found")
-    }
-
-    fun filterUpdate(
-        startDate: LocalDate? = null,
-        endDate: LocalDate? = null,
-        location: String? = null,
-        starRating: Double? = null,
-        guestRange: IntRange? = null,
-    ): MutableMap<String, Campsite> {
-        val givenStartDate = startDate ?: campsites.values.mapNotNull { it.availability.minDate }.minOrNull()
-
-        val givenEndDate = endDate ?: campsites.values.mapNotNull { it.availability.maxDate }.maxOrNull()
-
-        filteredCampsites = campsites.filter { (_, campsite) ->
-            val isAvailable = givenStartDate?.let { start ->
-                givenEndDate?.let { end ->
-                   campsite.availability.isAvailable(start, end)
-                } ?: true
-            } ?: true
-
-            val meetsStarRating = starRating?.let { rating ->
-                campsite.rating >= rating
-            } ?: true
-
-            val meetsGuestRange = guestRange?.let { range ->
-                campsite.maxOccupancy in range
-            } ?: true
-
-            val meetsLocation = location?.let { query ->
-                query.isBlank() ||
-                        campsite.address.contains(query, ignoreCase = true) ||
-                        campsite.campsiteName.contains(query, ignoreCase = true)
-            } ?: true
-
-            isAvailable && meetsStarRating && meetsGuestRange && meetsLocation
-        }.toMutableMap()
-        return filteredCampsites
     }
 }

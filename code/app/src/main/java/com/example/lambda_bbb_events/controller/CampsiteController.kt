@@ -12,13 +12,22 @@ class CampsiteController(
     private val campsiteStore: CampsiteStore
 ) {
 
-    var searchQuery = ""
+    private var _searchQuery = ""
+
+    val searchQuery: String
+        get() = _searchQuery
+
+    private var startDate: LocalDate? = null
+    private var endDate: LocalDate? = null
+    private var location: String = ""
+    private var starRating: Double? = null
+    private var guestRange: IntRange? = null
 
     val campsites: Map<String, Campsite>
         get() = campsiteStore.campsites
 
     val filteredCampsites: Map<String, Campsite>
-        get() = campsiteStore.filteredCampsites
+        get() = campsites.filterValues { meetsAllFilters(it) }
 
     fun addCampsite(
         campsiteId: String = "",
@@ -109,52 +118,80 @@ class CampsiteController(
         guestRange: IntRange? = null
     ): Map<String, Campsite> {
 
-        return campsiteStore.filterUpdate(
-            startDate = startDate,
-            endDate = endDate,
-            location = location,
-            starRating = starRating,
-            guestRange = guestRange
-        )
+        this.startDate = startDate
+        this.endDate = endDate
+        this.location = location.trim()
+        this.starRating = starRating
+        this.guestRange = guestRange
+        return filteredCampsites
     }
 
-
     fun clearFilters() {
-        campsiteStore.filterUpdate()
+        applyFilters()
     }
 
     fun search(
         query: String
     ) {
-        searchQuery = query.trim()
+        _searchQuery = query.trim()
     }
 
     fun getSearchResults(): List<Campsite> {
 
-        val source =
-            if (searchQuery.isBlank()) {
-                filteredCampsites.values.toList()
-            } else {
-                filteredCampsites.values.filter { campsite ->
+        return filteredCampsites.values.filter { matchesSearch(it) }
+    }
 
-                    campsite.campsiteName.contains(
-                        searchQuery,
-                        ignoreCase = true
-                    ) ||
+    private fun meetsAllFilters(
+        campsite: Campsite
+    ): Boolean {
 
-                            campsite.address.contains(
-                                searchQuery,
-                                ignoreCase = true
-                            ) ||
+        return isAvailable(campsite) &&
+                meetsStarRating(campsite) &&
+                meetsGuestRange(campsite) &&
+                meetsLocation(campsite)
+    }
 
-                            campsite.tags.any {
-                                it.contains(
-                                    searchQuery,
-                                    ignoreCase = true
-                                )
-                            }
-                }
-            }
-        return source
+    private fun isAvailable(
+        campsite: Campsite
+    ): Boolean {
+
+        val start = startDate ?: return true
+        val end = endDate ?: start
+        return campsite.availability.isAvailable(start, end)
+    }
+
+    private fun meetsStarRating(
+        campsite: Campsite
+    ): Boolean {
+
+        val rating = starRating ?: return true
+        return campsite.rating >= rating
+    }
+
+    private fun meetsGuestRange(
+        campsite: Campsite
+    ): Boolean {
+
+        val range = guestRange ?: return true
+        return campsite.maxOccupancy in range
+    }
+
+    private fun meetsLocation(
+        campsite: Campsite
+    ): Boolean {
+
+        return location.isBlank() ||
+                campsite.address.contains(location, ignoreCase = true) ||
+                campsite.campsiteName.contains(location, ignoreCase = true)
+    }
+
+    private fun matchesSearch(
+        campsite: Campsite
+    ): Boolean {
+
+        return searchQuery.isBlank() ||
+                campsite.campsiteName.contains(searchQuery, ignoreCase = true) ||
+                campsite.address.contains(searchQuery, ignoreCase = true) ||
+                campsite.tags.any { it.contains(searchQuery, ignoreCase = true) }
     }
 }

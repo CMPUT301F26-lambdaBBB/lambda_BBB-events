@@ -29,6 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.lambda_bbb_events.model.ImageProcessor
 import com.example.lambda_bbb_events.store.CampsiteStore
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
 
 /*
  * Defines the application's main Android activity.
@@ -85,11 +87,13 @@ class MainActivity : ComponentActivity() {
             Lambda_BBBeventsTheme(
                 darkTheme = darkTheme
             ){
-                LambdaEventsApp(
-                    controllers = controllers,
-                    darkTheme = darkTheme,
-                    onDarkThemeChange = { darkTheme = it }
-                )
+                CompositionLocalProvider(LocalImageProcessor provides controllers.images) {
+                    LambdaEventsApp(
+                        controllers = controllers,
+                        darkTheme = darkTheme,
+                        onDarkThemeChange = { darkTheme = it }
+                    )
+                }
             }
         }
     }

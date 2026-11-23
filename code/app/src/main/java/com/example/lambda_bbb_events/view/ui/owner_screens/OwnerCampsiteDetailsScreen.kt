@@ -35,12 +35,12 @@ import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.reservation.OwnerReservationCard
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 
 /*
  * Displays campsite details and provides management actions
  * for owners in managing lotteries.
  *
- * TODO: Replace the image carousel placeholder with campsite images.
  * TODO: Make the QR code scannable and navigate to campsite details.
  * TODO: Implement campsite deletion with confirmation.
  */
@@ -136,23 +136,14 @@ fun OwnerCampsiteDetailsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Image carousel placeholder
-                    Box(
+                    // Image carousel
+                    CampsiteImageCarousel(
+                        campsite = campsite,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(12.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "some images here",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                            .height(220.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
 
                     // Campsite rating
                     RatingSummary(

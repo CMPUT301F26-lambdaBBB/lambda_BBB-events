@@ -3,7 +3,6 @@ package com.example.lambda_bbb_events.view.ui.owner_screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,12 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageProcessor
-import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImage
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
+import androidx.compose.ui.draw.clip
 
 /*
  * Provides a screen for editing campsite details.
@@ -126,25 +125,14 @@ fun EditCampsiteScreen(
                 placeholder = "Campsite name"
             )
 
-            // TODO: Photos
-            if (campsite.imageIds.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No images available",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            // Photos
+            CampsiteImageCarousel(
+                campsite = campsite,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
 
             OutlinedButton(
                 onClick = {

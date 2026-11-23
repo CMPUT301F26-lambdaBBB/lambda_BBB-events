@@ -1,12 +1,11 @@
 package com.example.lambda_bbb_events.model
 
-import android.util.Range
 import java.time.LocalDate
 
 data class AvailabilitySchedule (
     var dates: MutableMap<LocalDate, Int> = mutableMapOf<LocalDate, Int>(),
 ) {
-    var currentBookings: MutableMap<String, Range<LocalDate>> = mutableMapOf()
+    var currentBookings: MutableMap<String, ClosedRange<LocalDate>> = mutableMapOf()
     val minDate: LocalDate?
         get() = dates.keys.minOrNull()
 
@@ -26,45 +25,30 @@ data class AvailabilitySchedule (
         }
     }
 
-    fun canBook(
-        startDate: LocalDate,
-        endDate: LocalDate,
-        maxGuests: Int
-    ): Boolean {
-        var current = startDate
-        while (!current.isAfter(endDate)) {
-            if (current !in dates && dates[current] !!<= maxGuests) {
-                return false
-            }
-            current = current.plusDays(1)
-        }
-        return true
-    }
-
-    fun addNewBooking(startDate: LocalDate, endDate: LocalDate? = null, ownerID: String, maxGuests: Int): Boolean {
+    /**
+     * Books the days from startDate to endDate for one person, leaving every other day open.
+     * Fails if any of those days is not offered or is already booked, or if the person
+     * already holds a booking here.
+     */
+    fun addNewBooking(startDate: LocalDate, endDate: LocalDate? = null, ownerID: String): Boolean {
         val actualEnd = endDate ?: startDate
-        if (!canBook(startDate, actualEnd, maxGuests)) {
+        if (ownerID in currentBookings || !isAvailable(startDate, actualEnd)) {
             return false
         }
-        currentBookings[ownerID] = Range(startDate, endDate)
-        var current = startDate
-        while (!current.isAfter(actualEnd)) {
-            dates[current] = dates[current]!! + 1
-            current = current.plusDays(1)
-        }
+        currentBookings[ownerID] = startDate..actualEnd
+        daysBetween(startDate, actualEnd).forEach { dates[it] = 1 }
         return true
     }
 
-    fun cancelBooking(startDate: LocalDate, endDate: LocalDate? = null) {
-        val newEndDate = endDate ?: startDate
-        var newDate = startDate
-        while (newDate <= newEndDate) {
-            val currentBookings = dates[newDate]
-            if (currentBookings != null && currentBookings > 0) {
-                dates[newDate] = currentBookings - 1
-            }
-            newDate = newDate.plusDays(1)
-        }
+    /**
+     * Frees only the days held by this person's booking.
+     */
+    fun cancelBooking(ownerID: String): Boolean {
+        val booking = currentBookings.remove(ownerID) ?: return false
+        daysBetween(booking.start, booking.endInclusive)
+            .filter { it in dates }
+            .forEach { dates[it] = 0 }
+        return true
     }
 
     fun removeAvailableDate(startDate: LocalDate, endDate: LocalDate? = null) {
@@ -80,17 +64,21 @@ data class AvailabilitySchedule (
         }
     }
 
+    /**
+     * True when every day from start to end is offered and not booked. Days outside the range
+     * are ignored, so any open stretch can be booked around existing bookings.
+     */
     fun isAvailable(
         start: LocalDate,
         end: LocalDate
     ): Boolean {
-        var current: LocalDate = start
-        while (!current.isAfter(end)) {
-            if (current !in dates || dates[current]!! > 0) {
-                return false
-            }
-            current = current.plusDays(1)
+        if (end.isBefore(start)) {
+            return false
         }
-        return true
+        return daysBetween(start, end).all { dates[it] == 0 }
+    }
+
+    private fun daysBetween(start: LocalDate, end: LocalDate): Sequence<LocalDate> {
+        return generateSequence(start) { it.plusDays(1) }.takeWhile { !it.isAfter(end) }
     }
 }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Brightness6
 import androidx.compose.material.icons.outlined.ContentPaste
@@ -33,13 +32,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Displays more detailed account and app settings.
  *
  * TODO: Implement the pages for Log-Out
  * TODO: Implement Notification page functionality
- * TODO: Change placeholder profile picture to user profile picture
  */
 /**
  * Displays user information and app settings.
@@ -101,7 +100,7 @@ fun Settings(
                     )
                 }
 
-                // user info: placeholder profile picture, name and role
+                // user info: profile picture, name and role
                 item {
                     Row(
                         modifier = Modifier
@@ -112,11 +111,9 @@ fun Settings(
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile picture",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                        ProfilePicture(
+                            imageId = user.profilePictureImageId,
+                            size = 48.dp
                         )
 
                         Spacer(modifier = Modifier.width(12.dp))

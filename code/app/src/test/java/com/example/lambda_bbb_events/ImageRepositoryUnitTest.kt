@@ -1,132 +1,131 @@
 package com.example.lambda_bbb_events
 
-import com.example.lambda_bbb_events.model.Image
+import com.example.lambda_bbb_events.model.ImageChunk
+import com.example.lambda_bbb_events.model.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.ImageRepository
-import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 class ImageRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
-    private val imagesRef = mockk<CollectionReference>()
-    private val documentRef = mockk<DocumentReference>()
-    private val task = mockk<Task<Void>>()
-    private val registration = mockk<ListenerRegistration>()
-    private val listenerSlot = slot<EventListener<QuerySnapshot>>()
+    private lateinit var images: MockCollection
     private lateinit var repository: ImageRepository
-    private lateinit var image: Image
+    private val chunksRef = mockk<CollectionReference>()
+    private val chunkRefs = mutableMapOf<String, DocumentReference>()
+
+    private val metadata = ImageMetaData(imageId = "image-1", uploaderUserId = "ed", chunkCount = 2, uploadTimestamp = 1L)
+
+    private fun chunkDocument(priority: Int): DocumentSnapshot {
+        val document = mockk<DocumentSnapshot>()
+        every { document.getBlob("imageBytes") } returns Blob.fromBytes(byteArrayOf(priority.toByte()))
+        every { document.getString("imageId") } returns "image-1"
+        every { document.getLong("priority") } returns priority.toLong()
+        every { document.getLong("bandHeight") } returns 10L
+        every { document.reference } returns chunkRef(priority.toString())
+        return document
+    }
+
+    private fun chunkRef(id: String) = chunkRefs.getOrPut(id) {
+        mockk<DocumentReference>().also {
+            every { it.set(any()) } returns completedTask(null)
+            every { it.delete() } returns completedTask(null)
+        }
+    }
 
     @Before
     fun setup() {
-        image = mockk<Image>()
-
-        every { image.imageId } returns "image-1"
-
-        every {
-            db.collection("images")
-        } returns imagesRef
-
-        every {
-            imagesRef.addSnapshotListener(capture(listenerSlot))
-        } returns registration
-
-        every {
-            imagesRef.document("image-1")
-        } returns documentRef
-
-        every {
-            documentRef.set(image)
-        } returns task
-
-        every {
-            documentRef.delete()
-        } returns task
-
-        every { task.isComplete } returns true
-        every { task.isSuccessful } returns true
-        every { task.result } returns null
-        every { task.exception } returns null
-        every { task.isCanceled } returns false
-
+        images = MockCollection(db, "images")
+        every { images.document("image-1").collection("chunks") } returns chunksRef
+        every { chunksRef.document(any<String>()) } answers { chunkRef(firstArg()) }
+        every { images.document("image-1").get() } returns
+            completedTask(documentOf("image-1", ImageMetaData::class.java, metadata))
         repository = ImageRepository(db)
     }
 
     @Test
-    fun imagesInitiallyEmpty() {
-        assertTrue(repository.images.isEmpty())
-    }
-
-    @Test
-    fun addImage() = runTest {
-        repository.addImage(image)
-
-        verify(exactly = 1) {
-            imagesRef.document("image-1")
-        }
-
-        verify(exactly = 1) {
-            documentRef.set(image)
-        }
-    }
-
-    @Test
-    fun deleteImage() = runTest {
-        repository.deleteImage(image)
-
-        verify(exactly = 1) {
-            imagesRef.document("image-1")
-        }
-
-        verify(exactly = 1) {
-            documentRef.delete()
-        }
-    }
-
-    @Test
-    fun updateImage() = runTest {
-        repository.updateImage(image)
-
-        verify(exactly = 1) {
-            imagesRef.document("image-1")
-        }
-
-        verify(exactly = 1) {
-            documentRef.set(image)
-        }
-    }
-
-    @Test
-    fun snapshotUpdatesImages() {
-        val snapshot = mockk<QuerySnapshot>()
-        val document = mockk<DocumentSnapshot>()
-
-        every {
-            snapshot.documents
-        } returns listOf(document)
-
-        every {
-            document.toObject(Image::class.java)
-        } returns image
-
-        listenerSlot.captured.onEvent(snapshot, null)
-
-        assertEquals(
-            listOf(image),
-            repository.images
+    fun uploadImageWritesMetadataThenEachChunk() = runTest {
+        val chunks = listOf(
+            ImageChunk("image-1", 0, 10, byteArrayOf(1)),
+            ImageChunk("image-1", 1, 10, byteArrayOf(2))
         )
+
+        assertTrue(repository.uploadImage(metadata, chunks))
+
+        verifyOrder {
+            images.document("image-1").set(metadata)
+            chunkRef("0").set(any())
+            chunkRef("1").set(any())
+        }
+    }
+
+    @Test
+    fun uploadImageReturnsFalseOnFailure() = runTest {
+        every { images.document("image-1").set(any()) } returns failedTask(IllegalStateException("offline"))
+
+        assertFalse(repository.uploadImage(metadata, emptyList()))
+    }
+
+    @Test
+    fun getImageReturnsChunksSortedByPriority() = runTest {
+        every { chunksRef.get() } returns completedTask(querySnapshotOf(chunkDocument(1), chunkDocument(0)))
+
+        val chunks = repository.getImage("image-1")
+
+        assertEquals(listOf(0, 1), chunks.map { it.priority })
+        assertEquals(1, chunks[1].imageBytes.single().toInt())
+    }
+
+    @Test
+    fun getImageWithMissingChunksThrows() = runTest {
+        every { chunksRef.get() } returns completedTask(querySnapshotOf(chunkDocument(0)))
+
+        val error = runCatching { repository.getImage("image-1") }.exceptionOrNull()
+
+        assertTrue(error is IllegalStateException)
+        assertEquals("Missing image chunks", error?.message)
+    }
+
+    @Test
+    fun getImageWithoutMetadataThrows() = runTest {
+        every { images.document("image-2").get() } returns
+            completedTask(documentOf("image-2", ImageMetaData::class.java, null))
+
+        val error = runCatching { repository.getImage("image-2") }.exceptionOrNull()
+
+        assertEquals("Image metadata missing", error?.message)
+    }
+
+    @Test
+    fun deleteImageDeletesChunksThenMetadata() = runTest {
+        every { chunksRef.get() } returns completedTask(querySnapshotOf(chunkDocument(0), chunkDocument(1)))
+
+        assertTrue(repository.deleteImage("image-1"))
+
+        verifyOrder {
+            chunkRef("0").delete()
+            chunkRef("1").delete()
+            images.document("image-1").delete()
+        }
+    }
+
+    @Test
+    fun deleteImageReturnsFalseOnFailure() = runTest {
+        every { chunksRef.get() } returns failedTask(IllegalStateException("offline"))
+
+        assertFalse(repository.deleteImage("image-1"))
+        verify(exactly = 0) { images.document("image-1").delete() }
     }
 }
