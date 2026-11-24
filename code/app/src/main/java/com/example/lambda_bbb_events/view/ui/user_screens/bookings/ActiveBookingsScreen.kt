@@ -29,6 +29,7 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.rating.formatRating
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import androidx.compose.ui.draw.clip
@@ -114,7 +115,7 @@ fun ReservationCard(
     modifier: Modifier = Modifier
 ) {
     val campsiteName = campsite?.campsiteName ?: "Unknown Name"
-    val rating = campsite?.rating ?: 0
+    val rating = campsite?.rating ?: 0f
 
     Card(
         modifier = modifier.padding(vertical = 4.dp),
@@ -162,7 +163,7 @@ fun ReservationCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = rating.toString(),
+                        text = formatRating(rating),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

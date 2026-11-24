@@ -36,7 +36,17 @@ class FirestoreTestData(
     }
 
     /**
-     * Deletes every document created with [newId].
+     * Marks a document for [cleanUp] when its ID cannot be made by [newId]. The path must be
+     * unique to the test, so nobody else's data is deleted.
+     *
+     * @param path The path of the document, such as "reviews/test-campsite-1234_test-user".
+     */
+    fun add(path: String) {
+        documentPaths.add(path)
+    }
+
+    /**
+     * Deletes every document created with [newId] or marked with [add].
      *
      * Documents are deleted directly, without the repositories' own delete functions, so
      * cleanup still works when related documents are missing. Throws if any delete fails,

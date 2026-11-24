@@ -278,6 +278,16 @@ class UserController(
     }
 
     /**
+     * Gets a user without reading the database, such as for showing who wrote something.
+     *
+     * @param deviceId The device ID of the user.
+     * @return The user, or `null` if the user does not exist.
+     */
+    fun getCachedUser(deviceId: String): User? {
+        return userRepository.getCachedUser(deviceId)
+    }
+
+    /**
      * Gets the name of a user.
      *
      * @param deviceId The device ID of the user.

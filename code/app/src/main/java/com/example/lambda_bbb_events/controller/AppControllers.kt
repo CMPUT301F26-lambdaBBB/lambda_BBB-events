@@ -11,6 +11,7 @@ import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
  * @property users Controller for user operations.
  * @property campsites Controller for campsite operations.
  * @property lotteries Controller for lottery operations.
+ * @property reviews Controller for campsite reviews.
  */
 class AppControllers (
     val users: UserController,
@@ -18,5 +19,6 @@ class AppControllers (
     val lotteries: LotteryController,
     val reservations: ReservationController,
     val waitlistEntries: WaitlistEntryController,
-    val images: ImageProcessor
+    val images: ImageProcessor,
+    val reviews: ReviewController
 )

@@ -32,6 +32,7 @@ import com.example.lambda_bbb_events.controller.ReservationFilter
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.model.services.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.review.ReviewSection
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.reservation.OwnerReservationCard
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
@@ -330,6 +331,15 @@ fun OwnerCampsiteDetailsScreen(
                     ReservationSection("Upcoming Reservations", upcomingReservations, guestNames)
                     ReservationSection("Past Reservations", pastReservations, guestNames)
                     ReservationSection("Cancelled Reservations", cancelledReservations, guestNames)
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+
+                    ReviewSection(
+                        campsite = campsite,
+                        controllers = controllers
+                    )
 
                     Spacer(
                         modifier = Modifier.height(50.dp)
