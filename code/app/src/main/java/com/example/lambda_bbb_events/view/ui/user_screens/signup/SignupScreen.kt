@@ -32,13 +32,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldW
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 
-/*
- * Provides the signup screen for creating a new entrant account.
- *
- * TODO: Replace the logo placeholder when a final logo is added.
- * TODO: Add loading and error handling during account creation.
- */
-
 /**
  * Displays the account registration screen.
  *

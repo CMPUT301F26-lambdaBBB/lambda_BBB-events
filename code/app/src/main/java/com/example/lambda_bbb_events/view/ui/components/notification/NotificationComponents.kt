@@ -1,7 +1,7 @@
 
 package com.example.lambda_bbb_events.view.ui.components.notification
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +32,9 @@ import androidx.compose.ui.unit.dp
  * @param modifier Modifier used to customize the row's layout and appearance.
  * @param leadingIcon Composable function that displays the icon
  * at the beginning of the row.
+ * @param isMuted Whether to display an icon showing that the row is muted.
+ * @param onLongClickLabel Describes what pressing and holding does, for screen readers.
+ * @param onLongClick Callback invoked when the user presses and holds the row.
  */
 @Composable
 fun NotificationRow(
@@ -38,13 +42,20 @@ fun NotificationRow(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isMuted: Boolean = false,
+    onLongClickLabel: String? = null,
+    onLongClick: (() -> Unit)? = null,
     leadingIcon: @Composable () -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .combinedClickable(
+                onLongClickLabel = onLongClickLabel,
+                onLongClick = onLongClick,
+                onClick = onClick
+            )
+            .padding(horizontal = 8.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -63,6 +74,15 @@ fun NotificationRow(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (isMuted) {
+            // The subtitle already says it is muted
+            Icon(
+                imageVector = Icons.Outlined.NotificationsOff,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -92,6 +112,6 @@ fun NotificationSectionHeader(
         color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp)
+            .padding(horizontal = 16.dp)
     )
 }

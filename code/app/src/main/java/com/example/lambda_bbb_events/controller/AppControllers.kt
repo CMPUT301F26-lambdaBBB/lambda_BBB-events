@@ -15,6 +15,7 @@ import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
  * @property lotteries Controller for lottery operations.
  * @property reviews Controller for campsite reviews.
  * @property places Searches for places by name.
+ * @property notifications Controller for muting notifications.
  */
 class AppControllers (
     val users: UserController,
@@ -24,5 +25,6 @@ class AppControllers (
     val waitlistEntries: WaitlistEntryController,
     val images: ImageProcessor,
     val reviews: ReviewController,
-    val places: PlaceSearch = FallbackPlaceSearch()
+    val places: PlaceSearch = FallbackPlaceSearch(),
+    val notifications: NotificationController = NotificationController()
 )

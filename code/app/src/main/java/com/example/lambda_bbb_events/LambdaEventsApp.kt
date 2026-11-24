@@ -268,7 +268,7 @@ private fun MainApp(
                 )
             }
 
-            composable("notifications") { NotificationsScreen(navController) }
+            composable("notifications") { NotificationsScreen(navController, controllers) }
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
             composable("create_campsite") { CreateScreen(navController, controllers) }
             composable("edit_campsite/{campsiteId}") { backStackEntry ->

@@ -17,11 +17,13 @@ import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
+import com.example.lambda_bbb_events.controller.NotificationController
 import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.ReviewController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
+import com.example.lambda_bbb_events.model.local.SharedPreferencesNotificationMuteStore
 import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
 import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
@@ -91,7 +93,10 @@ class MainActivity : ComponentActivity() {
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
             images = imageProcessor,
-            reviews = ReviewController(reviewRepository)
+            reviews = ReviewController(reviewRepository),
+            notifications = NotificationController(
+                SharedPreferencesNotificationMuteStore(applicationContext)
+            )
         )
 
         setContent {

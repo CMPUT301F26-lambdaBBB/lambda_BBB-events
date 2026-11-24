@@ -7,136 +7,187 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
-import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
-import com.example.lambda_bbb_events.view.ui.components.notification.NotificationRow
-import com.example.lambda_bbb_events.view.ui.components.notification.NotificationSectionHeader
+import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.controller.NotificationController
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.notification.HeldRowBox
+import com.example.lambda_bbb_events.view.ui.components.notification.HeldRowState
+import com.example.lambda_bbb_events.view.ui.components.notification.MutableNotificationRow
+import com.example.lambda_bbb_events.view.ui.components.notification.NotificationSectionHeader
+import kotlinx.coroutines.delay
 
 /*
  * Displays notifications organized by people and categories.
  *
  * TODO: Replace placeholder people and categories with actual data.
- * TODO: Implement notification preference management actions.
+ * TODO: Check NotificationController.isMuted before showing a notification.
  */
+
+/**
+ * A person or category that notifications come from.
+ *
+ * @property id Identifies it when it is muted.
+ * @property title Its name.
+ * @property unmutedText Displayed below the title while it is not muted.
+ * @property icon Displayed next to the title.
+ */
+private data class NotificationSource(
+    val id: String,
+    val title: String,
+    val unmutedText: String,
+    val icon: ImageVector
+)
+
+// Placeholder people
+private val people = listOf(
+    NotificationSource("person_midterms", "Midterms", "Unmuted", Icons.Default.AccountCircle),
+    NotificationSource("person_admin", "Admin", "Unmuted", Icons.Default.AccountCircle),
+    NotificationSource("person_yuta", "Yuta", "Unmuted", Icons.Default.AccountCircle)
+)
+
+// Placeholder notification categories
+private val categories = listOf(
+    NotificationSource(
+        "category_rejection", "Rejection information", "High priority", Icons.Outlined.Info
+    ),
+    NotificationSource(
+        "category_lottery", "Lottery results", "Weekly updates", Icons.Outlined.ConfirmationNumber
+    ),
+    NotificationSource(
+        "category_cancellations", "Cancellations", "Weekly updates", Icons.Outlined.Cancel
+    ),
+    NotificationSource(
+        "category_sent", "Notifications Sent", "Weekly updates", Icons.Outlined.Info
+    )
+)
 
 /**
  * Displays the application's notification management screen.
  *
- * Organizes notification options by people and categories.
+ * Organizes notification options by people and categories. Pressing and holding one opens
+ * a menu to mute or unmute it.
  *
  * @param navController Handles screen navigation.
+ * @param controllers Application controllers.
  */
 @Composable
-fun NotificationsScreen(navController: NavController) {
+fun NotificationsScreen(
+    navController: NavController,
+    controllers: AppControllers
+) {
+    val notifications = controllers.notifications
+    val heldRow = remember { HeldRowState() }
+    UnmuteWhenMutesEnd(notifications)
 
-    // Placeholder people
-    val people = listOf(
-        Triple("Midterms", "Muted until tomorrow", Icons.Default.AccountCircle),
-        Triple("Admin", "Unmuted", Icons.Default.AccountCircle),
-        Triple("Yuta", "Unmuted", Icons.Default.AccountCircle)
-    )
-
-    // Placeholder notification categories
-    val categories = listOf(
-        Triple("Rejection information", "High priority", Icons.Outlined.Info),
-        Triple("Lottery results", "Weekly updates", Icons.Outlined.ConfirmationNumber),
-        Triple("Cancellations", "Weekly updates", Icons.Outlined.Cancel),
-        Triple("Notifications Sent", "Weekly updates", Icons.Outlined.Info)
-    )
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavigationBar(navController)
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding)
-        ) {
-            ScreenTitle(
-                title = "Notification",
-                navController = navController,
-                showNotifications = false,
-                showBack = true
-            )
-
-            Text(
-                text = "Manage alerts from specific people",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    start = 4.dp,
-                    bottom = 16.dp
-                )
-            )
-
-            NotificationSectionHeader("People")
-
-            people.forEachIndexed { index, person ->
-                NotificationRow(
-                    person.first,
-                    person.second,
-                    onClick = {},
-                    leadingIcon = {
-                        Icon(
-                            imageVector = person.third,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                )
-
-                if (index < people.lastIndex) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                }
+    HeldRowBox(heldRow) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            bottomBar = {
+                BottomNavigationBar(navController)
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            NotificationSectionHeader("Categories")
-
-            categories.forEachIndexed { index, category ->
-                NotificationRow(
-                    category.first,
-                    category.second,
-                    onClick = {},
-                    leadingIcon = {
-                        Icon(
-                            imageVector = category.third,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                ScreenTitle(
+                    title = "Notification",
+                    navController = navController,
+                    showNotifications = false,
+                    showBack = true
                 )
 
-                if (index < categories.lastIndex) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant
+                Text(
+                    text = "Press and hold a person or category to mute or unmute it",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp
                     )
-                }
+                )
+
+                NotificationSectionHeader("People")
+                NotificationSources(people, notifications, heldRow)
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                NotificationSectionHeader("Categories")
+                NotificationSources(categories, notifications, heldRow)
             }
         }
     }
 }
+
+/** Displays [sources] in a list, with a line between each of them. */
+@Composable
+private fun NotificationSources(
+    sources: List<NotificationSource>,
+    notifications: NotificationController,
+    heldRow: HeldRowState
+) {
+    // The space on the sides leaves room for a row to grow when it is held
+    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+        sources.forEachIndexed { index, source ->
+            MutableNotificationRow(
+                id = source.id,
+                title = source.title,
+                unmutedText = source.unmutedText,
+                icon = source.icon,
+                notifications = notifications,
+                heldRow = heldRow
+            )
+
+            if (index < sources.lastIndex) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+            }
+        }
+    }
+}
+
+/** Updates the screen when a temporary mute ends while it is open. */
+@Composable
+private fun UnmuteWhenMutesEnd(notifications: NotificationController) {
+    val nextUnmuteAt = notifications.nextUnmuteAt
+
+    LaunchedEffect(nextUnmuteAt) {
+        while (nextUnmuteAt != null && notifications.nextUnmuteAt == nextUnmuteAt) {
+            delay(notifications.millisUntil(nextUnmuteAt).coerceAtLeast(MIN_WAIT_MILLIS))
+            notifications.removeEndedMutes()
+        }
+    }
+
+    // The wait above does not count time while the device is asleep
+    LifecycleResumeEffect(notifications) {
+        notifications.removeEndedMutes()
+        onPauseOrDispose {}
+    }
+}
+
+private const val MIN_WAIT_MILLIS = 1_000L
