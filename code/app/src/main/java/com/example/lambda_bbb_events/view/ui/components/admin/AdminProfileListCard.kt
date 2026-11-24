@@ -28,21 +28,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.lambda_bbb_events.model.user.User
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /**
  * Displays a card of the user's information.
  *
- * @param name The user's name.
- * @param email The user's email address.
- * @param role The user's role.
+ * @param user The user to show.
  * @param modifier Modifier for layout.
  * @param onClick Function to call when the card is clicked.
  */
 @Composable
 fun AdminProfileListCard(
-    name: String,
-    email: String,
-    role: String,
+    user: User,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -63,27 +61,35 @@ fun AdminProfileListCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // TODO: replace with user's profile picture when user pfp's is implemented
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccountCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(32.dp)
-                    )
+            if (user.profilePictureImageId.isBlank()) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.AccountCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
+            } else {
+                ProfilePicture(
+                    imageId = user.profilePictureImageId,
+                    size = 56.dp
+                )
             }
+
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = name,
+                    text = user.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -92,13 +98,13 @@ fun AdminProfileListCard(
                 )
 
                 Text(
-                    text = email,
+                    text = user.email,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
-                    text = role,
+                    text = user.role.name,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

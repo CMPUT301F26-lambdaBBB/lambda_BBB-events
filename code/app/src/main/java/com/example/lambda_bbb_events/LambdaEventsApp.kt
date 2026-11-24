@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminHomeScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfileDetailsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
 import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
 import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
@@ -294,6 +295,10 @@ private fun MainApp(
             composable("admin_home") { AdminHomeScreen(navController, controllers) }
             composable("admin_profiles") { AdminProfilesScreen(navController, controllers) }
             composable("admin_campsites") { AdminCampsitesScreen(navController, controllers) }
+            composable("admin_profile_details/{userId}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                AdminProfileDetailsScreen(navController, controllers, userId)
+            }
         }
     }
 }

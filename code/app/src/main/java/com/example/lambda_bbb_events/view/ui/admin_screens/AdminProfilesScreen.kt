@@ -40,7 +40,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 @Composable
 fun AdminProfilesScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers,
 ) {
     val isAdmin = controllers.users.currentUser?.role == UserRole.ADMIN
 
@@ -125,10 +125,8 @@ fun AdminProfilesScreen(
                         ) {
                             items(filteredUsers, key = { it.deviceId }) { user ->
                                 AdminProfileListCard(
-                                    name = user.name,
-                                    email = user.email,
-                                    role = user.role.name,
-                                    onClick = {}, // TODO: open a profile detail screen (03.02.01)
+                                    user = user,
+                                    onClick = { navController.navigate("admin_profile_details/${user.deviceId}") },
                                     modifier = Modifier.testTag("adminProfileItem")
                                 )
                             }
