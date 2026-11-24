@@ -320,6 +320,10 @@ class CampsiteController(
         _searchQuery = query.trim()
     }
 
+    fun getAllCampsites(): List<Campsite> {
+        return campsiteStore.campsites.values.toList()
+    }
+
     fun getSearchResults(): List<Campsite> {
 
         return filteredCampsites.values.filter { matchesSearch(it) }
