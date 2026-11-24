@@ -14,12 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays the registration status of a waitlist entry.
@@ -38,6 +39,8 @@ fun RegistrationStatusScreen(
     controllers: AppControllers,
     entryId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val entry = controllers.waitlistEntries.getEntryById(entryId)
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
@@ -54,8 +57,7 @@ fun RegistrationStatusScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ScreenTitle(
@@ -191,7 +193,7 @@ fun RegistrationStatusScreen(
                                 controllers.waitlistEntries.leaveWaitlist(entry)
 
                                 showLeaveDialog = false
-                                navController.popBackStack()
+                                goBack()
                             } catch (e: Exception) {
                                 errorMessage =
                                     e.message ?: "Failed to leave waitlist."

@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.HorizontalDivider
@@ -33,23 +32,23 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileRow
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileSectionHeader
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Displays the current user's profile information and account settings.
  *
  * TODO: no test tags for log out dialog yet and log out does not allow re log-in
- * TODO: Replace the placeholder profile picture when profile image support is added.
  */
 
 /**
  * Displays the user's profile and account options.
  *
- * Shows the user's name, email, and a placeholder profile picture.
+ * Shows the user's name, email, and their profile picture.
  * Provides options for settings, editing the profile, and logging out.
  *
  * @param navController The [NavController] used to navigate between screens.
@@ -88,12 +87,10 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Placeholder for profile picture
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profile picture",
-                    modifier = Modifier.size(165.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                // Profile picture
+                ProfilePicture(
+                    imageId = user.profilePictureImageId,
+                    size = 165.dp
                 )
 
                 Text(
@@ -166,20 +163,14 @@ fun ProfileScreen(
             )
 
             // prompts alert dialog when log-out is clicked
-            // you can't log in to any account after logging out since it just navigates to signup for now
-            // need to work out way to log out with device id verification not causing re-login issue
             if (showDialog) {
                 ShowAlertDialog(
                     dialogLabel = "Log Out?",
-                    dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
+                    dialogCaption = "You can log back in with your email and phone number.",
                     confirmButton = {
                         showDialog = false
-                        navController.navigate("signup") {
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true // removes previous screens in back stack including home
-                            }
-                            launchSingleTop = true // prevent duplicate destination entries
-                        }
+                        // The app goes back to the welcome screen by itself
+                        controllers.users.logOut()
                     },
                     confirmText = "Log Out",
                     dismissState = { showDialog = false },

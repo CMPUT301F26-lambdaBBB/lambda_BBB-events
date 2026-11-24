@@ -1,51 +1,65 @@
 package com.example.lambda_bbb_events
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.view.ui.admin_screens.AdminCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminHomeScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.AdminImagesScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfileDetailsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
+import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
 import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.ActiveBookingsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.CampsiteCheckAvailabilityScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.PastBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryEnteredScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.RegistrationStatusScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteDetailsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreDefaultScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRScannerScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.LotteryBookingsScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryEnteredScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.notification.NotificationsScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerCampsiteDetailsScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.PastBookingsScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.AppPoliciesScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_Toggle
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.ProfileScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.RegistrationStatusScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
+import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.LoginScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerLotteryDetailsScreen
-import com.example.lambda_bbb_events.view.ui.owner_screens.OwnerManageLotteryScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery.LotteryAvailabilityScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.profile.AppPoliciesScreen
-import com.example.lambda_bbb_events.view.ui.user_screens.profile.Notification_Toggle
-import com.example.lambda_bbb_events.view.ui.user_screens.profile.Theme_Toggle
-import com.example.lambda_bbb_events.view.ui.user_screens.profile.Settings
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
+import com.example.lambda_bbb_events.view.ui.user_screens.signup.WelcomeScreen
 import java.time.LocalDate
 
 /*
@@ -70,18 +84,47 @@ fun LambdaEventsApp(
     onDarkThemeChange: (Boolean) -> Unit
 ) {
     if (!controllers.users.usersFullyLoaded) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Shown while checking whether this device already has an account
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .testTag("loadingScreen"),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            AppLogo(size = 160.dp)
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Lambda Camping",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(Modifier.height(32.dp))
             CircularProgressIndicator()
         }
     } else if (controllers.users.currentUser == null) {
-        // no profile so show sign up
+        // no profile so let the user choose to log in or sign up
+        val navController = rememberNavController()
         Scaffold { innerPadding ->
-            Box(
-                Modifier
+            NavHost(
+                navController = navController,
+                startDestination = "welcome",
+                modifier = Modifier
                     .padding(innerPadding)
-                    .padding(horizontal = 32.dp)
+                    .consumeWindowInsets(innerPadding)
+                    .padding(horizontal = 16.dp)
             ) {
-                SignupScreen(rememberNavController(), controllers)
+                composable("welcome") {
+                    WelcomeScreen(
+                        onLogin = { navController.navigate("login") },
+                        onSignUp = { navController.navigate("signup") }
+                    )
+                }
+                composable("login") { LoginScreen(navController, controllers) }
+                composable("signup") {
+                    SignupScreen(navController, controllers, showBack = true)
+                }
             }
         }
     } else {
@@ -104,16 +147,16 @@ private fun MainApp(
     darkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit
 ) {
-    // NOTE: Screen looks too zoomed on small phone so cant login, someone test
-    // and try to fix if happens for u too thx
     val navController = rememberNavController()
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "home",
+            // Screens with their own Scaffold must not apply the system bar insets again
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 32.dp)
+                .consumeWindowInsets(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             composable("signup") { SignupScreen(navController, controllers) }
             composable("home") { HomeScreen(navController, controllers) }
@@ -252,6 +295,12 @@ private fun MainApp(
             // admin screens
             composable("admin_home") { AdminHomeScreen(navController, controllers) }
             composable("admin_profiles") { AdminProfilesScreen(navController, controllers) }
+            composable("admin_campsites") { AdminCampsitesScreen(navController, controllers) }
+            composable("admin_profile_details/{userId}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                AdminProfileDetailsScreen(navController, controllers, userId)
+            }
+            composable("admin_images") { AdminImagesScreen(navController, controllers) }
         }
     }
 }

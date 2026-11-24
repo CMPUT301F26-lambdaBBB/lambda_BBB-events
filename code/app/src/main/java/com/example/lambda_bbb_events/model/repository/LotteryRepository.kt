@@ -1,13 +1,16 @@
 package com.example.lambda_bbb_events.model.repository
 
-import androidx.compose.runtime.mutableStateListOf
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.LotteryStatus
-import com.example.lambda_bbb_events.model.WaitlistEntry
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.LotteryStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
+import com.example.lambda_bbb_events.model.message.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -21,40 +24,145 @@ import java.util.Date
 /**
  * Handles the data in the Firestore database for the [Lottery] class.
  */
-class LotteryRepository {
-    private val db = Firebase.firestore
-    private val lotteriesRef = db.collection("lotteries")
-
-    private val _lotteries = mutableStateListOf<Lottery>()
+class LotteryRepository(
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<Lottery>("lotteries", db) {
 
     init {
-        lotteriesRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-
-            _lotteries.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val lottery = document.toObject(Lottery::class.java)
-                if (lottery != null) {
-                    _lotteries.add(lottery)
-                }
-            }
-        }
+        startListening()
     }
+
+    override fun idOf(item: Lottery) = item.lotteryId
+
+    override fun fromDocument(document: DocumentSnapshot): Lottery? =
+        document.toObject(Lottery::class.java)
 
     /** Cached lotteries synchronized with Firestore. */
     val lotteries: List<Lottery>
-        get() = _lotteries
+        get() = cached
 
     /**
      * Adds a new lottery to the Firestore database.
      *
      * @param lottery The lottery to add.
      */
-    suspend fun addLottery(lottery: Lottery) {
-        lotteriesRef.document(lottery.lotteryId).set(lottery).await()
+    suspend fun addLottery(lottery: Lottery) = add(lottery)
+
+    /**
+     * Deletes a lottery from the Firestore database, along with every waitlist entry
+     * for it and every entrant's reference to those entries.
+     *
+     * @param id The `lotteryId` of the lottery to be deleted.
+     */
+    override suspend fun delete(id: String) {
+        deleteAndNotifyWinners(id, makeNotice = null)
+    }
+
+    /**
+     * Deletes a lottery like [delete], and sends a message to each of its winners: the
+     * entries that won ([WaitlistStatus.WON]) or accepted their win
+     * ([WaitlistStatus.ACCEPTED]). The messages are written in the same batch as the
+     * deletion, so either the lottery is deleted and every winner is told, or nothing changes.
+     *
+     * @param id The `lotteryId` of the lottery to be deleted.
+     * @param makeNotice Makes the message for a winner's entry, or `null` to send none.
+     * @return The number of winners sent a message.
+     */
+    suspend fun deleteAndNotifyWinners(
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
+        val batch = db.batch()
+        val notified = queueLotteryDeletion(batch, id, makeNotice)
+        batch.commit().await()
+        removeFromCache(id)
+        return notified
+    }
+
+    private suspend fun queueLotteryDeletion(
+        batch: WriteBatch,
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
+        var notified = 0
+
+        val entriesSnapshot = db.collection("waitlistEntries")
+            .whereEqualTo("lotteryId", id)
+            .get()
+            .await()
+
+        for (entryDocument in entriesSnapshot.documents) {
+            val usersSnapshot = db.collection("users")
+                .whereArrayContains("waitlistEntryIds", entryDocument.id)
+                .get()
+                .await()
+
+            for (userDoc in usersSnapshot.documents) {
+                batch.update(
+                    userDoc.reference,
+                    "waitlistEntryIds",
+                    FieldValue.arrayRemove(entryDocument.id)
+                )
+            }
+
+            if (makeNotice != null) {
+                val entry = try {
+                    entryDocument.toObject(WaitlistEntry::class.java)
+                } catch (_: Exception) {
+                    null
+                }
+                if (entry != null && entry.status in WINNING_STATUSES) {
+                    val notice = makeNotice(entry)
+                    batch.set(db.collection("messages").document(notice.messageId), notice)
+                    notified++
+                }
+            }
+
+            batch.delete(entryDocument.reference)
+        }
+
+        batch.delete(collectionRef.document(id))
+        return notified
+    }
+
+    internal suspend fun queueCampsiteLotteryDeletions(
+        batch: WriteBatch,
+        campsiteId: String
+    ) {
+        val lotteries = collectionRef
+            .whereArrayContains("campsiteIds", campsiteId)
+            .get()
+            .await()
+
+        for (lottery in lotteries.documents) {
+            queueLotteryDeletion(batch, lottery.id, makeNotice = null)
+        }
+    }
+
+    /**
+     * Reads every lottery a campsite owner created from Firestore, including ones not
+     * in the cache yet.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The owner's lotteries. Empty if [ownerId] is blank.
+     */
+    suspend fun getLotteriesByOwner(ownerId: String): List<Lottery> {
+        if (ownerId.isBlank()) {
+            return emptyList()
+        }
+        val snapshot = collectionRef.whereEqualTo("ownerId", ownerId).get().await()
+        return snapshot.documents.mapNotNull { document ->
+            try {
+                fromDocument(document)
+            } catch (e: Exception) {
+                null // skip lotteries that are not valid
+            }
+        }
+    }
+
+    private companion object {
+        /** Statuses of entries that won a lottery, so hold a booking. */
+        val WINNING_STATUSES = setOf(WaitlistStatus.WON, WaitlistStatus.ACCEPTED)
     }
 
     /**
@@ -63,34 +171,7 @@ class LotteryRepository {
      *
      * @param lottery The lottery to be deleted.
      */
-    suspend fun deleteLottery(lottery: Lottery) {
-        // find every waitlist entry that has this lottery id
-        val entriesSnapshot = db.collection("waitlistEntries")
-            .whereEqualTo("lotteryId", lottery.lotteryId)
-            .get()
-            .await()
-
-        val batch = db.batch()
-
-        for (entryDocument in entriesSnapshot.documents) {
-            // remove this entry's ID from the waitlistEntryIds of whichever user has it
-            val usersSnapshot = db.collection("users")
-                .whereArrayContains("waitlistEntryIds", entryDocument.id)
-                .get()
-                .await()
-
-            for (userDoc in usersSnapshot.documents) {
-                batch.update(userDoc.reference, "entryIds",
-                    FieldValue.arrayRemove(entryDocument.id))
-            }
-
-            batch.delete(entryDocument.reference)
-        }
-
-        batch.delete(lotteriesRef.document(lottery.lotteryId))
-
-        batch.commit().await()
-    }
+    suspend fun deleteLottery(lottery: Lottery) = delete(lottery)
 
 
     /**
@@ -98,9 +179,7 @@ class LotteryRepository {
      *
      * @param updatedLottery The lottery data to save.
      */
-    suspend fun updateLottery(updatedLottery: Lottery) {
-        lotteriesRef.document(updatedLottery.lotteryId).set(updatedLottery).await()
-    }
+    suspend fun updateLottery(updatedLottery: Lottery) = update(updatedLottery)
 
     /**
      * Gets a [Lottery] object from the database given its lotteryId.
@@ -108,10 +187,7 @@ class LotteryRepository {
      * @param lotteryId The `lotteryId` to search for.
      * @return The [Lottery] object with the specified lotteryId if it exists. `null` otherwise.
      */
-    suspend fun getLottery(lotteryId: String): Lottery? {
-        return lotteriesRef.document(lotteryId).get().await()
-            .toObject(Lottery::class.java)
-    }
+    suspend fun getLottery(lotteryId: String): Lottery? = get(lotteryId)
 
     /**
      * Adds a waitlist entry to a specified lottery if there is enough space left.
@@ -133,7 +209,7 @@ class LotteryRepository {
         }
 
         // valid conditions, union the old entryIds with the new entryId (add)
-        lotteriesRef.document(lottery.lotteryId)
+        collectionRef.document(lottery.lotteryId)
             .update("entryIds", FieldValue.arrayUnion(waitlistEntry.entryId)).await()
 
         return true
@@ -149,7 +225,7 @@ class LotteryRepository {
     suspend fun removeWaitlistFromLottery(lottery: Lottery, waitlistEntry: WaitlistEntry) {
         // check if this entry is on the waitlist
         if (waitlistEntry.entryId in lottery.entryIds) {
-            lotteriesRef.document(lottery.lotteryId)
+            collectionRef.document(lottery.lotteryId)
                 .update("entryIds", FieldValue.arrayRemove(waitlistEntry.entryId)).await()
         }
     }
@@ -164,7 +240,7 @@ class LotteryRepository {
     fun getLotteriesForCampsite(campsiteId: String): List<Lottery> {
         val result = mutableListOf<Lottery>()
 
-        for (lottery in _lotteries) {
+        for (lottery in cached) {
             if (campsiteId in lottery.campsiteIds) {
                 result.add(lottery)
             }
@@ -196,7 +272,7 @@ class LotteryRepository {
             return
         }
 
-        val lotteryRef = lotteriesRef.document(lotteryId)
+        val lotteryRef = collectionRef.document(lotteryId)
         val entryId = "${lotteryId}_${entrantId}"
         val entryRef = db.collection("waitlistEntries").document(entryId)
 
@@ -248,7 +324,7 @@ class LotteryRepository {
      * @return `null` if the winners were drawn successfully, an error message otherwise.
      */
     suspend fun drawWinners(lotteryId: String): String? {
-        val lotteryRef = lotteriesRef.document(lotteryId)
+        val lotteryRef = collectionRef.document(lotteryId)
         val entriesRef = db.collection("waitlistEntries")
         var errorMessage: String? = null
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,21 +22,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageProcessor
+import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
-import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImage
+import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
+import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_HEIGHT
+import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_WIDTH
 
 /*
  * Defines a clickable campsite card.
- *
- * TODO: Replace the image placeholder with an actual campsite image.
  */
 
 /**
@@ -61,7 +58,7 @@ fun VerticalCampsiteCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(130.dp)
+            .height(THUMBNAIL_HEIGHT)
             .clip(cardShape)
             .border(
                 width = 1.dp,
@@ -71,26 +68,13 @@ fun VerticalCampsiteCard(
             .background(MaterialTheme.colorScheme.surface)
             .clickable { onClick() }
     ) {
-        // Image placeholder
-        if (campsite.imageIds.isNotEmpty()) {
-            CampsiteImage(
-                imageId = campsite.imageIds.first().imageId,
-                imageProcessor = remember { ImageProcessor() },
-                modifier = Modifier
-                    .width(120.dp)
-                    .fillMaxHeight()
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .width(120.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No Image")
-            }
-        }
+        // Campsite image
+        CampsiteThumbnail(
+            campsite = campsite,
+            modifier = Modifier
+                .width(THUMBNAIL_WIDTH)
+                .fillMaxHeight()
+        )
         Column(
             modifier = Modifier
                 .weight(1f)

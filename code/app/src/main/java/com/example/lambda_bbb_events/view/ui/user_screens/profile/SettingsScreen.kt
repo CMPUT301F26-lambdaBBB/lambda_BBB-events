@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Brightness6
 import androidx.compose.material.icons.outlined.ContentPaste
@@ -34,13 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Displays more detailed account and app settings.
  *
+ * TODO: Implement Notification page functionality
  * TODO: Log-Out to allow logging back in
  * TODO: no test tags for log out or delete dialogs yet
- * TODO: Change placeholder profile picture to user profile picture
  */
 /**
  * Displays user information and app settings.
@@ -102,7 +102,7 @@ fun Settings(
                     )
                 }
 
-                // user info: placeholder profile picture, name and role
+                // user info: profile picture, name and role
                 item {
                     Row(
                         modifier = Modifier
@@ -113,11 +113,9 @@ fun Settings(
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile picture",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                        ProfilePicture(
+                            imageId = user.profilePictureImageId,
+                            size = 48.dp
                         )
 
                         Spacer(modifier = Modifier.width(12.dp))
@@ -241,6 +239,14 @@ fun Settings(
             confirmButton = {
                 scope.launch { // starts coroutine so firebase deletion runs without freezing app
                     try {
+                        // Delete the user's lotteries and archive their campsites first, so a
+                        // failure leaves the account in place to retry instead of leaving them
+                        // orphaned. Campsites are kept, inactive, for past bookings and records.
+                        val ownerId = controllers.users.deviceId
+                        controllers.lotteries.cancelLotteriesOfDeletedOwner(ownerId) { campsiteId ->
+                            controllers.campsites.getCampsite(campsiteId)?.campsiteName
+                        }
+                        controllers.campsites.archiveCampsitesByOwner(ownerId)
                         if (controllers.users.deleteAccount()) {
                             showDeleteDialog = false
                         } else {
@@ -258,20 +264,14 @@ fun Settings(
         )
     }
 
-    // you can't log in to any account after logging out since it just navigates to signup for now
-    // need to work out way to log out with device id verification not causing re-login issue.
     if (showLogOutDialog) {
         ShowAlertDialog(
             dialogLabel = "Log Out?",
-            dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
+            dialogCaption = "You can log back in with your email and phone number.",
             confirmButton = {
                 showLogOutDialog = false
-                navController.navigate("signup") {
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true // removes previous screens in back stack including home
-                    }
-                    launchSingleTop = true // prevent duplicate destination entries
-                }
+                // The app goes back to the welcome screen by itself
+                controllers.users.logOut()
             },
             confirmText = "Log Out",
             dismissState = { showLogOutDialog = false },

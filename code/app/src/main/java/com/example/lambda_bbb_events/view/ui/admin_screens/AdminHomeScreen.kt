@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminScreenTitleWithRoleSwitcher
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminToolTile
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
@@ -75,7 +75,7 @@ fun AdminHomeScreen(
                             text = "Admin Tools",
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.padding(bottom = 15.dp)
+                            modifier = Modifier.padding(top = 15.dp, bottom = 15.dp)
                         )
                     }
 
@@ -91,7 +91,7 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Campsites",
                                     icon = Icons.Outlined.House,
-                                    onClick = { /* TODO */ },
+                                    onClick = { navController.navigate("admin_campsites") },
                                     modifier = Modifier.weight(1f)
                                 )
                                 AdminToolTile(
@@ -109,7 +109,7 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Images",
                                     icon = Icons.Outlined.Image,
-                                    onClick = { /* TODO */ },
+                                    onClick = { navController.navigate("admin_images") },
                                     modifier = Modifier.weight(1f)
                                 )
                                 AdminToolTile(

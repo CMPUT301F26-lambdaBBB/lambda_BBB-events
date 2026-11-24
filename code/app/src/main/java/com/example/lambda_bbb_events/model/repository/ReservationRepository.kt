@@ -1,10 +1,10 @@
 package com.example.lambda_bbb_events.model.repository
 
-import androidx.compose.runtime.mutableStateListOf
-import com.example.lambda_bbb_events.model.Reservation
+import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.tasks.await
 
 /*
  * Manages reservation data and cached records using Firestore.
@@ -13,50 +13,36 @@ import kotlinx.coroutines.tasks.await
 /**
  * Handles the data in the Firestore database for the [Reservation] class.
  */
-class ReservationRepository {
-    private val db = Firebase.firestore
-    private val reservationsRef = db.collection("reservations")
-
-    private val _reservations = mutableStateListOf<Reservation>()
+class ReservationRepository(
+    db: FirebaseFirestore = Firebase.firestore
+) : Repository<Reservation>("reservations", db) {
 
     init {
-        reservationsRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-
-            val newReservations = snapshot?.documents?.mapNotNull { document ->
-                document.toObject(Reservation::class.java)
-            } ?: emptyList()
-
-            synchronized(_reservations) {
-                _reservations.clear()
-                _reservations.addAll(newReservations)
-            }
-        }
+        startListening()
     }
+
+    override fun idOf(item: Reservation) = item.reservationId
+
+    override fun fromDocument(document: DocumentSnapshot): Reservation? =
+        document.toObject(Reservation::class.java)
 
     /** Cached reservations synchronized with Firestore. */
     val reservations: List<Reservation>
-        get() = synchronized(_reservations) { _reservations.toList() }
+        get() = cached
 
     /**
      * Adds a new reservation to the Firestore database.
      *
      * @param reservation The reservation to add.
      */
-    suspend fun addReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).set(reservation).await()
-    }
+    suspend fun addReservation(reservation: Reservation) = add(reservation)
 
     /**
      * Deletes a reservation from the Firestore database.
      *
      * @param reservation The reservation to be deleted.
      */
-    suspend fun deleteReservation(reservation: Reservation) {
-        reservationsRef.document(reservation.reservationId).delete().await()
-    }
+    suspend fun deleteReservation(reservation: Reservation) = delete(reservation)
 
 
     /**
@@ -64,20 +50,15 @@ class ReservationRepository {
      *
      * @param updatedReservation The reservation data to save.
      */
-    suspend fun updateReservation(updatedReservation: Reservation) {
-        reservationsRef.document(updatedReservation.reservationId).set(updatedReservation).await()
-    }
+    suspend fun updateReservation(updatedReservation: Reservation) = update(updatedReservation)
 
     /**
-     * Gets a [Reservation] object from the database given its reservationId.
+     * Gets a [Reservation] object from the cache given its reservationId.
      *
      * @param reservationId The `reservationId` to search for.
      * @return The [Reservation] object with the specified reservationId if it exists. `null` otherwise.
      */
-    fun getReservation(reservationId: String): Reservation? {
-        val snapshotList = synchronized(_reservations) { _reservations.toList() }
-        return snapshotList.find { it.reservationId == reservationId }
-    }
+    fun getReservation(reservationId: String): Reservation? = getCached(reservationId)
 
     /**
      * Gets all the [Reservation] objects for a specific Campsite given its `campsiteId`.
@@ -86,10 +67,8 @@ class ReservationRepository {
      * @return The list of [Reservation] associated with the `campsiteId`. An empty list
      * is returned if no reservation matches the `campsiteId`.
      */
-    fun getReservationsForCampsite(campsiteId: String): List<Reservation>{
-        val snapshotList = synchronized(_reservations) { _reservations.toList() }
-        return snapshotList.filter { it.campsiteId == campsiteId }
-    }
+    fun getReservationsForCampsite(campsiteId: String): List<Reservation> =
+        cached.filter { it.campsiteId == campsiteId }
 
     /**
      * Gets all the [Reservation] objects for a specific Entrant given its `entrantId`.
@@ -98,8 +77,6 @@ class ReservationRepository {
      * @return The list of [Reservation] associated with the `entrantId`. An empty list
      * is returned if no reservation matches the `entrantId`.
      */
-    fun getReservationsForEntrant(entrantId: String): List<Reservation>{
-        val snapshotList = synchronized(_reservations) { _reservations.toList() }
-        return snapshotList.filter { it.entrantId == entrantId }
-    }
+    fun getReservationsForEntrant(entrantId: String): List<Reservation> =
+        cached.filter { it.entrantId == entrantId }
 }

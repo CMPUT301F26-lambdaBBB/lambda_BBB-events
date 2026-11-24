@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /*
  * Displays app policy and guidelines.
@@ -38,8 +39,9 @@ fun AppPoliciesScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("screen_app_policies")
-            .padding(horizontal = 16.dp)
     ) {
+        val goBack = rememberBackAction(navController)
+
         ScreenTitle(
             title = "App Policy",
             navController = navController,
@@ -188,7 +190,7 @@ fun AppPoliciesScreen(
                             MaterialTheme.colorScheme.outlineVariant
                         ),
                         onClick = {
-                            navController.popBackStack()
+                            goBack()
                         }
                     ) {
                         Text("Accept")

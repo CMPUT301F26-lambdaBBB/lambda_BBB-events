@@ -1,25 +1,25 @@
 [versions]
-agp = "9.5.1"
+agp = "9.5.2"
 coilCompose = "3.6.3"
 core = "3.5.4"
 coreKtx = "1.19.1"
-firebaseBom = "35.1.0"
+firebaseBom = "35.2.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxCoroutinesTest = "1.11.0"
-lifecycleRuntimeKtx = "2.11.0"
+lifecycleRuntimeKtx = "2.11.1"
 activityCompose = "1.13.0"
 kotlin = "2.4.21"
-composeBom = "2026.09.00"
+libphonenumber = "9.0.43"
+composeBom = "2026.11.01"
 mapsCompose = "9.0.1"
 mockk = "1.14.12"
 mockkAndroid = "1.14.12"
 navigationCompose = "2.10.2"
-foundation = "1.12.1"
 playServicesCodeScanner = "16.1.0"
 playServicesMaps = "20.1.0"
-material3 = "1.4.0"
+material3 = "1.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,8 +44,9 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }

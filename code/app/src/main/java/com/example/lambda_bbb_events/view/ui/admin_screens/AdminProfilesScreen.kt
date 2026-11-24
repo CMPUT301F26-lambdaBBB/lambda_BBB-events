@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.User
-import com.example.lambda_bbb_events.model.UserRole
+import com.example.lambda_bbb_events.model.user.User
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminProfileListCard
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -40,7 +40,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 @Composable
 fun AdminProfilesScreen(
     navController: NavController,
-    controllers: AppControllers
+    controllers: AppControllers,
 ) {
     val isAdmin = controllers.users.currentUser?.role == UserRole.ADMIN
 
@@ -78,7 +78,6 @@ fun AdminProfilesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
             ScreenTitle(
                 title = "Profiles",
@@ -126,10 +125,8 @@ fun AdminProfilesScreen(
                         ) {
                             items(filteredUsers, key = { it.deviceId }) { user ->
                                 AdminProfileListCard(
-                                    name = user.name,
-                                    email = user.email,
-                                    role = user.role.name,
-                                    onClick = {}, // TODO: open a profile detail screen (03.02.01)
+                                    user = user,
+                                    onClick = { navController.navigate("admin_profile_details/${user.deviceId}") },
                                     modifier = Modifier.testTag("adminProfileItem")
                                 )
                             }

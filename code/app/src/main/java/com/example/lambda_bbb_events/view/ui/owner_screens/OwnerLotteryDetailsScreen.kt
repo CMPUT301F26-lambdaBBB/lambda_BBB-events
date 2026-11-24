@@ -40,13 +40,14 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryFilter
 import com.example.lambda_bbb_events.controller.LotteryPhase
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.EntryStatusPill
 import com.example.lambda_bbb_events.view.ui.components.lottery.OwnerLotteryCard
 import com.example.lambda_bbb_events.view.ui.components.lottery.formatSingleDate
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /*
  * Defines the campsite owner's screen for one lottery, showing the lottery
@@ -72,6 +73,8 @@ fun OwnerLotteryDetailsScreen(
     controllers: AppControllers,
     lotteryId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     var lottery by remember { mutableStateOf<Lottery?>(null) }
     var entries by remember { mutableStateOf<List<WaitlistEntry>>(emptyList()) }
     var names by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
@@ -162,8 +165,7 @@ fun OwnerLotteryDetailsScreen(
 
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                    .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
@@ -318,7 +320,7 @@ fun OwnerLotteryDetailsScreen(
                                 controllers.lotteries.deleteLottery(currentLottery)
 
                                 showDeleteDialog = false
-                                navController.popBackStack()
+                                goBack()
                             } catch (e: Exception) {
                                 deleteErrorMessage = e.message ?: "Failed to delete lottery."
                                 showDeleteDialog = false
