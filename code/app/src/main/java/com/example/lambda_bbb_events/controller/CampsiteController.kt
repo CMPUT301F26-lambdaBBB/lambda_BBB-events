@@ -203,15 +203,11 @@ class CampsiteController(
         )
     }
 
-    fun removeCampsite(
-        campsite: Campsite,
+    suspend fun removeCampsite(
+        campsiteId: String,
         returnMessage: MutableState<String>
     ): Boolean {
-
-        return campsiteStore.removeCampsite(
-            campsite,
-            returnMessage
-        )
+        return campsiteStore.removeCampsite(campsiteId, returnMessage)
     }
 
     /**

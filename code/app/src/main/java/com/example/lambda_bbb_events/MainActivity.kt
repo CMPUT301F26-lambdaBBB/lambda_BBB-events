@@ -62,8 +62,8 @@ class MainActivity : ComponentActivity() {
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         val userRepository = UserRepository()
-        val campsiteStore = CampsiteStore()
         val lotteryRepository = LotteryRepository()
+        val campsiteStore = CampsiteStore(lotteryRepository = lotteryRepository)
         val reservationRepository = ReservationRepository()
         val waitlistEntryRepository = WaitlistEntryRepository()
         val imageProcessor = ImageProcessor()
