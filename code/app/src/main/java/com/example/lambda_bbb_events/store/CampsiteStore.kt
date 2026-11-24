@@ -6,14 +6,17 @@ import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class CampsiteStore(
     val campsiteRepo: CampsiteRepository = CampsiteRepository(),
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    private val lotteryRepository: LotteryRepository
 ) {
     val campsites: MutableMap<String, Campsite> = mutableStateMapOf()
 
@@ -92,18 +95,19 @@ class CampsiteStore(
         return true
     }
 
-    fun removeCampsite(campsite: Campsite, returnMessage: MutableState<String>): Boolean {
-        try {
-            scope.launch {
-                campsiteRepo.deleteCampsite(campsite.campsiteId)
-            }
-            val ans = campsites.remove(campsite.campsiteId) != null
-            returnMessage.value = "Success"
-            return ans
-        }
-        catch (e: Exception) {
-            returnMessage.value = e.message.toString()
-            return false
+    suspend fun removeCampsite(
+        campsiteId: String,
+        returnMessage: MutableState<String>
+    ): Boolean {
+        return try {
+            campsiteRepo.deleteCampsiteWithLotteries(campsiteId, lotteryRepository)
+            campsites.remove(campsiteId)
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            returnMessage.value = "Could not delete campsite. Try again."
+            false
         }
     }
 

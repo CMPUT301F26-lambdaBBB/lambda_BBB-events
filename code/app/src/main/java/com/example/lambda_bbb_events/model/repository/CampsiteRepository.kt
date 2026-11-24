@@ -147,6 +147,17 @@ class CampsiteRepository(
      */
     suspend fun deleteCampsite(campsiteID: String) = delete(campsiteID)
 
+    suspend fun deleteCampsiteWithLotteries(
+        campsiteId: String,
+        lotteryRepository: LotteryRepository
+    ) {
+        val batch = db.batch()
+        lotteryRepository.queueCampsiteLotteryDeletions(batch, campsiteId)
+        batch.delete(collectionRef.document(campsiteId))
+        batch.commit().await()
+        removeFromCache(campsiteId)
+    }
+
     /**
      * Archives every campsite owned by a user by setting it inactive. The campsites are
      * kept for past bookings and records, but no longer shown to anyone browsing. Reads
