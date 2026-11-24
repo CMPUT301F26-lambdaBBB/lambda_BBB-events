@@ -1,6 +1,11 @@
 package com.example.lambda_bbb_events.ui.admin
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
@@ -10,11 +15,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.repository.WrongAdminPasswordException
 import com.example.lambda_bbb_events.model.user.Admin
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
@@ -99,6 +107,12 @@ class AdminProfileDetailsScreenUITest {
         composeTestRule.onNodeWithText("Make Admin?").assertIsDisplayed()
     }
 
+    private fun confirmWithPassword(password: String) {
+        composeTestRule.onNodeWithTag("adminPasswordInput").performTextReplacement(password)
+        composeTestRule.onNodeWithTag("adminPasswordConfirm").performClick()
+        composeTestRule.waitForIdle()
+    }
+
     private fun clickRemove() {
         composeTestRule.onNodeWithTag("adminRemoveProfileButton").performScrollTo().performClick()
         composeTestRule.onNodeWithText("Remove Profile?").assertIsDisplayed()
@@ -155,14 +169,14 @@ class AdminProfileDetailsScreenUITest {
 
     @Test
     fun confirmingMakeAdminPromotesTheUser() {
-        coEvery { users.makeAdmin("user-1") } returns promoted
+        coEvery { users.makeAdmin("user-1", "password") } returns promoted
         openProfile(entrant)
 
         clickMakeAdmin()
-        coVerify(exactly = 0) { users.makeAdmin(any()) }
-        click("Confirm")
+        coVerify(exactly = 0) { users.makeAdmin(any(), any()) }
+        confirmWithPassword("password")
 
-        coVerify(exactly = 1) { users.makeAdmin("user-1") }
+        coVerify(exactly = 1) { users.makeAdmin("user-1", "password") }
         composeTestRule.onNodeWithText("Make Admin?").assertDoesNotExist()
         composeTestRule.onNodeWithTag("adminMakeAdminButton").assertDoesNotExist()
         assertRoleShown("Admin")
@@ -175,18 +189,18 @@ class AdminProfileDetailsScreenUITest {
         clickMakeAdmin()
         click("Cancel")
 
-        coVerify(exactly = 0) { users.makeAdmin(any()) }
+        coVerify(exactly = 0) { users.makeAdmin(any(), any()) }
         composeTestRule.onNodeWithText("Make Admin?").assertDoesNotExist()
         assertRoleShown("Entrant")
     }
 
     @Test
     fun rejectedMakeAdminShowsAnError() {
-        coEvery { users.makeAdmin("user-1") } returns null
+        coEvery { users.makeAdmin("user-1", "password") } returns null
         openProfile(entrant)
 
         clickMakeAdmin()
-        click("Confirm")
+        confirmWithPassword("password")
 
         composeTestRule.onNodeWithText("Could not make this user an admin. Please try again.")
             .performScrollTo()
@@ -196,18 +210,73 @@ class AdminProfileDetailsScreenUITest {
 
     @Test
     fun failedMakeAdminShowsAnErrorAndCanBeRetried() {
-        coEvery { users.makeAdmin("user-1") } throws RuntimeException("offline") andThen promoted
+        coEvery {
+            users.makeAdmin("user-1", "password")
+        } throws RuntimeException("offline") andThen promoted
         openProfile(entrant)
         val error = "Could not make this user an admin. Please try again."
 
         clickMakeAdmin()
-        click("Confirm")
+        confirmWithPassword("password")
         composeTestRule.onNodeWithText(error).performScrollTo().assertIsDisplayed()
 
         clickMakeAdmin()
         composeTestRule.onNodeWithText(error).assertDoesNotExist()
-        click("Confirm")
+        confirmWithPassword("password")
         assertRoleShown("Admin")
+    }
+
+    @Test
+    fun makeAdminNeedsAPassword() {
+        openProfile(entrant)
+
+        clickMakeAdmin()
+
+        composeTestRule.onNodeWithTag("adminPasswordConfirm").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("adminPasswordInput").performTextInput("password")
+        composeTestRule.onNodeWithTag("adminPasswordConfirm").assertIsEnabled()
+    }
+
+    @Test
+    fun adminPasswordIsHiddenWhileTyping() {
+        openProfile(entrant)
+
+        clickMakeAdmin()
+        composeTestRule.onNodeWithTag("adminPasswordInput").performTextInput("password")
+
+        composeTestRule.onNodeWithTag("adminPasswordInput")
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+            .assertTextContains("••••••••")
+    }
+
+    @Test
+    fun wrongPasswordStaysOpenAndCanBeRetried() {
+        coEvery { users.makeAdmin("user-1", "wrong") } throws WrongAdminPasswordException()
+        coEvery { users.makeAdmin("user-1", "password") } returns promoted
+        openProfile(entrant)
+
+        clickMakeAdmin()
+        confirmWithPassword("wrong")
+        composeTestRule.onNodeWithTag("adminPasswordError").assertIsDisplayed()
+
+        confirmWithPassword("password")
+        composeTestRule.onNodeWithText("Make Admin?").assertDoesNotExist()
+        assertRoleShown("Admin")
+    }
+
+    @Test
+    fun reopeningMakeAdminForgetsThePasswordAndError() {
+        coEvery { users.makeAdmin("user-1", "wrong") } throws WrongAdminPasswordException()
+        openProfile(entrant)
+
+        clickMakeAdmin()
+        confirmWithPassword("wrong")
+        click("Cancel")
+        clickMakeAdmin()
+
+        composeTestRule.onNodeWithTag("adminPasswordError").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("adminPasswordConfirm").assertIsNotEnabled()
+        assertRoleShown("Entrant")
     }
 
     @Test

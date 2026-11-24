@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -352,7 +353,8 @@ fun CampsiteImageCarousel(
 }
 
 /**
- * Displays a round button over the carousel images for moving between them.
+ * Displays a round button over the carousel images for moving between them. It is the same
+ * in light and dark mode, with a white arrow on a dark circle that stands out on any photo.
  *
  * @param icon The arrow shown on the button.
  * @param contentDescription Description for accessibility.
@@ -369,8 +371,8 @@ private fun CarouselButton(
     IconButton(
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(
-            containerColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f),
-            contentColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.Black.copy(alpha = 0.6f),
+            contentColor = Color.White
         ),
         modifier = modifier
     ) {

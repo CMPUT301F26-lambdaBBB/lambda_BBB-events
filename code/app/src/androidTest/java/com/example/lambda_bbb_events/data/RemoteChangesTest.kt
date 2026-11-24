@@ -103,14 +103,17 @@ class RemoteChangesTest {
     }
 
     @Test
-    fun promotingTheAccountElsewhereShowsAdminToolsInTheOpenApp() {
+    fun changingTheRoleElsewhereUpdatesTheOpenApp() {
         val deviceId = openApp()
 
+        // An owner, since the security rules only allow promoting to admin with the password
         runBlocking {
-            otherDevice.document("users/$deviceId").update("role", UserRole.ADMIN.name).await()
+            otherDevice.document("users/$deviceId").update("role", UserRole.OWNER.name).await()
         }
 
-        composeTestRule.waitUntilAtLeastOneExists(hasTestTag("roleSwitcher"), TIMEOUT)
+        composeTestRule.waitUntil(TIMEOUT) {
+            controllers.users.currentUser?.role == UserRole.OWNER
+        }
     }
 
     @Test
