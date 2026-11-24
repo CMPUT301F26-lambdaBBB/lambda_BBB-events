@@ -209,15 +209,11 @@ class CampsiteController(
         )
     }
 
-    fun removeCampsite(
-        campsite: Campsite,
+    suspend fun removeCampsite(
+        campsiteId: String,
         returnMessage: MutableState<String>
     ): Boolean {
-
-        return campsiteStore.removeCampsite(
-            campsite,
-            returnMessage
-        )
+        return campsiteStore.removeCampsite(campsiteId, returnMessage)
     }
 
     /**
@@ -330,6 +326,10 @@ class CampsiteController(
         query: String
     ) {
         _searchQuery = query.trim()
+    }
+
+    fun getAllCampsites(): List<Campsite> {
+        return campsiteStore.campsites.values.toList()
     }
 
     fun getSearchResults(): List<Campsite> {

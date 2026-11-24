@@ -8,6 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -146,6 +147,17 @@ class CampsiteRepository(
      */
     suspend fun deleteCampsite(campsiteID: String) = delete(campsiteID)
 
+    suspend fun deleteCampsiteWithLotteries(
+        campsiteId: String,
+        lotteryRepository: LotteryRepository
+    ) {
+        val batch = db.batch()
+        lotteryRepository.queueCampsiteLotteryDeletions(batch, campsiteId)
+        batch.delete(collectionRef.document(campsiteId))
+        batch.commit().await()
+        removeFromCache(campsiteId)
+    }
+
     /**
      * Archives every campsite owned by a user by setting it inactive. The campsites are
      * kept for past bookings and records, but no longer shown to anyone browsing. Reads
@@ -184,11 +196,30 @@ class CampsiteRepository(
     /**
      * Saves a campsite to Firestore under the given ID, creating it if absent.
      *
+     * The rating is not saved. It belongs to the campsite's reviews (see [ReviewRepository]),
+     * and may have changed since the campsite being saved was loaded.
+     *
      * @param campsiteID The ID of the campsite to update.
      * @param updatedCampsite The new campsite data.
+     * @throws IllegalArgumentException if the ID is blank.
      */
-    suspend fun updateCampsite(campsiteID: String, updatedCampsite: Campsite) =
-        update(updatedCampsite.copy(campsiteId = campsiteID))
+    suspend fun updateCampsite(campsiteID: String, updatedCampsite: Campsite) {
+        require(campsiteID.isNotBlank()) { "Cannot store a campsite with a blank ID" }
+        val campsite = updatedCampsite.copy(campsiteId = campsiteID)
+        collectionRef.document(campsiteID)
+            .set(toDocument(campsite), SetOptions.mergeFields(EDITABLE_FIELDS))
+            .await()
+        putInCache(campsite)
+    }
+
+    private companion object {
+        /** Every field of [FirestoreCampsite] except the rating and the number of reviews. */
+        val EDITABLE_FIELDS = listOf(
+            "campsiteId", "ownerId", "campsiteName", "description", "address", "latitude",
+            "longitude", "maxOccupancy", "rulesPolicies", "amenities", "tags", "imageIds",
+            "availability", "active", "createdAt"
+        )
+    }
 
     /**
      * Grabs all campsites that exist and returns them keyed by campsite ID.

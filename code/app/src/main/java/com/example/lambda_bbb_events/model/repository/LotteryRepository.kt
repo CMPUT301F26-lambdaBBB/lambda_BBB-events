@@ -10,6 +10,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -67,34 +68,48 @@ class LotteryRepository(
      * @param makeNotice Makes the message for a winner's entry, or `null` to send none.
      * @return The number of winners sent a message.
      */
-    suspend fun deleteAndNotifyWinners(id: String, makeNotice: ((WaitlistEntry) -> Message)?): Int {
+    suspend fun deleteAndNotifyWinners(
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
+        val batch = db.batch()
+        val notified = queueLotteryDeletion(batch, id, makeNotice)
+        batch.commit().await()
+        removeFromCache(id)
+        return notified
+    }
+
+    private suspend fun queueLotteryDeletion(
+        batch: WriteBatch,
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
         var notified = 0
 
-        // find every waitlist entry that has this lottery id
         val entriesSnapshot = db.collection("waitlistEntries")
             .whereEqualTo("lotteryId", id)
             .get()
             .await()
 
-        val batch = db.batch()
-
         for (entryDocument in entriesSnapshot.documents) {
-            // remove this entry's ID from the waitlistEntryIds of whichever user has it
             val usersSnapshot = db.collection("users")
                 .whereArrayContains("waitlistEntryIds", entryDocument.id)
                 .get()
                 .await()
 
             for (userDoc in usersSnapshot.documents) {
-                batch.update(userDoc.reference, "waitlistEntryIds",
-                    FieldValue.arrayRemove(entryDocument.id))
+                batch.update(
+                    userDoc.reference,
+                    "waitlistEntryIds",
+                    FieldValue.arrayRemove(entryDocument.id)
+                )
             }
 
             if (makeNotice != null) {
                 val entry = try {
                     entryDocument.toObject(WaitlistEntry::class.java)
-                } catch (e: Exception) {
-                    null // skip entries that are not valid
+                } catch (_: Exception) {
+                    null
                 }
                 if (entry != null && entry.status in WINNING_STATUSES) {
                     val notice = makeNotice(entry)
@@ -107,10 +122,21 @@ class LotteryRepository(
         }
 
         batch.delete(collectionRef.document(id))
-
-        batch.commit().await()
-        removeFromCache(id)
         return notified
+    }
+
+    internal suspend fun queueCampsiteLotteryDeletions(
+        batch: WriteBatch,
+        campsiteId: String
+    ) {
+        val lotteries = collectionRef
+            .whereArrayContains("campsiteIds", campsiteId)
+            .get()
+            .await()
+
+        for (lottery in lotteries.documents) {
+            queueLotteryDeletion(batch, lottery.id, makeNotice = null)
+        }
     }
 
     /**

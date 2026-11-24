@@ -64,6 +64,19 @@ service cloud.firestore {
                     && (keepsRoleOrBecomesOwner() || isPromotionToAdmin());
     }
 
+    // The app allows one review for each user and campsite, named after both of them
+    match /reviews/{id} {
+      allow read, delete: if true;
+      allow create, update: if id == request.resource.data.campsiteId + '_' + request.resource.data.reviewerId
+                            && request.resource.data.reviewId == id
+                            && request.resource.data.rating is int
+                            && request.resource.data.rating >= 1
+                            && request.resource.data.rating <= 5
+                            && request.resource.data.comment is string
+                            && request.resource.data.comment.size() <= 500
+                            && exists(/databases/$(database)/documents/campsites/$(request.resource.data.campsiteId));
+    }
+
     match /campsites/{id}       { allow read, write: if true; }
     match /lotteries/{id}       { allow read, write: if true; }
     match /waitlistEntries/{id} { allow read, write: if true; }

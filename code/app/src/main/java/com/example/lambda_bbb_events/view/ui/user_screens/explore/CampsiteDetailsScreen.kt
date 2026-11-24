@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.services.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.review.ReviewSection
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import androidx.compose.ui.draw.clip
@@ -38,13 +39,12 @@ import com.example.lambda_bbb_events.view.ui.components.map.CampsiteMap
  *
  * TODO: Make the QR code scannable and navigate to campsite details.
  * TODO: Display the campsite location using Google Maps.
- * TODO: Implement the campsite reviews section.
  */
 
 /**
  * Displays detailed information about a selected campsite.
  *
- * Shows campsite tags, description, and placeholders for images,
+ * Shows campsite tags, description, reviews, and placeholders for images,
  * QR code, and map. Allows users to check campsite availability.
  *
  * The title remains fixed while the campsite details scroll.
@@ -111,6 +111,7 @@ fun CampsiteDetailsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding() // keeps the review being written above the keyboard
             .testTag("screen_campsite_details")
     ) {
         // Fixed title
@@ -345,7 +346,10 @@ fun CampsiteDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // TODO: Implement reviews section.
+                    ReviewSection(
+                        campsite = campsite,
+                        controllers = controllers
+                    )
                 }
             }
         }
