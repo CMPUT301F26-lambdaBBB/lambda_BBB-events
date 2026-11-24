@@ -9,6 +9,7 @@ import com.example.lambda_bbb_events.model.local.InMemorySessionStore
 import com.example.lambda_bbb_events.model.local.SessionStore
 import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.repository.WrongAdminPasswordException
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
 import com.example.lambda_bbb_events.model.user.UserRole
@@ -260,21 +261,23 @@ class UserController(
     }
 
     /**
-     * Promotes another user to admin. Only admins can promote users. The user keeps their
-     * profile, campsites, and waitlist entries. A user who is already an admin is left as
-     * they are.
+     * Promotes another user to admin. Only admins who know the admin password can promote
+     * users. The user keeps their profile, campsites, and waitlist entries. A user who is
+     * already an admin is left as they are.
      *
      * @param deviceId The device ID of the user to promote.
-     * @return The user as an admin, or `null` if the signed-in user is not an admin or the
-     * user does not exist.
+     * @param password The admin password.
+     * @return The user as an admin, or `null` if the signed-in user is not an admin, the
+     * password is empty, or the user does not exist.
+     * @throws WrongAdminPasswordException if the database did not accept the password.
      */
-    suspend fun makeAdmin(deviceId: String): User? {
-        if (currentUser?.role != UserRole.ADMIN) return null
+    suspend fun makeAdmin(deviceId: String, password: String): User? {
+        if (currentUser?.role != UserRole.ADMIN || password.isEmpty()) return null
 
         val user = userRepository.getUser(deviceId) ?: return null
         if (user.role == UserRole.ADMIN) return user
 
-        return userRepository.makeAdmin(user)
+        return userRepository.makeAdmin(user, password)
     }
 
     /**

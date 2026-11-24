@@ -1,0 +1,74 @@
+rules_version = '2';
+
+// Firestore security rules. Publish them in the Firebase console, under Firestore > Rules.
+//
+// Users do not sign in to Firebase, so these rules cannot tell who is making a request. They
+// only protect the admin role: nobody can become an admin without the admin password. Other
+// data can still be read and changed by anyone.
+//
+// Do not add a rule matching every document (/{document=**}). A write is allowed if any rule
+// allows it, so that would undo the rules below.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The admin password is the "code" field of secrets/admin, set in the Firebase console.
+    // The app can never read it; only these rules can.
+    match /secrets/{id} {
+      allow read, write: if false;
+    }
+
+    function adminPassword() {
+      return get(/databases/$(database)/documents/secrets/admin).data.code;
+    }
+
+    // Written together with a promotion, to prove that the password is known. It holds the
+    // password, so it can never be read back.
+    match /adminGrants/{userId} {
+      allow read, delete: if false;
+      allow create, update: if request.resource.data.keys().hasOnly(['code', 'grantedAt'])
+                            && request.resource.data.code is string
+                            && request.resource.data.code != ''
+                            && request.resource.data.code == adminPassword()
+                            && request.resource.data.grantedAt == request.time;
+    }
+
+    match /users/{userId} {
+      // The grant must be from this same request, so an old one cannot be used again
+      function isGrantedAdminNow() {
+        return getAfter(/databases/$(database)/documents/adminGrants/$(userId))
+                 .data.grantedAt == request.time;
+      }
+
+      // Only the role changes, so a promotion cannot also change the user's details
+      function isPromotionToAdmin() {
+        return request.resource.data.role == 'ADMIN'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+            && isGrantedAdminNow();
+      }
+
+      function keepsRoleOrBecomesOwner() {
+        return request.resource.data.role == resource.data.role
+            || (resource.data.role == 'ENTRANT' && request.resource.data.role == 'OWNER');
+      }
+
+      // The app finds accounts by their deviceId field, so it must always match the document.
+      // Otherwise an admin's document could be pointed at someone else's device.
+      function hasOwnDeviceId() {
+        return request.resource.data.deviceId == userId;
+      }
+
+      allow read, delete: if true;
+      allow create: if hasOwnDeviceId()
+                    && request.resource.data.role in ['ENTRANT', 'OWNER'];
+      allow update: if hasOwnDeviceId()
+                    && (keepsRoleOrBecomesOwner() || isPromotionToAdmin());
+    }
+
+    match /campsites/{id}       { allow read, write: if true; }
+    match /lotteries/{id}       { allow read, write: if true; }
+    match /waitlistEntries/{id} { allow read, write: if true; }
+    match /reservations/{id}    { allow read, write: if true; }
+    match /messages/{id}        { allow read, write: if true; }
+    match /images/{path=**}     { allow read, write: if true; }
+  }
+}

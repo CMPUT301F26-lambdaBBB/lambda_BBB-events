@@ -50,6 +50,8 @@ import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.model.formatting.formatLocalNumber
 import com.example.lambda_bbb_events.model.formatting.parsePhoneNumber
+import com.example.lambda_bbb_events.model.repository.WrongAdminPasswordException
+import com.example.lambda_bbb_events.view.ui.components.admin.MakeAdminDialog
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -61,8 +63,8 @@ import kotlinx.coroutines.launch
  * Displays a user's profile to an admin, who can promote the user to admin or remove them.
  * Both actions ask for confirmation first, and show an error if they fail.
  *
- * Promoting is only offered for users who are not admins yet. Afterwards the screen stays
- * open and shows the new role.
+ * Promoting is only offered for users who are not admins yet, and needs the admin password.
+ * Afterwards the screen stays open and shows the new role.
  *
  * Removing also deletes the user's active lotteries and archives their campsites, then goes
  * back to the previous screen.
@@ -87,6 +89,8 @@ fun AdminProfileDetailsScreen(
     var removeError by remember { mutableStateOf(false) }
     var showMakeAdminDialog by remember { mutableStateOf(false) }
     var makeAdminError by remember { mutableStateOf(false) }
+    var wrongPassword by remember { mutableStateOf(false) }
+    var isMakingAdmin by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val goBack = rememberBackAction(navController)
 
@@ -207,6 +211,7 @@ fun AdminProfileDetailsScreen(
                         Button(
                             onClick = {
                                 makeAdminError = false
+                                wrongPassword = false
                                 showMakeAdminDialog = true
                             },
                             modifier = Modifier
@@ -277,29 +282,33 @@ fun AdminProfileDetailsScreen(
 
                     // prompts alert dialog when make admin is clicked
                     if (showMakeAdminDialog) {
-                        ShowAlertDialog(
-                            dialogLabel = "Make Admin?",
-                            dialogCaption = "${shownUser.name} will be able to manage all " +
-                                    "campsites and profiles, including removing them.",
-                            confirmButton = {
-                                showMakeAdminDialog = false
+                        MakeAdminDialog(
+                            name = shownUser.name,
+                            isSaving = isMakingAdmin,
+                            isPasswordWrong = wrongPassword,
+                            onConfirm = { password ->
+                                wrongPassword = false
+                                isMakingAdmin = true
                                 scope.launch {
                                     try {
-                                        val promoted = controllers.users.makeAdmin(userId)
+                                        val promoted = controllers.users.makeAdmin(userId, password)
                                         if (promoted != null) {
                                             user = promoted
                                         } else {
                                             makeAdminError = true
                                         }
+                                        showMakeAdminDialog = false
+                                    } catch (_: WrongAdminPasswordException) {
+                                        wrongPassword = true // stays open to try again
                                     } catch (_: Exception) { // a failed write keeps the old role
                                         makeAdminError = true
+                                        showMakeAdminDialog = false
+                                    } finally {
+                                        isMakingAdmin = false
                                     }
                                 }
                             },
-                            confirmText = "Confirm",
-                            dismissState = { showMakeAdminDialog = false },
-                            cancelText = "Cancel",
-                            modifier = Modifier
+                            onDismiss = { showMakeAdminDialog = false }
                         )
                     }
 

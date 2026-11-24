@@ -2,6 +2,7 @@ package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.local.InMemorySessionStore
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.repository.WrongAdminPasswordException
 import com.example.lambda_bbb_events.model.user.Admin
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
@@ -334,11 +335,11 @@ class UserControllerUnitTest {
         for (user in listOf(otherUser, CampsiteOwner(deviceId = "device-2"))) {
             val promoted = Admin(deviceId = "device-2")
             coEvery { repository.getUser("device-2") } returns user
-            coEvery { repository.makeAdmin(user) } returns promoted
+            coEvery { repository.makeAdmin(user, "password") } returns promoted
 
-            assertSame(promoted, controller.makeAdmin("device-2"))
+            assertSame(promoted, controller.makeAdmin("device-2", "password"))
 
-            coVerify(exactly = 1) { repository.makeAdmin(user) }
+            coVerify(exactly = 1) { repository.makeAdmin(user, "password") }
         }
     }
 
@@ -348,9 +349,9 @@ class UserControllerUnitTest {
         signIn(admin)
         coEvery { repository.getUser("device-2") } returns otherAdmin
 
-        assertSame(otherAdmin, controller.makeAdmin("device-2"))
+        assertSame(otherAdmin, controller.makeAdmin("device-2", "password"))
 
-        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
     }
 
     @Test
@@ -358,22 +359,22 @@ class UserControllerUnitTest {
         coEvery { repository.getUser("device-2") } returns otherUser
 
         signIn(entrant)
-        assertNull(controller.makeAdmin("device-2"))
-        assertNull(controller.makeAdmin("device-1")) // nobody can promote themselves
+        assertNull(controller.makeAdmin("device-2", "password"))
+        assertNull(controller.makeAdmin("device-1", "password")) // nobody can promote themselves
 
         signIn(CampsiteOwner(deviceId = "device-1"))
-        assertNull(controller.makeAdmin("device-2"))
+        assertNull(controller.makeAdmin("device-2", "password"))
 
-        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
     }
 
     @Test
     fun makeAdminFailsWhenNobodyIsSignedIn() = runTest {
         coEvery { repository.getUser("device-2") } returns otherUser
 
-        assertNull(controller.makeAdmin("device-2"))
+        assertNull(controller.makeAdmin("device-2", "password"))
 
-        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
     }
 
     @Test
@@ -382,9 +383,9 @@ class UserControllerUnitTest {
         signIn(admin)
         coEvery { repository.getUser("device-2") } returns otherUser
 
-        assertNull(controller.makeAdmin("device-2"))
+        assertNull(controller.makeAdmin("device-2", "password"))
 
-        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
     }
 
     @Test
@@ -392,8 +393,29 @@ class UserControllerUnitTest {
         signIn(admin)
         coEvery { repository.getUser("nobody") } returns null
 
-        assertNull(controller.makeAdmin("nobody"))
+        assertNull(controller.makeAdmin("nobody", "password"))
 
-        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
+    }
+
+    @Test
+    fun makeAdminFailsWithoutAPassword() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertNull(controller.makeAdmin("device-2", ""))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any(), any()) }
+    }
+
+    @Test
+    fun makeAdminReportsAWrongPassword() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherUser
+        coEvery { repository.makeAdmin(otherUser, "wrong") } throws WrongAdminPasswordException()
+
+        val error = runCatching { controller.makeAdmin("device-2", "wrong") }.exceptionOrNull()
+
+        assertTrue(error is WrongAdminPasswordException)
     }
 }
