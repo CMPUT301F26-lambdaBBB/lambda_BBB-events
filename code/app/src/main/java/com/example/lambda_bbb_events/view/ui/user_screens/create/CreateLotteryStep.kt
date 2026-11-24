@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -31,8 +32,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
+
+/** Most digits the number of spots can have, so the value always fits in an Int. */
+internal const val MAX_SPOTS_DIGITS = 4
 
 @Composable
 internal fun CreateLotteryStep(
@@ -42,9 +48,7 @@ internal fun CreateLotteryStep(
     errorMessage: String?,
     onDone: () -> Unit
 ) {
-    var isSpotsExpanded by remember { mutableStateOf(false) }
     var isEligibilityExpanded by remember { mutableStateOf(false) }
-    val spotsOptions = listOf("5", "10", "15", "20", "25", "50", "100")
     val eligibilityOptions = listOf("All Entrants", "Verified Only", "First-time Entrants")
 
     Column(
@@ -63,7 +67,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.startRegistration,
             onValueChange = { form.startRegistration = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_start_registration")
         )
 
         Text(
@@ -75,7 +81,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.endRegistration,
             onValueChange = { form.endRegistration = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_end_registration")
         )
 
         Text(
@@ -87,7 +95,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.startBooking,
             onValueChange = { form.startBooking = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_start_booking")
         )
 
         Text(
@@ -99,7 +109,9 @@ internal fun CreateLotteryStep(
         DatePickerField(
             value = form.endBooking,
             onValueChange = { form.endBooking = it },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("create_end_booking")
         )
 
         Row(
@@ -113,40 +125,19 @@ internal fun CreateLotteryStep(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Box {
-                    OutlinedTextField(
-                        value = form.numberOfSpots,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Select Spots",
-                                modifier = Modifier.clickable {
-                                    isSpotsExpanded = true
-                                }
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { isSpotsExpanded = true },
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    DropdownMenu(
-                        expanded = isSpotsExpanded,
-                        onDismissRequest = { isSpotsExpanded = false }
-                    ) {
-                        spotsOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    form.numberOfSpots = option
-                                    isSpotsExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
+                OutlinedTextField(
+                    value = form.numberOfSpots,
+                    onValueChange = { input ->
+                        form.numberOfSpots = input.filter { it.isDigit() }.take(MAX_SPOTS_DIGITS)
+                    },
+                    placeholder = { Text("e.g. 10", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("create_number_of_spots"),
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {

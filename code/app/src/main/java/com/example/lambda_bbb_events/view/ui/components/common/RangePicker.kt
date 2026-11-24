@@ -6,14 +6,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.RangeSliderState
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.lambda_bbb_events.view.ui.components.common.closestStops
+import kotlin.math.roundToInt
 
 /*
  * Defines a reusable range slider for selecting
@@ -21,25 +25,28 @@ import androidx.compose.ui.unit.dp
  */
 
 /**
- * Displays a range slider for numbers from a minimum to maximum range.
+ * Displays a range slider for choosing from a list of numbers.
  *
- * Users can drag the nodes at the start and end to adjust the range.
+ * Users can drag the nodes at the start and end to adjust the range. They only stop at the
+ * numbers in [stops], which are evenly spaced however far apart the numbers are.
  *
- * @param value The currently selected range.
+ * @param value The currently selected range. Ends that are not stops show as the closest one.
  * @param onValueChange Callback invoked when the range changes.
- * @param min The minimum selectable value.
- * @param max The maximum selectable value.
+ * @param stops The selectable values, smallest first. Must have at least two, all different.
  * @param modifier Modifier used to customize the component layout.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RangePicker(
-    value: ClosedFloatingPointRange<Float>,
-    onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
-    min: Float,
-    max: Float,
+    value: IntRange,
+    onValueChange: (IntRange) -> Unit,
+    stops: List<Int>,
     modifier: Modifier = Modifier
 ) {
+    // The slider moves between positions in the list, which keeps the stops evenly spaced
+    val shown = closestStops(value, stops)
+    val start = stops.indexOf(shown.first)
+    val end = stops.indexOf(shown.last)
+
     Column(
         modifier = modifier
     ) {
@@ -54,16 +61,37 @@ fun RangePicker(
             )
 
             Text(
-                text = "${value.start.toInt()}-${value.endInclusive.toInt()}",
+                text = "${shown.first}-${shown.last}",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
         }
 
+        val sliderState = remember(stops) {
+            RangeSliderState(
+                startValue = start.toFloat(),
+                endValue = end.toFloat(),
+                steps = stops.size - 2, // the stops between the two ends
+                trackRange = 0f..stops.lastIndex.toFloat()
+            )
+        }
+
+        // Keep the slider in sync when the range is changed from outside, such as a reset
+        LaunchedEffect(sliderState, start, end) {
+            sliderState.startValue = start.toFloat()
+            sliderState.endValue = end.toFloat()
+        }
+
         RangeSlider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = min..max,
+            state = sliderState,
+            onValueChange = { dragged ->
+                val newStart = dragged.start.roundToInt().coerceIn(stops.indices)
+                val newEnd = dragged.endInclusive.roundToInt().coerceIn(stops.indices)
+                // Dragging calls this constantly, but the stop rarely changes
+                if (newStart != start || newEnd != end) {
+                    onValueChange(stops[newStart]..stops[newEnd])
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
 
             colors = SliderDefaults.colors(

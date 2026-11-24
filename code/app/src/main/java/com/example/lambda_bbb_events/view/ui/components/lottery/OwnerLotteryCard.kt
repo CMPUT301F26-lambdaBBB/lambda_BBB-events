@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.controller.LotteryPhase
-import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.model.lottery.Lottery
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -103,10 +103,13 @@ fun OwnerLotteryCard(
             )
 
             val winnerWord = if (lottery.numberOfWinners == 1) "winner" else "winners"
-
+            val waitlistText = if (lottery.waitlistCapacity == null) {
+                "${lottery.entryIds.size} waitlisted"
+            } else {
+                "${lottery.entryIds.size} / ${lottery.waitlistCapacity} waitlisted"
+            }
             Text(
-                text = "${lottery.numberOfWinners} $winnerWord  |  " +
-                        "${lottery.entryIds.size} / ${lottery.waitlistCapacity} waitlisted",
+                text = "${lottery.numberOfWinners} $winnerWord  |  $waitlistText",
                 fontSize = 14.sp
             )
         }

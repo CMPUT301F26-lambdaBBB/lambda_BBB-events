@@ -4,6 +4,7 @@ package com.example.lambda_bbb_events.view.ui.components.common
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Notifications
@@ -15,8 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays a screen title with optional back and notification buttons.
@@ -35,6 +39,8 @@ fun ScreenTitle(
     showBack: Boolean = false,
     showNotifications: Boolean = true
 ) {
+    val goBack = rememberBackAction(navController)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -43,7 +49,7 @@ fun ScreenTitle(
         if (showBack) {
             IconButton(
                 onClick = {
-                    navController.popBackStack()
+                    goBack()
                 },
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
@@ -55,12 +61,22 @@ fun ScreenTitle(
             }
         }
 
+        // Space is kept for the icons on both sides so the title stays centred without
+        // running under them, and long titles shrink to fit on one line
         Text(
             text = title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = 20.sp,
+                maxFontSize = MaterialTheme.typography.headlineLarge.fontSize
+            ),
             modifier = Modifier
                 .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp)
                 .testTag("screenTitle")
         )
 

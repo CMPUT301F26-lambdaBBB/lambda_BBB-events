@@ -1,7 +1,8 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 
 /**
@@ -51,5 +52,20 @@ class WaitlistEntryController(
      */
     suspend fun leaveWaitlist(entry: WaitlistEntry) {
         waitlistEntryRepository.deleteWaitlistEntry(entry)
+    }
+
+    /**
+     * Changes a user's waitlist status to declined when they win the lottery. If user has not
+     * won the lottery, does nothing.
+     *
+     * @param entry The waitlist entry to decline.
+     */
+    suspend fun declineWin(entry: WaitlistEntry) {
+        if (entry.status == WaitlistStatus.WON) {
+            waitlistEntryRepository.updateEntryStatus(
+                entry,
+                WaitlistStatus.DECLINED
+            )
+        }
     }
 }

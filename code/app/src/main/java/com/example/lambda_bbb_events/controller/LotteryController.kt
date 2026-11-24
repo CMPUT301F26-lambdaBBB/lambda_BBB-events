@@ -1,7 +1,8 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.LotteryStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.LotteryStatus
+import com.example.lambda_bbb_events.model.message.Message
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import java.time.LocalDate
 import java.time.ZoneId
@@ -111,9 +112,16 @@ class LotteryController(
         }
 
         // input check the capacity
-        val waitlistCapacity = waitlistCapacityString.trim().toIntOrNull()
-            ?: return "The waitlist capacity is not a valid number."
-        if (waitlistCapacity < numberOfWinners) {
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
             return "The waitlist capacity must be at least the number of winners."
         }
 
@@ -210,13 +218,20 @@ class LotteryController(
         }
 
         // input check the capacity
-        val waitlistCapacity = waitlistCapacityString.trim().toIntOrNull()
-            ?: return "The waitlist capacity is not a valid number."
-        if (waitlistCapacity < numberOfWinners) {
+        val capacityText = waitlistCapacityString.trim()
+        val waitlistCapacity: Int? =
+            if (capacityText.isEmpty()) {
+                null // empty means no limit
+            }
+            else {
+                capacityText.toIntOrNull()
+                    ?: return "The waitlist capacity is not a valid number."
+            }
+        if (waitlistCapacity != null && waitlistCapacity < numberOfWinners) {
             return "The waitlist capacity must be at least the number of winners."
         }
-        if (waitlistCapacity < existingLottery.entryIds.size) {
-            return "The waitlist capacity can't be smaller than the number of entrants already on it."
+        if (waitlistCapacity != null && waitlistCapacity < existingLottery.entryIds.size) {
+            return "The waitlist capacity must not be smaller than the number of entrants already on it."
         }
 
         val newRegistrationStart = toStartOfDay(registrationStart)
@@ -263,6 +278,41 @@ class LotteryController(
      */
     suspend fun deleteLottery(lottery: Lottery) {
         lotteryRepository.deleteLottery(lottery)
+    }
+
+    /**
+     * Deletes every active lottery of an owner who is deleting their account, and sends
+     * each winner a message that their booking is no longer valid. A lottery is active
+     * until its booking period ends or it is cancelled, as in [LotteryFilter.ACTIVE].
+     * Lotteries that have ended or were cancelled are left as they are.
+     *
+     * @param ownerId The device ID of the owner.
+     * @param campsiteName Gets a campsite's name from its ID, for the message, or `null` if unknown.
+     * @return The number of winners sent a message.
+     */
+    suspend fun cancelLotteriesOfDeletedOwner(
+        ownerId: String,
+        campsiteName: (String) -> String?
+    ): Int {
+        var notified = 0
+        for (lottery in lotteryRepository.getLotteriesByOwner(ownerId)) {
+            if (!matchesFilter(lottery, LotteryFilter.ACTIVE)) {
+                continue
+            }
+
+            val names = lottery.campsiteIds.mapNotNull(campsiteName)
+            val place = if (names.isEmpty()) "this campsite" else names.joinToString(", ")
+            notified += lotteryRepository.deleteAndNotifyWinners(lottery.lotteryId) { entry ->
+                Message(
+                    messageId = UUID.randomUUID().toString(),
+                    content = "Your booking at $place is no longer valid. The campsite " +
+                            "owner deleted their account, so the lottery was cancelled.",
+                    senderId = ownerId,
+                    recipientId = entry.entrantId
+                )
+            }
+        }
+        return notified
     }
 
     /**

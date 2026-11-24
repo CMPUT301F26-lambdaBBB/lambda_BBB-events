@@ -3,8 +3,10 @@ package com.example.lambda_bbb_events.view.ui.user_screens.create
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 
 /**
  * Shared state for the three steps of the campsite creation form.
@@ -21,6 +23,12 @@ internal class CreateCampsiteFormState {
     var maxOccupancy by mutableStateOf("1")
     val tags = mutableStateListOf<String>()
     val selectedImageUris = mutableStateListOf<Uri>()
+
+    /**
+     * The part of each photo to keep in view when it is cropped, as fractions across and
+     * down the photo. Photos without an entry keep their centre in view.
+     */
+    val photoFocus = mutableStateMapOf<Uri, Offset>()
 
     // Location
     var searchLocation by mutableStateOf("")

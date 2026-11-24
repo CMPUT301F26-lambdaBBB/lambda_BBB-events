@@ -1,34 +1,42 @@
 package com.example.lambda_bbb_events
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.ReservationController
+import com.example.lambda_bbb_events.controller.ReviewController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
+import com.example.lambda_bbb_events.model.local.LocalDatabase
+import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
+import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
+import com.example.lambda_bbb_events.model.repository.ReviewRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
+import com.example.lambda_bbb_events.model.services.ImageProcessor
+import com.example.lambda_bbb_events.store.CampsiteStore
 import com.example.lambda_bbb_events.view.ui.theme.Lambda_BBBeventsTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import com.example.lambda_bbb_events.model.ImageProcessor
-import com.example.lambda_bbb_events.store.CampsiteStore
 
 /*
  * Defines the application's main Android activity.
@@ -56,30 +64,52 @@ class MainActivity : ComponentActivity() {
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         val userRepository = UserRepository()
-        val campsiteStore = CampsiteStore()
         val lotteryRepository = LotteryRepository()
+        val campsiteStore = CampsiteStore(lotteryRepository = lotteryRepository)
         val reservationRepository = ReservationRepository()
         val waitlistEntryRepository = WaitlistEntryRepository()
+        val reviewRepository = ReviewRepository()
         val imageProcessor = ImageProcessor()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
+            // Keep users up to date, so the app reacts if this account is removed or promoted
+            userRepository.startListening()
         }
 
         val controllers = AppControllers(
-            users = UserController(userRepository, deviceId),
-            campsites = CampsiteController(campsiteStore),
+            users = UserController(
+                userRepository,
+                deviceId,
+                SharedPreferencesSessionStore(applicationContext)
+            ),
+            campsites = CampsiteController(
+                campsiteStore,
+                SqliteRecentlyViewedStore(LocalDatabase(applicationContext))
+            ),
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
-            images = imageProcessor
+            images = imageProcessor,
+            reviews = ReviewController(reviewRepository)
         )
 
         setContent {
-            val systemDarkTheme = isSystemInDarkTheme()
+            // Follow Android's dark mode setting, unless the user picked a theme in the app.
+            // Only their choice is saved, so changing Android's setting still takes effect.
+            var chosenDarkTheme by rememberSaveable {
+                mutableStateOf<Boolean?>(null)
+            }
+            val darkTheme = chosenDarkTheme ?: isSystemInDarkTheme()
 
-            var darkTheme by rememberSaveable {
-                mutableStateOf(systemDarkTheme)
+            // Light or dark status bar icons to match the app's theme, not Android's setting
+            LaunchedEffect(darkTheme) {
+                val barStyle = if (darkTheme) {
+                    SystemBarStyle.dark(Color.TRANSPARENT)
+                } else {
+                    SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                }
+                enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
             }
 
             Lambda_BBBeventsTheme(
@@ -88,7 +118,7 @@ class MainActivity : ComponentActivity() {
                 LambdaEventsApp(
                     controllers = controllers,
                     darkTheme = darkTheme,
-                    onDarkThemeChange = { darkTheme = it }
+                    onDarkThemeChange = { chosenDarkTheme = it }
                 )
             }
         }

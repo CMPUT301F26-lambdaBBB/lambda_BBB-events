@@ -2,28 +2,46 @@ package com.example.lambda_bbb_events.store
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
-import com.example.lambda_bbb_events.model.services.generateQR
+import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import kotlin.coroutines.cancellation.CancellationException
 
-class CampsiteStore {
-    val campsiteRepo = CampsiteRepository()
-    var campsites: MutableMap<String, Campsite> = mutableStateMapOf()
-
-    var filteredCampsites: MutableMap<String, Campsite> = mutableStateMapOf()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+class CampsiteStore(
+    val campsiteRepo: CampsiteRepository = CampsiteRepository(),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    private val lotteryRepository: LotteryRepository
+) {
+    val campsites: MutableMap<String, Campsite> = mutableStateMapOf()
 
     init {
         scope.launch {
-            campsites = campsiteRepo.getAllCampsites()
-            filteredCampsites = campsites
+            campsites.putAll(campsiteRepo.getAllCampsites())
+            campsiteRepo.startListening { replaceCampsites(it) }
+        }
+    }
+
+    /**
+     * Makes [campsites] match Firestore, so campsites added, changed, or deleted anywhere else
+     * are updated here too.
+     *
+     * @param latest Every campsite in Firestore.
+     */
+    private fun replaceCampsites(latest: List<Campsite>) {
+        val latestIds = latest.map { it.campsiteId }.toSet()
+        campsites.keys.retainAll(latestIds)
+
+        for (campsite in latest) {
+            // Campsite.equals ignores most details, so the map would keep the old copy if the
+            // latest one were just put over it
+            campsites.remove(campsite.campsiteId)
+            campsites[campsite.campsiteId] = campsite
         }
     }
 
@@ -61,7 +79,8 @@ class CampsiteStore {
                 rating = rating,
                 ratingCount = ratingCount,
                 availability = availability,
-                active = active
+                active = active,
+                createdAt = System.currentTimeMillis()
             )
 
             campsites[campsite.campsiteId] = campsite
@@ -76,24 +95,44 @@ class CampsiteStore {
         return true
     }
 
-    fun removeCampsite(campsite: Campsite, returnMessage: MutableState<String>): Boolean {
-        try {
-            scope.launch {
-                campsiteRepo.deleteCampsite(campsite.campsiteId)
-            }
-            val ans = campsites.remove(campsite.campsiteId) != null
-            returnMessage.value = "Success"
-            return ans
+    suspend fun removeCampsite(
+        campsiteId: String,
+        returnMessage: MutableState<String>
+    ): Boolean {
+        return try {
+            campsiteRepo.deleteCampsiteWithLotteries(campsiteId, lotteryRepository)
+            campsites.remove(campsiteId)
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            returnMessage.value = "Could not delete campsite. Try again."
+            false
         }
-        catch (e: Exception) {
-            returnMessage.value = e.message.toString()
-            return false
+    }
+
+    /**
+     * Archives every campsite owned by a user by setting it inactive, and waits until
+     * Firestore has saved it. The campsites stay in [campsites] so records can still show them.
+     *
+     * @param ownerId The device ID of the owner.
+     * @throws Exception if Firestore fails, in which case no campsite is archived.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String) {
+        for (campsite in campsiteRepo.archiveCampsitesByOwner(ownerId)) {
+            // Campsite.equals ignores `active`, so the map would keep the old copy if the
+            // archived one were just put over it
+            campsites.remove(campsite.campsiteId)
+            campsites[campsite.campsiteId] = campsite
         }
     }
 
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
             campsites[campsiteID] = campsite
+            scope.launch {
+                campsiteRepo.updateCampsite(campsiteID, campsite)
+            }
             returnMessage.value = "Success"
         }
         catch (e: Exception) {
@@ -105,42 +144,5 @@ class CampsiteStore {
 
     fun getByOwner(ownerId: String): Campsite {
         return campsites[ownerId] ?: throw IllegalArgumentException("Campsite not found")
-    }
-
-    fun filterUpdate(
-        startDate: LocalDate? = null,
-        endDate: LocalDate? = null,
-        location: String? = null,
-        starRating: Double? = null,
-        guestRange: IntRange? = null,
-    ): MutableMap<String, Campsite> {
-        val givenStartDate = startDate ?: campsites.values.mapNotNull { it.availability.minDate }.minOrNull()
-
-        val givenEndDate = endDate ?: campsites.values.mapNotNull { it.availability.maxDate }.maxOrNull()
-
-        filteredCampsites = campsites.filter { (_, campsite) ->
-            val isAvailable = givenStartDate?.let { start ->
-                givenEndDate?.let { end ->
-                   campsite.availability.isAvailable(start, end)
-                } ?: true
-            } ?: true
-
-            val meetsStarRating = starRating?.let { rating ->
-                campsite.rating >= rating
-            } ?: true
-
-            val meetsGuestRange = guestRange?.let { range ->
-                campsite.maxOccupancy in range
-            } ?: true
-
-            val meetsLocation = location?.let { query ->
-                query.isBlank() ||
-                        campsite.address.contains(query, ignoreCase = true) ||
-                        campsite.campsiteName.contains(query, ignoreCase = true)
-            } ?: true
-
-            isAvailable && meetsStarRating && meetsGuestRange && meetsLocation
-        }.toMutableMap()
-        return filteredCampsites
     }
 }

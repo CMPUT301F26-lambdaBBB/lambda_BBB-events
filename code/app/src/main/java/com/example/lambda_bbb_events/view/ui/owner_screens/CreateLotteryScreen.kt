@@ -49,6 +49,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWith
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Screen where a campsite owner can create a lottery for their campsite.
@@ -63,6 +64,8 @@ fun CreateLotteryScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val campsite = controllers.campsites.getCampsite(campsiteId)
 
     if (campsite == null) {
@@ -77,7 +80,7 @@ fun CreateLotteryScreen(
     var bookingStart by remember { mutableStateOf("") }
     var bookingEnd by remember { mutableStateOf("") }
     var numberOfWinners by remember { mutableStateOf("1") }
-    var waitlistCapacity by remember { mutableStateOf("10") }
+    var waitlistCapacity by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -121,10 +124,10 @@ fun CreateLotteryScreen(
             )
 
             FormTextFieldWithTitle(
-                title = "Waitlist capacity",
+                title = "Waitlist capacity (optional)",
                 value = waitlistCapacity,
                 onValueChange = { waitlistCapacity = it },
-                placeholder = "Max entrants allowed to join"
+                placeholder = "Max entrants allowed to join. Leave blank for no limit."
             )
 
             if (errorMessage != null) {
@@ -144,7 +147,7 @@ fun CreateLotteryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = goBack,
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -170,7 +173,7 @@ fun CreateLotteryScreen(
                             )
 
                             if (error == null) {
-                                navController.popBackStack()
+                                goBack()
                             } else {
                                 errorMessage = error
                             }

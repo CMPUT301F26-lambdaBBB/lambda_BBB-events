@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Brightness6
 import androidx.compose.material.icons.outlined.ContentPaste
@@ -27,19 +26,21 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
 /*
  * Displays more detailed account and app settings.
  *
- * TODO: Implement the pages for Log-Out
  * TODO: Implement Notification page functionality
- * TODO: Change placeholder profile picture to user profile picture
+ * TODO: Log-Out to allow logging back in
+ * TODO: no test tags for log out or delete dialogs yet
  */
 /**
  * Displays user information and app settings.
@@ -101,7 +102,7 @@ fun Settings(
                     )
                 }
 
-                // user info: placeholder profile picture, name and role
+                // user info: profile picture, name and role
                 item {
                     Row(
                         modifier = Modifier
@@ -112,11 +113,9 @@ fun Settings(
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile picture",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                        ProfilePicture(
+                            imageId = user.profilePictureImageId,
+                            size = 48.dp
                         )
 
                         Spacer(modifier = Modifier.width(12.dp))
@@ -234,75 +233,50 @@ fun Settings(
 
     // Alert Prompts for both log out and delete account functions
     if (showDeleteDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surface,
-            // close dialog when the user taps outside the request box or presses Back.
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Account?") },
-            text = {
-                Text(
-                    if (accountError) "Please try again."
-                    else "Are you sure? \nThis action cannot be undone."
-                )
-            },
+        ShowAlertDialog(
+            dialogLabel = "Delete Account? ",
+            dialogCaption = "Are you sure?\nThis action cannot be undone.",
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch { // starts coroutine so firebase deletion runs without freezing app
-                            try {
-                                if (controllers.users.deleteAccount()) {
-                                    showDeleteDialog = false
-                                } else {
-                                    accountError = true
-                                }
-                            } catch (_: Exception) { // a failed execution is caught by catch
-                                accountError = true
-                            }
+                scope.launch { // starts coroutine so firebase deletion runs without freezing app
+                    try {
+                        // Delete the user's lotteries and archive their campsites first, so a
+                        // failure leaves the account in place to retry instead of leaving them
+                        // orphaned. Campsites are kept, inactive, for past bookings and records.
+                        val ownerId = controllers.users.deviceId
+                        controllers.lotteries.cancelLotteriesOfDeletedOwner(ownerId) { campsiteId ->
+                            controllers.campsites.getCampsite(campsiteId)?.campsiteName
                         }
+                        controllers.campsites.archiveCampsitesByOwner(ownerId)
+                        if (controllers.users.deleteAccount()) {
+                            showDeleteDialog = false
+                        } else {
+                            accountError = true
+                        }
+                    } catch (_: Exception) { // a failed execution is caught by catch
+                        accountError = true
                     }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            confirmText = "Delete",
+            dismissState = { showDeleteDialog = false },
+            cancelText = "Cancel",
+            modifier = Modifier
         )
     }
 
-    // you can't login to any account after logging out since it just navigates to signup for now
-    // need to work out way to log out with device id verification not causing re-login issue.
     if (showLogOutDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surface,
-            // close dialog when the user taps outside the request box or presses Back.
-            onDismissRequest = { showLogOutDialog = false },
-            title = { Text("Log Out?") },
-            text = {
-                Text("Please stay :( \nAlso note you cannot log back in so just refresh app")
-            },
+        ShowAlertDialog(
+            dialogLabel = "Log Out?",
+            dialogCaption = "You can log back in with your email and phone number.",
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogOutDialog = false
-                        navController.navigate("signup") {
-                            popUpTo(navController.graph.startDestinationId) { //
-                                inclusive = true // removes previous screens in back stack
-                            }
-                            launchSingleTop = true // prevent duplicate destination entries
-                        }
-                    }
-                ) {
-                    Text("Log Out", color = MaterialTheme.colorScheme.error)
-                }
+                showLogOutDialog = false
+                // The app goes back to the welcome screen by itself
+                controllers.users.logOut()
             },
-            dismissButton = {
-                TextButton(onClick = { showLogOutDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            confirmText = "Log Out",
+            dismissState = { showLogOutDialog = false },
+            cancelText = "Cancel",
+            modifier = Modifier
         )
     }
 

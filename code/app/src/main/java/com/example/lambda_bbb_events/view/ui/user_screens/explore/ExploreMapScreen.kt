@@ -33,11 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
-import com.example.lambda_bbb_events.view.ui.components.map.ClickableMap
 import com.example.lambda_bbb_events.view.ui.components.filter.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCardSection
+import com.example.lambda_bbb_events.view.ui.components.map.CampsiteMap
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.clip
 
 /*
  * Provides a map-based campsite exploration screen with
@@ -167,24 +169,25 @@ fun ExploreMapScreen(
                  * https://developers.google.com/maps/documentation/android-sdk/overview
                  */
                 if (showMap) {
-                    ClickableMap(
-                        height = 300,
-                        onLocationSelected = { _, address, postalCode ->
-                            // TODO: Use coordinates to filter nearby campsites.
-
-                            if (address.isNotBlank()) {
-                                query = address
-                            } else if (postalCode.isNotBlank()) {
-                                query = postalCode
-                            }
-                        }
+                    CampsiteMap(
+                        campsites = controllers.campsites.activeCampsites.values.toList(),
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        emptyMessage = "No campsites to show on the map",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(12.dp))
                     )
                 }
 
                 // Nearby Campsites
                 VerticalCardSection(
                     title = "Nearby Campsites",
-                    campsites = controllers.campsites.campsites.values.toList(),
+                    campsites = controllers.campsites.activeCampsites.values.toList(),
                     onCampsiteClick = { campsite ->
                         navController.navigate(
                             "campsite_details/${campsite.campsiteId}"

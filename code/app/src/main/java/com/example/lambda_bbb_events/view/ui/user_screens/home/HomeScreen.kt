@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.user.UserRole
+import com.example.lambda_bbb_events.view.ui.components.admin.RoleDropdownSwitcher
 import com.example.lambda_bbb_events.view.ui.components.campsite.HorizontalCardSection
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.filter.FilterIconButton
@@ -39,7 +41,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
  * Defines the home screen with campsite searching,
  * filtering, and featured listing sections.
  *
- * TODO: Display actual recently viewed and featured campsites.
  * TODO: Implement the See All actions for both sections.
  */
 
@@ -59,6 +60,7 @@ fun HomeScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var openFilter by remember { mutableStateOf(false) }
+    val isAdmin = controllers.users.currentUser?.role == UserRole.ADMIN
 
     Scaffold(
         modifier = Modifier.testTag("screen_home"),
@@ -73,10 +75,25 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            ScreenTitle(
-                title = "Home",
-                navController = navController
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ScreenTitle(
+                    title = "Home",
+                    navController = navController
+                )
+
+                if (isAdmin) {
+                    RoleDropdownSwitcher(
+                        currentView = "User",
+                        onUserSelected = {},
+                        onAdminSelected = {
+                            navController.navigate("admin_home")
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(bottom = 20.dp)
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -122,6 +139,13 @@ fun HomeScreen(
                 ) {
                     HorizontalCardSection(
                         title = "Recently Viewed",
+                        campsites = controllers.campsites.recentlyViewed,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        emptyMessage = "Campsites you view will appear here.",
                         onSeeAll = {
                             // TODO: Implement See All navigation.
                         }
@@ -133,6 +157,30 @@ fun HomeScreen(
                 ) {
                     HorizontalCardSection(
                         title = "Featured Campsites",
+                        campsites = controllers.campsites.featuredCampsites,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        onSeeAll = {
+                            // TODO: Implement See All navigation.
+                        }
+                    )
+                }
+
+                Box(
+                    modifier = Modifier.testTag("recentlyAddedSection")
+                ) {
+                    HorizontalCardSection(
+                        title = "Recently Added",
+                        campsites = controllers.campsites.recentlyAddedCampsites,
+                        onCampsiteClick = { campsite ->
+                            navController.navigate(
+                                "campsite_details/${campsite.campsiteId}"
+                            )
+                        },
+                        emptyMessage = "New campsites will appear here.",
                         onSeeAll = {
                             // TODO: Implement See All navigation.
                         }

@@ -19,9 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.generateQR
-import com.example.lambda_bbb_events.model.saveBitmapToGallery
+import com.example.lambda_bbb_events.model.services.generateQR
+import com.example.lambda_bbb_events.model.services.saveBitmapToGallery
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Displays a full-screen view for a campsite's QR Code with option to download.
@@ -36,6 +37,8 @@ fun QRCodeScreen(
     controllers: AppControllers,
     campsiteId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     val context = LocalContext.current
     val campsite = controllers.campsites.getCampsite(campsiteId)
     val qrBitmap = remember(campsiteId) {
@@ -45,8 +48,7 @@ fun QRCodeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ScreenTitle(
@@ -135,7 +137,7 @@ fun QRCodeScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = { navController.popBackStack() },
+            onClick = goBack,
             modifier = Modifier
                 .fillMaxWidth(0.7f)
                 .height(48.dp),

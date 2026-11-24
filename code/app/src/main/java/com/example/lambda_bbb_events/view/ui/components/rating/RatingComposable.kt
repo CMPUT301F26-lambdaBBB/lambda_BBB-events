@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /*
@@ -71,6 +72,15 @@ fun RatingStars(
 }
 
 /**
+ * Formats a campsite's average rating with one decimal place, such as "4.3".
+ *
+ * @param rating The average rating.
+ */
+fun formatRating(rating: Float): String {
+    return String.format(Locale.getDefault(), "%.1f", rating)
+}
+
+/**
  * Displays a summary of a campsite's rating and review count.
  *
  * Uses [RatingStars] to display the star representation.
@@ -90,7 +100,7 @@ fun RatingSummary(
         RatingStars(rating = rating)
 
         Text(
-            text = "$rating",
+            text = formatRating(rating),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )

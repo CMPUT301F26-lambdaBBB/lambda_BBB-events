@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.view.ui.components.calendar.DateRangeCard
 import com.example.lambda_bbb_events.view.ui.components.calendar.parseDateOrNull
 import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCampsiteCard
@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 
 /**
  * Screen where a campsite owner can edit a lottery for their campsite.
@@ -57,6 +58,8 @@ fun EditLotteryScreen(
     controllers: AppControllers,
     lotteryId: String
 ) {
+    val goBack = rememberBackAction(navController)
+
     var lottery by remember { mutableStateOf<Lottery?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -105,7 +108,7 @@ fun EditLotteryScreen(
     var bookingEnd by remember { mutableStateOf(
         dateToLocalDate(currentLottery.bookingEnd).toString()) }
     var numberOfWinners by remember { mutableStateOf(currentLottery.numberOfWinners.toString()) }
-    var waitlistCapacity by remember { mutableStateOf(currentLottery.waitlistCapacity.toString()) }
+    var waitlistCapacity by remember { mutableStateOf(currentLottery.waitlistCapacity?.toString() ?: "") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -152,7 +155,7 @@ fun EditLotteryScreen(
                 title = "Waitlist capacity",
                 value = waitlistCapacity,
                 onValueChange = { waitlistCapacity = it },
-                placeholder = "Max entrants allowed to join"
+                placeholder = "Max entrants allowed to join. Leave blank for no limit."
             )
 
             if (errorMessage != null) {
@@ -172,7 +175,7 @@ fun EditLotteryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = goBack,
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -197,7 +200,7 @@ fun EditLotteryScreen(
                             )
 
                             if (error == null) {
-                                navController.popBackStack()
+                                goBack()
                             } else {
                                 errorMessage = error
                             }
