@@ -2,7 +2,9 @@ package com.example.lambda_bbb_events.store
 
 import androidx.compose.runtime.mutableStateOf
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
+import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,6 +25,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CampsiteStoreUnitTest {
     private val repo = mockk<CampsiteRepository>()
+    private val lotteries = mockk<LotteryRepository>()
     private val scope = TestScope()
     private lateinit var store: CampsiteStore
 
@@ -37,8 +40,8 @@ class CampsiteStoreUnitTest {
         every { repo.startListening(capture(onChange)) } just runs
         coEvery { repo.addCampsite(any()) } just runs
         coEvery { repo.updateCampsite(any(), any()) } just runs
-        coEvery { repo.deleteCampsite(any()) } just runs
-        store = CampsiteStore(repo, scope)
+        coEvery { repo.deleteCampsiteWithLotteries(any(), any()) } just runs
+        store = CampsiteStore(repo, scope, lotteries)
     }
 
     @Test
@@ -74,12 +77,34 @@ class CampsiteStoreUnitTest {
         advanceUntilIdle()
         val message = mutableStateOf("")
 
-        assertTrue(store.removeCampsite(existing, message))
+        assertTrue(store.removeCampsite("site-1", message))
         advanceUntilIdle()
 
         assertTrue(store.campsites.isEmpty())
-        assertEquals("Success", message.value)
-        coVerify(exactly = 1) { repo.deleteCampsite("site-1") }
+        assertEquals("", message.value)
+        coVerify(exactly = 1) { repo.deleteCampsiteWithLotteries("site-1", lotteries) }
+    }
+
+    @Test
+    fun setPhotosReplacesTheCachedPhotos() = scope.runTest {
+        advanceUntilIdle()
+        val photos = listOf(ImageMetaData(imageId = "img-1"))
+        coEvery { repo.setPhotos(any(), any()) } just runs
+
+        store.setPhotos("site-1", photos)
+
+        assertEquals(photos, store.campsites.getValue("site-1").imageIds)
+        coVerify(exactly = 1) { repo.setPhotos("site-1", photos) }
+    }
+
+    @Test
+    fun photosAreNotChangedIfSavingFails() = scope.runTest {
+        advanceUntilIdle()
+        coEvery { repo.setPhotos(any(), any()) } throws IllegalStateException("offline")
+
+        runCatching { store.setPhotos("site-1", listOf(ImageMetaData(imageId = "img-1"))) }
+
+        assertTrue(store.campsites.getValue("site-1").imageIds.isEmpty())
     }
 
     @Test

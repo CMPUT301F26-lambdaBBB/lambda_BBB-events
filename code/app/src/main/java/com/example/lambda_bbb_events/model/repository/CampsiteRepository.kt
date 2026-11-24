@@ -212,6 +212,22 @@ class CampsiteRepository(
         putInCache(campsite)
     }
 
+    /**
+     * Saves a campsite's photos, leaving its other details as they are.
+     *
+     * @param campsiteId The ID of the campsite, which must exist.
+     * @param photos The photos, starting with the thumbnail.
+     */
+    suspend fun setPhotos(campsiteId: String, photos: List<ImageMetaData>) {
+        collectionRef.document(campsiteId).update("imageIds", photos).await()
+
+        // Campsite.equals ignores photos, so the cache would keep the old copy if the new one
+        // were just put over it
+        val cachedCampsite = getCached(campsiteId) ?: return
+        removeFromCache(campsiteId)
+        putInCache(cachedCampsite.copy(imageIds = photos))
+    }
+
     private companion object {
         /** Every field of [FirestoreCampsite] except the rating and the number of reviews. */
         val EDITABLE_FIELDS = listOf(

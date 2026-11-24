@@ -284,6 +284,18 @@ class CampsiteController(
         )
     }
 
+    /**
+     * Replaces a campsite's photos, and waits until they are saved. To upload or delete photos
+     * as well, use [CampsitePhotoController].
+     *
+     * @param campsiteId The ID of the campsite.
+     * @param photos The photos, starting with the thumbnail.
+     * @throws Exception if saving fails, in which case the photos are not changed.
+     */
+    suspend fun setPhotos(campsiteId: String, photos: List<ImageMetaData>) {
+        campsiteStore.setPhotos(campsiteId, photos)
+    }
+
     fun getCampsite(
         campsiteId: String
     ): Campsite? {

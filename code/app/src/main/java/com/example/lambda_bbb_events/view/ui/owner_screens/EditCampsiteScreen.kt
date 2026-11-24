@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -38,7 +39,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.controller.CampsitePhotoController
 import com.example.lambda_bbb_events.model.image.ImageMetaData
+import com.example.lambda_bbb_events.view.ui.components.campsite.PhotoManager
 import com.example.lambda_bbb_events.view.ui.components.campsite.TagEditor
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldMultiLine
@@ -49,18 +52,19 @@ import com.example.lambda_bbb_events.view.ui.components.common.StoredImage
 import com.example.lambda_bbb_events.view.ui.components.common.loadStoredImage
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 import com.example.lambda_bbb_events.view.ui.user_screens.create.MAX_OCCUPANCY_DIGITS
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 /*
  * Provides a screen for editing campsite details.
  * Allows owners to save changes or cancel editing.
- *
- * TODO: Implement campsite photo viewing and management.
  */
 
 /**
  * Allows users to edit campsite details and tags.
  *
- * Saves or discards changes and displays errors when needed.
+ * Saves or discards changes and displays errors when needed. Changes to the photos are saved
+ * straight away, separately from the other details.
  *
  * @param navController Handles screen navigation.
  * @param controllers Retrieves and updates campsite data.
@@ -109,14 +113,27 @@ fun EditCampsiteScreen(
         campsite.tags.toMutableStateList()
     }
 
-    // The photos, kept here so a changed focus point shows straight away
-    var photos by remember(campsiteId) {
-        mutableStateOf(campsite.imageIds)
+    val photos = campsite.imageIds
+    val photoController = remember(controllers) {
+        CampsitePhotoController(controllers.campsites, controllers.images)
     }
+    var isManagingPhotos by remember { mutableStateOf(false) }
+    var photoError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     var showError by remember(campsiteId) {
         mutableStateOf(false)
     }
+
+    // A sheet rather than another screen, so unsaved changes to the other details are kept
+    PhotoManager(
+        isOpen = isManagingPhotos,
+        onClose = { isManagingPhotos = false },
+        photoController = photoController,
+        campsiteId = campsiteId,
+        uploaderId = controllers.users.currentUser?.deviceId ?: campsite.ownerId,
+        photos = photos
+    )
 
     Column(
         modifier = Modifier
@@ -147,7 +164,7 @@ fun EditCampsiteScreen(
 
             // Photos
             CampsiteImageCarousel(
-                campsite = campsite.copy(imageIds = photos),
+                campsite = campsite,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -158,20 +175,37 @@ fun EditCampsiteScreen(
                 PhotoFocusRow(
                     photos = photos,
                     onFocusChange = { changed ->
-                        val updated = photos.map { photo ->
-                            if (photo.imageId == changed.imageId) changed else photo
+                        photoError = null
+                        scope.launch {
+                            try {
+                                photoController.changeFocus(
+                                    campsiteId, changed.imageId, changed.focusX, changed.focusY
+                                )
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (_: Exception) {
+                                photoError = "Could not save the photo. Please try again."
+                            }
                         }
-                        photos = updated
-                        controllers.campsites.updateCampsite(campsiteId, campsite.copy(imageIds = updated))
                     }
+                )
+            }
+
+            photoError?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
 
             OutlinedButton(
                 onClick = {
-                    // TODO: Open the photo manager.
+                    isManagingPhotos = true
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("edit_manage_photos"),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
