@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.campsite.CampsiteFilters
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.local.InMemoryRecentlyViewedStore
 import com.example.lambda_bbb_events.model.local.RecentlyViewedStore
@@ -41,11 +42,9 @@ class CampsiteController(
     val searchQuery: String
         get() = _searchQuery
 
-    private var startDate: LocalDate? = null
-    private var endDate: LocalDate? = null
-    private var location: String = ""
-    private var starRating: Double? = null
-    private var guestRange: IntRange? = null
+    /** The filters currently applied to [filteredCampsites] and [getSearchResults]. */
+    var filters = CampsiteFilters()
+        private set
 
     /**
      * Every campsite, including archived (inactive) ones. Use it to look up campsites that
@@ -60,6 +59,13 @@ class CampsiteController(
 
     val filteredCampsites: Map<String, Campsite>
         get() = activeCampsites.filterValues { meetsAllFilters(it) }
+
+    /**
+     * Every different number of guests that campsites allow, smallest first, for choosing a
+     * range to filter by. Other filters do not change it.
+     */
+    val guestOptions: List<Int>
+        get() = activeCampsites.values.map { it.maxOccupancy }.distinct().sorted()
 
     /**
      * IDs of recently viewed campsites, most recent first. Saved views are loaded on a
@@ -302,11 +308,13 @@ class CampsiteController(
         guestRange: IntRange? = null
     ): Map<String, Campsite> {
 
-        this.startDate = startDate
-        this.endDate = endDate
-        this.location = location.trim()
-        this.starRating = starRating
-        this.guestRange = guestRange
+        filters = CampsiteFilters(
+            startDate = startDate,
+            endDate = endDate,
+            location = location.trim(),
+            starRating = starRating,
+            guestRange = guestRange
+        )
         return filteredCampsites
     }
 
@@ -343,8 +351,8 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val start = startDate ?: return true
-        val end = endDate ?: start
+        val start = filters.startDate ?: return true
+        val end = filters.endDate ?: start
         return campsite.availability.isAvailable(start, end)
     }
 
@@ -352,7 +360,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val rating = starRating ?: return true
+        val rating = filters.starRating ?: return true
         return campsite.rating >= rating
     }
 
@@ -360,7 +368,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val range = guestRange ?: return true
+        val range = filters.guestRange ?: return true
         return campsite.maxOccupancy in range
     }
 
@@ -368,6 +376,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
+        val location = filters.location
         return location.isBlank() ||
                 campsite.address.contains(location, ignoreCase = true) ||
                 campsite.campsiteName.contains(location, ignoreCase = true)

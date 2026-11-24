@@ -13,15 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.controller.CampsiteController
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.view.ui.components.rating.PickRatingStars
 import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextField
-import com.google.firebase.Timestamp
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.time.ZoneId
-import java.util.Locale
-import java.util.TimeZone
+import com.example.lambda_bbb_events.view.ui.components.common.closestStops
 import kotlin.math.roundToInt
 
 /*
@@ -32,7 +28,8 @@ import kotlin.math.roundToInt
 /**
  * Displays a bottom sheet for filtering campsites.
  *
- * Applies selected filters and displays matching results.
+ * Shows the filters that are already applied, so that they can be changed. Applies selected
+ * filters and displays matching results. Closing the sheet keeps the filters as they were.
  * Invalid date ranges prevent submission.
  *
  * @param campsiteController Manages campsite filters.
@@ -46,25 +43,34 @@ fun HomeCampsiteFilter(
     onDismiss: () -> Unit,
     onShowResults: () -> Unit
 ) {
-    var fromDate by remember { mutableStateOf("") }
-    var toDate by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var guestRange by remember { mutableStateOf(0f..100f) }
-    var rating by remember { mutableIntStateOf(0) }
+    // Starts from the applied filters, so they can be seen and changed
+    val applied = remember { campsiteController.filters }
+    var fromDate by remember { mutableStateOf(applied.startDate?.toString() ?: "") }
+    var toDate by remember { mutableStateOf(applied.endDate?.toString() ?: "") }
+    var location by remember { mutableStateOf(applied.location) }
+    var chosenGuests by remember { mutableStateOf(applied.guestRange) }
+    var rating by remember { mutableIntStateOf(applied.starRating?.roundToInt() ?: 0) }
 
-    val startTimestamp = remember(fromDate) {
-        parseFilterDate(fromDate)
+    val guestOptions = campsiteController.guestOptions
+    // The chosen guests, or null if they include every campsite and so do not filter
+    val guestRange = chosenGuests
+        ?.takeIf { guestOptions.isNotEmpty() }
+        ?.let { closestStops(it, guestOptions) }
+        ?.takeIf { it != guestOptions.first()..guestOptions.last() }
+
+    val startDate = remember(fromDate) {
+        parseDateOrNull(fromDate)
     }
 
-    val endTimestamp = remember(toDate) {
-        parseFilterDate(toDate)
+    val endDate = remember(toDate) {
+        parseDateOrNull(toDate)
     }
 
     val datesValid = when {
         fromDate.isBlank() && toDate.isBlank() -> true
 
-        startTimestamp != null && endTimestamp != null ->
-            startTimestamp < endTimestamp
+        startDate != null && endDate != null ->
+            startDate < endDate
 
         else -> false
     }
@@ -204,23 +210,38 @@ fun HomeCampsiteFilter(
             FilterHeader(
                 title = "Number of Guests",
                 onReset = {
-                    guestRange = 0f..100f
+                    chosenGuests = null
                 },
                 titleTag = "guestsLabel",
                 resetTag = "guestResetButton"
             )
 
-            RangePicker(
-                value = guestRange,
-                onValueChange = {
-                    guestRange = it
-                },
-                min = 0f,
-                max = 100f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("guestRangeInput")
-            )
+            if (guestOptions.size < 2) {
+                // There is nothing to choose between
+                Text(
+                    text = if (guestOptions.isEmpty()) {
+                        "No campsites to filter."
+                    } else {
+                        "Every campsite allows up to ${guestOptions.first()} guests."
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("guestRangeMessage")
+                )
+            } else {
+                val allGuests = guestOptions.first()..guestOptions.last()
+                RangePicker(
+                    value = guestRange ?: allGuests,
+                    onValueChange = { range ->
+                        // The full range also includes larger campsites added later
+                        chosenGuests = range.takeIf { it != allGuests }
+                    },
+                    stops = guestOptions,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("guestRangeInput")
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -257,10 +278,10 @@ fun HomeCampsiteFilter(
             Button(
                 onClick = {
                     campsiteController.applyFilters(
-                        startDate = startTimestamp?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate(),
-                        endDate = endTimestamp?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+                        startDate = startDate,
+                        endDate = endDate,
                         location = location.trim(),
-                        guestRange = guestRange.start.roundToInt()..guestRange.endInclusive.roundToInt(),
+                        guestRange = guestRange,
                         starRating = rating.takeIf { it > 0 }?.toDouble()
                     )
 
@@ -333,36 +354,5 @@ private fun FilterHeader(
                 color = MaterialTheme.colorScheme.primary
             )
         }
-    }
-}
-
-/**
- * Converts a date string into a Firebase timestamp.
- *
- * Parses the provided date using the yyyy-MM-dd format
- * with the UTC time zone. Lenient date parsing is disabled
- * to reject invalid calendar dates.
- *
- * @param value Date string to convert into a timestamp.
- * @return The parsed [Timestamp], or null if parsing fails
- * or the input is blank.
- */
-private fun parseFilterDate(value: String): Timestamp? {
-    if (value.isBlank()) return null
-
-    val format = SimpleDateFormat(
-        "yyyy-MM-dd",
-        Locale.US
-    ).apply {
-        isLenient = false
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-
-    return try {
-        format.parse(value.trim())?.let { date ->
-            Timestamp(date)
-        }
-    } catch (e: ParseException) {
-        null
     }
 }
