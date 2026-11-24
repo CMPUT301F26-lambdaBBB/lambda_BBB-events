@@ -11,6 +11,7 @@ import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
+import com.example.lambda_bbb_events.model.user.UserRole
 
 /*
  * Manages user profiles, roles, and notification settings
@@ -224,6 +225,31 @@ class UserController(
             )
         }
 
+        return true
+    }
+
+    /**
+     * Gets a user from the database.
+     *
+     * @param deviceId The device ID of the user.
+     * @return The user, or `null` if the user does not exist.
+     */
+    suspend fun getUser(deviceId: String): User? {
+        return userRepository.getUser(deviceId)
+    }
+
+    /**
+     * Removes a user's profile given their user Id.
+     *
+     * @param deviceId The device ID of the user to remove.
+     * @return `true` if the user was removed, `false` otherwise.
+     */
+    suspend fun removeUser(deviceId: String): Boolean {
+        val admin = currentUser
+        if (admin == null || admin.role != UserRole.ADMIN || admin.deviceId == deviceId) return false
+
+        val user = userRepository.getUser(deviceId) ?: return false
+        userRepository.deleteUser(user)
         return true
     }
 

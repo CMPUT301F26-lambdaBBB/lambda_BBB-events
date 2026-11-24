@@ -133,7 +133,7 @@ fun AdminCampsitesScreen(
                         items(results) { campsite ->
                             VerticalCampsiteCard(
                                 campsite = campsite,
-                                onClick = {}, // TODO: open admin campsite screen (should we show just owner campsite detail screen?)
+                                onClick = { navController.navigate("owner_campsite_details/${campsite.campsiteId}") },
                                 modifier = Modifier.testTag("adminCampsiteItem")
                             )
                         }
