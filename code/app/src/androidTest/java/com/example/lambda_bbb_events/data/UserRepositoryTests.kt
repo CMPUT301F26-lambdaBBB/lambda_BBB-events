@@ -2,7 +2,9 @@ package com.example.lambda_bbb_events.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.model.repository.UserRepository
+import com.example.lambda_bbb_events.model.user.Admin
 import com.example.lambda_bbb_events.model.user.Entrant
+import com.example.lambda_bbb_events.model.user.UserRole
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -110,5 +112,45 @@ class UserRepositoryTests {
         repository.setAllowNotifications(user, false)
 
         assertFalse(repository.getCachedUser(user.deviceId)!!.notificationsEnabled)
+    }
+
+    @Test
+    fun deleteUser_removesUserFromFirestore() = runTest {
+        val user = newUser()
+        repository.addUser(user)
+
+        repository.deleteUser(user)
+
+        assertNull(repository.getUser(user.deviceId))
+    }
+
+    @Test
+    fun makeAdmin_savesRoleAndKeepsProfile() = runTest {
+        val user = Entrant(
+            deviceId = testData.newId("users", prefix = "test-device"),
+            name = "Ed",
+            email = "ed@example.com",
+            phone = "+1 7805551234"
+        )
+        repository.addUser(user)
+
+        repository.makeAdmin(user)
+
+        val saved = repository.getUser(user.deviceId)
+        assertTrue(saved is Admin)
+        assertEquals(UserRole.ADMIN, saved!!.role)
+        assertEquals("Ed", saved.name)
+        assertEquals("ed@example.com", saved.email)
+        assertEquals("+1 7805551234", saved.phone)
+        assertTrue(repository.getCachedUser(user.deviceId) is Admin)
+    }
+
+    @Test
+    fun makeAdmin_doesNotCreateMissingUser() = runTest {
+        val user = newUser()
+
+        assertTrue(runCatching { repository.makeAdmin(user) }.isFailure)
+
+        assertNull(repository.getUser(user.deviceId))
     }
 }
