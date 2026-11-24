@@ -13,6 +13,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -95,7 +96,7 @@ class ReviewSectionUITest {
     }
 
     private fun click(tag: String) {
-        composeTestRule.onNodeWithTag(tag).performClick()
+        composeTestRule.onNodeWithTag(tag).performScrollTo().performClick()
         composeTestRule.waitForIdle()
     }
 
@@ -167,13 +168,57 @@ class ReviewSectionUITest {
     }
 
     @Test
+    fun formOpensAndClosesInPlaceWithoutAPopup() {
+        showSection(ed, review("user-2", 4, "Lovely"))
+        composeTestRule.onNodeWithTag("reviewForm").assertDoesNotExist()
+
+        click("writeReview")
+        composeTestRule.onNodeWithTag("reviewForm").assertIsDisplayed()
+        composeTestRule.onAllNodes(isDialog()).assertCountEquals(0)
+        composeTestRule.onNodeWithText("Lovely").performScrollTo().assertIsDisplayed()
+
+        click("writeReview")
+        composeTestRule.onNodeWithTag("reviewForm").assertDoesNotExist()
+    }
+
+    @Test
+    fun closingByTheHeadingKeepsTheDraftButCancelDiscardsIt() {
+        showSection(ed)
+
+        click("writeReview")
+        click("ratingStar3")
+        composeTestRule.onNodeWithTag("reviewCommentInput").performTextInput("Half written")
+        click("writeReview")
+        click("writeReview")
+        composeTestRule.onNodeWithTag("reviewCommentInput").assertTextContains("Half written")
+        composeTestRule.onNodeWithTag("ratingStar3").assertIsSelected()
+
+        click("reviewCancel")
+        click("writeReview")
+        composeTestRule.onNodeWithText("Half written").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("ratingStar1").assertIsNotSelected()
+    }
+
+    @Test
+    fun othersReviewsArrivingDoNotClearTheDraft() {
+        showSection(ed)
+
+        click("writeReview")
+        composeTestRule.onNodeWithTag("reviewCommentInput").performTextInput("Half written")
+        composeTestRule.runOnIdle { stored = listOf(review("user-2", 5, "Just posted")) }
+
+        composeTestRule.onNodeWithTag("reviewCommentInput").assertTextContains("Half written")
+    }
+
+    @Test
     fun cancelledReviewIsNotSaved() {
         showSection(ed)
 
         click("writeReview")
         click("ratingStar1")
-        composeTestRule.onNodeWithText("Cancel").performClick()
+        click("reviewCancel")
 
+        composeTestRule.onNodeWithTag("reviewForm").assertDoesNotExist()
         composeTestRule.onNodeWithText("No reviews yet.").assertIsDisplayed()
         coVerify(exactly = 0) { repository.add(any()) }
     }
@@ -189,7 +234,7 @@ class ReviewSectionUITest {
         click("ratingStar3")
         composeTestRule.onNodeWithTag("reviewCommentInput").performTextInput("Nice")
         click("reviewSubmit")
-        composeTestRule.onNodeWithTag("reviewError").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("reviewError").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("reviewCommentInput").assertTextContains("Nice")
 
         click("reviewSubmit")

@@ -4,17 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.controller.AppControllers
@@ -27,8 +28,9 @@ import kotlinx.coroutines.launch
 private const val REVIEWS_SHOWN_AT_FIRST = 3
 
 /**
- * Displays a campsite's reviews, newest first, with buttons to write, edit, and delete the
- * ones the signed-in user is allowed to. Updates by itself when reviews change.
+ * Displays a campsite's reviews, newest first, with a dropdown to write or edit the user's
+ * own review, and buttons to delete the ones they are allowed to. Updates by itself when
+ * reviews change.
  *
  * @param campsite The campsite whose reviews are shown.
  * @param controllers Provides the reviews and the signed-in user.
@@ -46,11 +48,19 @@ fun ReviewSection(
 
     var showAll by rememberSaveable(campsite.campsiteId) { mutableStateOf(false) }
     var isWriting by rememberSaveable(campsite.campsiteId) { mutableStateOf(false) }
+    // What is being written. Starts again from the user's review whenever that changes.
+    var draftRating by rememberSaveable(campsite.campsiteId, ownReview) {
+        mutableIntStateOf(ownReview?.rating ?: 0)
+    }
+    var draftComment by rememberSaveable(campsite.campsiteId, ownReview) {
+        mutableStateOf(ownReview?.comment ?: "")
+    }
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var deleting by remember { mutableStateOf<Review?>(null) }
     var deleteError by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = modifier
@@ -65,17 +75,39 @@ fun ReviewSection(
         )
 
         if (controllers.reviews.canReview(campsite, user)) {
-            OutlinedButton(
-                onClick = {
+            ReviewForm(
+                title = if (ownReview == null) "Write a Review" else "Edit Your Review",
+                isOpen = isWriting,
+                rating = draftRating,
+                comment = draftComment,
+                isSaving = isSaving,
+                errorMessage = saveError,
+                onToggle = {
                     saveError = null
-                    isWriting = true
+                    isWriting = !isWriting
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("writeReview")
-            ) {
-                Text(if (ownReview == null) "Write a Review" else "Edit Your Review")
-            }
+                onRatingChange = { draftRating = it },
+                onCommentChange = { draftComment = it },
+                onSubmit = {
+                    focusManager.clearFocus() // closes the keyboard
+                    isSaving = true
+                    saveError = null
+                    scope.launch {
+                        saveError = controllers.reviews
+                            .submitReview(campsite, user, draftRating, draftComment)
+                        isSaving = false
+                        if (saveError == null) {
+                            isWriting = false
+                        }
+                    }
+                },
+                onCancel = {
+                    focusManager.clearFocus()
+                    draftRating = ownReview?.rating ?: 0
+                    draftComment = ownReview?.comment ?: ""
+                    isWriting = false
+                }
+            )
         }
 
         if (deleteError) {
@@ -120,26 +152,6 @@ fun ReviewSection(
                 Text(if (showAll) "Show fewer reviews" else "Show all ${reviews.size} reviews")
             }
         }
-    }
-
-    if (isWriting) {
-        ReviewDialog(
-            existing = ownReview,
-            isSaving = isSaving,
-            errorMessage = saveError,
-            onSubmit = { rating, comment ->
-                isSaving = true
-                saveError = null
-                scope.launch {
-                    saveError = controllers.reviews.submitReview(campsite, user, rating, comment)
-                    isSaving = false
-                    if (saveError == null) {
-                        isWriting = false
-                    }
-                }
-            },
-            onDismiss = { isWriting = false }
-        )
     }
 
     val reviewToDelete = deleting

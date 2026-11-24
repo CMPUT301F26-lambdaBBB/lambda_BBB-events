@@ -122,6 +122,7 @@ fun OwnerCampsiteDetailsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding() // keeps the review being written above the keyboard
     ) {
         item {
             Column(

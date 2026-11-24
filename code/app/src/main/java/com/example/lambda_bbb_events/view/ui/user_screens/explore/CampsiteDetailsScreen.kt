@@ -111,6 +111,7 @@ fun CampsiteDetailsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding() // keeps the review being written above the keyboard
             .testTag("screen_campsite_details")
     ) {
         // Fixed title
