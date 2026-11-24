@@ -57,6 +57,22 @@ import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackA
 import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import kotlinx.coroutines.launch
 
+/**
+ * Displays a user's profile to an admin, who can promote the user to admin or remove them.
+ * Both actions ask for confirmation first, and show an error if they fail.
+ *
+ * Promoting is only offered for users who are not admins yet. Afterwards the screen stays
+ * open and shows the new role.
+ *
+ * Removing also deletes the user's active lotteries and archives their campsites, then goes
+ * back to the previous screen.
+ *
+ * Users who are not admins see a message that they do not have access instead.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers All the app controllers, for reading and changing the user.
+ * @param userId The device ID of the user to show.
+ */
 @Composable
 fun AdminProfileDetailsScreen(
     navController: NavController,
@@ -69,6 +85,8 @@ fun AdminProfileDetailsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var showDialog by remember { mutableStateOf(false) }
     var removeError by remember { mutableStateOf(false) }
+    var showMakeAdminDialog by remember { mutableStateOf(false) }
+    var makeAdminError by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val goBack = rememberBackAction(navController)
 
@@ -185,6 +203,40 @@ fun AdminProfileDetailsScreen(
 
                     Spacer(modifier = Modifier.height(50.dp))
 
+                    if (shownUser.role != UserRole.ADMIN) {
+                        Button(
+                            onClick = {
+                                makeAdminError = false
+                                showMakeAdminDialog = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .testTag("adminMakeAdminButton"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "Make Admin",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        if (makeAdminError) {
+                            Text(
+                                text = "Could not make this user an admin. Please try again.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
                     Button(
                         onClick = {
                             removeError = false
@@ -220,6 +272,34 @@ fun AdminProfileDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp),
                             textAlign = TextAlign.Center
+                        )
+                    }
+
+                    // prompts alert dialog when make admin is clicked
+                    if (showMakeAdminDialog) {
+                        ShowAlertDialog(
+                            dialogLabel = "Make Admin?",
+                            dialogCaption = "${shownUser.name} will be able to manage all " +
+                                    "campsites and profiles, including removing them.",
+                            confirmButton = {
+                                showMakeAdminDialog = false
+                                scope.launch {
+                                    try {
+                                        val promoted = controllers.users.makeAdmin(userId)
+                                        if (promoted != null) {
+                                            user = promoted
+                                        } else {
+                                            makeAdminError = true
+                                        }
+                                    } catch (_: Exception) { // a failed write keeps the old role
+                                        makeAdminError = true
+                                    }
+                                }
+                            },
+                            confirmText = "Confirm",
+                            dismissState = { showMakeAdminDialog = false },
+                            cancelText = "Cancel",
+                            modifier = Modifier
                         )
                     }
 

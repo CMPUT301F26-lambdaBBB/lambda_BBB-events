@@ -3,12 +3,14 @@ package com.example.lambda_bbb_events.model.repository
 import com.example.lambda_bbb_events.model.user.Admin
 import com.example.lambda_bbb_events.model.user.CampsiteOwner
 import com.example.lambda_bbb_events.model.user.Entrant
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -99,5 +101,77 @@ class UserRepositoryUnitTest {
 
         verify(exactly = 1) { users.document("entrant-1").update("notificationsEnabled", false) }
         assertFalse(repository.getCachedUser("entrant-1")!!.notificationsEnabled)
+    }
+
+    @Test
+    fun deleteUserKeepsUserCachedWhenItFails() = runTest {
+        repository.addUser(entrant)
+        every { users.document("entrant-1").delete() } returns failedTask(RuntimeException("offline"))
+
+        assertTrue(runCatching { repository.deleteUser(entrant) }.isFailure)
+
+        assertSame(entrant, repository.getCachedUser("entrant-1"))
+    }
+
+    @Test
+    fun makeAdminWritesOnlyTheRoleAndKeepsTheProfile() = runTest {
+        val user = CampsiteOwner(
+            deviceId = "owner-1",
+            name = "Olive",
+            email = "olive@example.com",
+            phone = "+1 7805551234",
+            profilePictureImageId = "img-1",
+            notificationsEnabled = false
+        )
+        val document = users.document("owner-1")
+        every { document.update("role", "ADMIN") } returns completedTask(null)
+        repository.addUser(user)
+
+        val promoted = repository.makeAdmin(user)
+
+        assertEquals(UserRole.ADMIN, promoted.role)
+        assertEquals("owner-1", promoted.deviceId)
+        assertEquals("Olive", promoted.name)
+        assertEquals("olive@example.com", promoted.email)
+        assertEquals("+1 7805551234", promoted.phone)
+        assertEquals("img-1", promoted.profilePictureImageId)
+        assertFalse(promoted.notificationsEnabled)
+        assertSame(promoted, repository.users.single())
+        verify(exactly = 1) { document.update("role", "ADMIN") }
+        verify(exactly = 1) { document.set(any()) } // only from adding the user
+    }
+
+    @Test
+    fun makeAdminKeepsOldRoleCachedWhenItFails() = runTest {
+        every { users.document("entrant-1").update("role", "ADMIN") } returns
+            failedTask(RuntimeException("not found"))
+        repository.addUser(entrant)
+
+        assertTrue(runCatching { repository.makeAdmin(entrant) }.isFailure)
+
+        assertSame(entrant, repository.getCachedUser("entrant-1"))
+    }
+
+    @Test
+    fun listeningRemovesUsersDeletedElsewhere() {
+        repository.startListening()
+        users.emit(userDocument("entrant-1", "ENTRANT"), userDocument("owner-1", "OWNER"))
+        assertSame(entrant, repository.getCachedUser("entrant-1"))
+
+        users.emit(userDocument("owner-1", "OWNER"))
+        assertNull(repository.getCachedUser("entrant-1"))
+
+        users.emit() // the whole collection was wiped
+        assertTrue(repository.users.isEmpty())
+    }
+
+    @Test
+    fun listeningUpdatesUsersPromotedElsewhere() {
+        repository.startListening()
+        users.emit(userDocument("admin-1", "ENTRANT"))
+
+        users.emit(userDocument("admin-1", "ADMIN"))
+
+        assertSame(admin, repository.getCachedUser("admin-1"))
     }
 }

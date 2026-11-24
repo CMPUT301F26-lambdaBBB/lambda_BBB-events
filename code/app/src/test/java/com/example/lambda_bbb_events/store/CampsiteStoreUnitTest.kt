@@ -5,9 +5,11 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,11 +26,15 @@ class CampsiteStoreUnitTest {
     private val scope = TestScope()
     private lateinit var store: CampsiteStore
 
+    /** Reports the campsites in Firestore to the store, like the repository's listener. */
+    private val onChange = slot<(List<Campsite>) -> Unit>()
+
     private val existing = Campsite(campsiteId = "site-1", campsiteName = "Lakeside")
 
     @Before
     fun setup() {
         coEvery { repo.getAllCampsites() } returns mutableMapOf("site-1" to existing)
+        every { repo.startListening(capture(onChange)) } just runs
         coEvery { repo.addCampsite(any()) } just runs
         coEvery { repo.updateCampsite(any(), any()) } just runs
         coEvery { repo.deleteCampsite(any()) } just runs
@@ -101,5 +107,27 @@ class CampsiteStoreUnitTest {
         val createdAt = store.campsites.getValue("site-3").createdAt
         assertTrue(createdAt >= before)
         assertTrue(createdAt <= System.currentTimeMillis())
+    }
+
+    @Test
+    fun campsitesDeletedElsewhereAreRemoved() = scope.runTest {
+        advanceUntilIdle()
+
+        onChange.captured(listOf(Campsite(campsiteId = "site-2", campsiteName = "Forest")))
+        assertEquals(setOf("site-2"), store.campsites.keys)
+
+        onChange.captured(emptyList()) // the whole collection was wiped
+        assertTrue(store.campsites.isEmpty())
+    }
+
+    @Test
+    fun campsitesChangedElsewhereAreUpdated() = scope.runTest {
+        advanceUntilIdle()
+
+        // Equal according to Campsite.equals, which ignores these details
+        onChange.captured(listOf(existing.copy(description = "By the lake", active = false)))
+
+        assertEquals("By the lake", store.campsites.getValue("site-1").description)
+        assertFalse(store.campsites.getValue("site-1").active)
     }
 }

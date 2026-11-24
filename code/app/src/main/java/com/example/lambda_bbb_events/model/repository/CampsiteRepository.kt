@@ -1,11 +1,13 @@
 package com.example.lambda_bbb_events.model.repository
 
+import android.util.Log
 import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -125,6 +127,10 @@ class CampsiteRepository(
         document.toObject(FirestoreCampsite::class.java)?.toCampsite(document.id)
 
     override fun toDocument(item: Campsite): Any = item.toFirestore()
+
+    override fun onListenError(error: FirebaseFirestoreException) {
+        Log.e("CampsiteRepository", "listener error", error)
+    }
 
     /**
      * Adds a new campsite to the Firestore database.

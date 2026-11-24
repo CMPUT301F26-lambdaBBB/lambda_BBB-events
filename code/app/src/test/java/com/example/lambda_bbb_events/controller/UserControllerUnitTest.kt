@@ -240,4 +240,160 @@ class UserControllerUnitTest {
         assertFalse(controller.createEntrant("Ed", "ed@example.com", "7805551234"))
         coVerify(exactly = 0) { repository.addUser(any()) }
     }
+
+    /** The admin's own device is "device-1"; "device-2" belongs to the user being managed. */
+    private val admin = Admin(deviceId = "device-1", name = "Ada")
+    private val otherUser = Entrant(deviceId = "device-2", name = "Olive")
+
+    @Test
+    fun getUserReadsFromTheRepository() = runTest {
+        coEvery { repository.getUser("device-2") } returns otherUser
+        coEvery { repository.getUser("nobody") } returns null
+
+        assertSame(otherUser, controller.getUser("device-2"))
+        assertNull(controller.getUser("nobody"))
+    }
+
+    @Test
+    fun removeUserDeletesTheOtherUserForAdmins() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertTrue(controller.removeUser("device-2"))
+
+        coVerify(exactly = 1) { repository.deleteUser(otherUser) }
+    }
+
+    @Test
+    fun removeUserCanRemoveAnotherAdmin() = runTest {
+        val otherAdmin = Admin(deviceId = "device-2")
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherAdmin
+
+        assertTrue(controller.removeUser("device-2"))
+
+        coVerify(exactly = 1) { repository.deleteUser(otherAdmin) }
+    }
+
+    @Test
+    fun removeUserFailsForEntrantsAndOwners() = runTest {
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        signIn(entrant)
+        assertFalse(controller.removeUser("device-2"))
+
+        signIn(CampsiteOwner(deviceId = "device-1"))
+        assertFalse(controller.removeUser("device-2"))
+
+        coVerify(exactly = 0) { repository.deleteUser(any()) }
+    }
+
+    @Test
+    fun removeUserFailsWhenNobodyIsSignedIn() = runTest {
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertFalse(controller.removeUser("device-2"))
+
+        coVerify(exactly = 0) { repository.deleteUser(any()) }
+    }
+
+    @Test
+    fun removeUserFailsForLoggedOutAdmins() = runTest {
+        controller = UserController(repository, "device-1", InMemorySessionStore(loggedOut = true))
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertFalse(controller.removeUser("device-2"))
+
+        coVerify(exactly = 0) { repository.deleteUser(any()) }
+    }
+
+    @Test
+    fun removeUserFailsForAdminsRemovingThemselves() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("device-1") } returns admin
+
+        assertFalse(controller.removeUser("device-1"))
+
+        coVerify(exactly = 0) { repository.deleteUser(any()) }
+    }
+
+    @Test
+    fun removeUserFailsForMissingUsers() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("nobody") } returns null
+
+        assertFalse(controller.removeUser("nobody"))
+
+        coVerify(exactly = 0) { repository.deleteUser(any()) }
+    }
+
+    @Test
+    fun makeAdminPromotesEntrantsAndOwners() = runTest {
+        signIn(admin)
+        for (user in listOf(otherUser, CampsiteOwner(deviceId = "device-2"))) {
+            val promoted = Admin(deviceId = "device-2")
+            coEvery { repository.getUser("device-2") } returns user
+            coEvery { repository.makeAdmin(user) } returns promoted
+
+            assertSame(promoted, controller.makeAdmin("device-2"))
+
+            coVerify(exactly = 1) { repository.makeAdmin(user) }
+        }
+    }
+
+    @Test
+    fun makeAdminLeavesAdminsUnchanged() = runTest {
+        val otherAdmin = Admin(deviceId = "device-2")
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherAdmin
+
+        assertSame(otherAdmin, controller.makeAdmin("device-2"))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+    }
+
+    @Test
+    fun makeAdminFailsForEntrantsAndOwners() = runTest {
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        signIn(entrant)
+        assertNull(controller.makeAdmin("device-2"))
+        assertNull(controller.makeAdmin("device-1")) // nobody can promote themselves
+
+        signIn(CampsiteOwner(deviceId = "device-1"))
+        assertNull(controller.makeAdmin("device-2"))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+    }
+
+    @Test
+    fun makeAdminFailsWhenNobodyIsSignedIn() = runTest {
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertNull(controller.makeAdmin("device-2"))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+    }
+
+    @Test
+    fun makeAdminFailsForLoggedOutAdmins() = runTest {
+        controller = UserController(repository, "device-1", InMemorySessionStore(loggedOut = true))
+        signIn(admin)
+        coEvery { repository.getUser("device-2") } returns otherUser
+
+        assertNull(controller.makeAdmin("device-2"))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+    }
+
+    @Test
+    fun makeAdminFailsForMissingUsers() = runTest {
+        signIn(admin)
+        coEvery { repository.getUser("nobody") } returns null
+
+        assertNull(controller.makeAdmin("nobody"))
+
+        coVerify(exactly = 0) { repository.makeAdmin(any()) }
+    }
 }

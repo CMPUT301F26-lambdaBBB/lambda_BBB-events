@@ -239,10 +239,16 @@ class UserController(
     }
 
     /**
-     * Removes a user's profile given their user Id.
+     * Removes another user's profile. Only admins can remove profiles, and they cannot
+     * remove their own this way; see [deleteAccount] for that.
+     *
+     * Only the profile is removed. The user's lotteries should be cancelled and their
+     * campsites archived first, with [LotteryController.cancelLotteriesOfDeletedOwner] and
+     * [CampsiteController.archiveCampsitesByOwner], so they are not left without an owner.
      *
      * @param deviceId The device ID of the user to remove.
-     * @return `true` if the user was removed, `false` otherwise.
+     * @return `true` if the user was removed, `false` if the signed-in user is not an admin,
+     * is removing themselves, or the user does not exist.
      */
     suspend fun removeUser(deviceId: String): Boolean {
         val admin = currentUser
@@ -251,6 +257,24 @@ class UserController(
         val user = userRepository.getUser(deviceId) ?: return false
         userRepository.deleteUser(user)
         return true
+    }
+
+    /**
+     * Promotes another user to admin. Only admins can promote users. The user keeps their
+     * profile, campsites, and waitlist entries. A user who is already an admin is left as
+     * they are.
+     *
+     * @param deviceId The device ID of the user to promote.
+     * @return The user as an admin, or `null` if the signed-in user is not an admin or the
+     * user does not exist.
+     */
+    suspend fun makeAdmin(deviceId: String): User? {
+        if (currentUser?.role != UserRole.ADMIN) return null
+
+        val user = userRepository.getUser(deviceId) ?: return null
+        if (user.role == UserRole.ADMIN) return user
+
+        return userRepository.makeAdmin(user)
     }
 
     /**
@@ -267,9 +291,14 @@ class UserController(
 
 
     /**
-     * Deletes the current user's account.
+     * Deletes the current user's own account. Admins remove other users' accounts with
+     * [removeUser].
      *
-     * @return True if deleted, false if no user exists.
+     * Only the account is deleted. The user's lotteries should be cancelled and their
+     * campsites archived first, with [LotteryController.cancelLotteriesOfDeletedOwner] and
+     * [CampsiteController.archiveCampsitesByOwner], so they are not left without an owner.
+     *
+     * @return `true` if deleted, `false` if there is no signed-in user.
      */
     suspend fun deleteAccount(): Boolean {
         val user = currentUser ?: return false
