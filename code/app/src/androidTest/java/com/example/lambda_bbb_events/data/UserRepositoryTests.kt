@@ -111,4 +111,14 @@ class UserRepositoryTests {
 
         assertFalse(repository.getCachedUser(user.deviceId)!!.notificationsEnabled)
     }
+
+    @Test
+    fun deleteUser_removesUserFromFirestore() = runTest {
+        val user = newUser()
+        repository.addUser(user)
+
+        repository.deleteUser(user)
+
+        assertNull(repository.getUser(user.deviceId))
+    }
 }

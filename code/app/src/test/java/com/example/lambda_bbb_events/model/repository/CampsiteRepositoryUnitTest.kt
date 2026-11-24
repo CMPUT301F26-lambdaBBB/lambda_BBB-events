@@ -4,6 +4,7 @@ import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -83,12 +84,26 @@ class CampsiteRepositoryUnitTest {
     @Test
     fun updateCampsiteStoresUnderGivenId() = runTest {
         val written = slot<Any>()
-        io.mockk.every { campsites.document("site-2").set(capture(written)) } returns completedTask(null)
+        io.mockk.every { campsites.document("site-2").set(capture(written), any()) } returns completedTask(null)
 
         repository.updateCampsite("site-2", campsite)
 
         assertEquals("site-2", (written.captured as FirestoreCampsite).campsiteId)
         assertEquals("site-2", repository.cached.single().campsiteId)
+    }
+
+    @Test
+    fun updateCampsiteSavesEveryFieldExceptTheRating() = runTest {
+        val options = slot<SetOptions>()
+        io.mockk.every { campsites.document("site-1").set(any(), capture(options)) } returns completedTask(null)
+
+        repository.updateCampsite("site-1", campsite)
+
+        val allFields = FirestoreCampsite::class.java.declaredFields.map { it.name }
+        val expected = SetOptions.mergeFields(
+            allFields.filter { it != "rating" && it != "ratingCount" && !it.startsWith("$") }
+        )
+        assertEquals(expected, options.captured)
     }
 
     @Test

@@ -50,6 +50,8 @@ import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.model.formatting.formatLocalNumber
 import com.example.lambda_bbb_events.model.formatting.parsePhoneNumber
+import com.example.lambda_bbb_events.model.repository.WrongAdminPasswordException
+import com.example.lambda_bbb_events.view.ui.components.admin.MakeAdminDialog
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -57,6 +59,22 @@ import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackA
 import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import kotlinx.coroutines.launch
 
+/**
+ * Displays a user's profile to an admin, who can promote the user to admin or remove them.
+ * Both actions ask for confirmation first, and show an error if they fail.
+ *
+ * Promoting is only offered for users who are not admins yet, and needs the admin password.
+ * Afterwards the screen stays open and shows the new role.
+ *
+ * Removing also deletes the user's active lotteries and archives their campsites, then goes
+ * back to the previous screen.
+ *
+ * Users who are not admins see a message that they do not have access instead.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers All the app controllers, for reading and changing the user.
+ * @param userId The device ID of the user to show.
+ */
 @Composable
 fun AdminProfileDetailsScreen(
     navController: NavController,
@@ -69,6 +87,10 @@ fun AdminProfileDetailsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var showDialog by remember { mutableStateOf(false) }
     var removeError by remember { mutableStateOf(false) }
+    var showMakeAdminDialog by remember { mutableStateOf(false) }
+    var makeAdminError by remember { mutableStateOf(false) }
+    var wrongPassword by remember { mutableStateOf(false) }
+    var isMakingAdmin by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val goBack = rememberBackAction(navController)
 
@@ -185,6 +207,41 @@ fun AdminProfileDetailsScreen(
 
                     Spacer(modifier = Modifier.height(50.dp))
 
+                    if (shownUser.role != UserRole.ADMIN) {
+                        Button(
+                            onClick = {
+                                makeAdminError = false
+                                wrongPassword = false
+                                showMakeAdminDialog = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .testTag("adminMakeAdminButton"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "Make Admin",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        if (makeAdminError) {
+                            Text(
+                                text = "Could not make this user an admin. Please try again.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
                     Button(
                         onClick = {
                             removeError = false
@@ -220,6 +277,38 @@ fun AdminProfileDetailsScreen(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp),
                             textAlign = TextAlign.Center
+                        )
+                    }
+
+                    // prompts alert dialog when make admin is clicked
+                    if (showMakeAdminDialog) {
+                        MakeAdminDialog(
+                            name = shownUser.name,
+                            isSaving = isMakingAdmin,
+                            isPasswordWrong = wrongPassword,
+                            onConfirm = { password ->
+                                wrongPassword = false
+                                isMakingAdmin = true
+                                scope.launch {
+                                    try {
+                                        val promoted = controllers.users.makeAdmin(userId, password)
+                                        if (promoted != null) {
+                                            user = promoted
+                                        } else {
+                                            makeAdminError = true
+                                        }
+                                        showMakeAdminDialog = false
+                                    } catch (_: WrongAdminPasswordException) {
+                                        wrongPassword = true // stays open to try again
+                                    } catch (_: Exception) { // a failed write keeps the old role
+                                        makeAdminError = true
+                                        showMakeAdminDialog = false
+                                    } finally {
+                                        isMakingAdmin = false
+                                    }
+                                }
+                            },
+                            onDismiss = { showMakeAdminDialog = false }
                         )
                     }
 

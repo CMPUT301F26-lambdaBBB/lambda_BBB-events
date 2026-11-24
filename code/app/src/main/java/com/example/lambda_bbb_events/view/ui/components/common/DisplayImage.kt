@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -64,9 +65,6 @@ val THUMBNAIL_HEIGHT = 130.dp
 enum class ImageFraming {
     /** Fills the space, cropping around the image's focus point. */
     CROP,
-
-    /** Shows the whole image, with a blurred copy filling the space around it. */
-    WHOLE,
 
     /**
      * Shows exactly what the campsite's thumbnail shows, the same shape cropped around the
@@ -164,15 +162,6 @@ fun StoredImage(
                     modifier = Modifier
                         .fillMaxSize()
                         .blur(12.dp)
-                )
-            }
-
-            if (framing == ImageFraming.WHOLE) {
-                Image(
-                    bitmap = image,
-                    contentDescription = contentDescription,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
                 )
             }
 
@@ -364,7 +353,8 @@ fun CampsiteImageCarousel(
 }
 
 /**
- * Displays a round button over the carousel images for moving between them.
+ * Displays a round button over the carousel images for moving between them. It is the same
+ * in light and dark mode, with a white arrow on a dark circle that stands out on any photo.
  *
  * @param icon The arrow shown on the button.
  * @param contentDescription Description for accessibility.
@@ -381,8 +371,8 @@ private fun CarouselButton(
     IconButton(
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(
-            containerColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f),
-            contentColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.Black.copy(alpha = 0.6f),
+            contentColor = Color.White
         ),
         modifier = modifier
     ) {
@@ -391,7 +381,8 @@ private fun CarouselButton(
 }
 
 /**
- * Displays a user's profile picture as a circle, or a default icon if they have none.
+ * Displays a user's profile picture as a circle, or a default icon if they have none. The
+ * picture fills the circle, cropped around its centre.
  *
  * @param imageId The ID of the user's profile picture, blank if they have none.
  * @param size The diameter of the picture.
@@ -411,11 +402,9 @@ fun ProfilePicture(
             tint = MaterialTheme.colorScheme.primary
         )
     } else {
-        // The whole picture is shown, so nothing important is cropped out of the small circle
         StoredImage(
             imageId = imageId,
             contentDescription = "Profile picture",
-            framing = ImageFraming.WHOLE,
             modifier = modifier
                 .size(size)
                 .clip(CircleShape)

@@ -18,6 +18,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
 import com.example.lambda_bbb_events.controller.ReservationController
+import com.example.lambda_bbb_events.controller.ReviewController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
@@ -26,6 +27,7 @@ import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
 import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
+import com.example.lambda_bbb_events.model.repository.ReviewRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 import com.example.lambda_bbb_events.model.services.ImageProcessor
@@ -66,10 +68,13 @@ class MainActivity : ComponentActivity() {
         val campsiteStore = CampsiteStore(lotteryRepository = lotteryRepository)
         val reservationRepository = ReservationRepository()
         val waitlistEntryRepository = WaitlistEntryRepository()
+        val reviewRepository = ReviewRepository()
         val imageProcessor = ImageProcessor()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
+            // Keep users up to date, so the app reacts if this account is removed or promoted
+            userRepository.startListening()
         }
 
         val controllers = AppControllers(
@@ -85,7 +90,8 @@ class MainActivity : ComponentActivity() {
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
-            images = imageProcessor
+            images = imageProcessor,
+            reviews = ReviewController(reviewRepository)
         )
 
         setContent {

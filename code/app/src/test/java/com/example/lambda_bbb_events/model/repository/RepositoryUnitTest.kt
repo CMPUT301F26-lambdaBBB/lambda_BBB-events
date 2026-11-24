@@ -234,4 +234,25 @@ class RepositoryUnitTest {
         repository.startListening()
         verify(exactly = 2) { items.ref.addSnapshotListener(any()) }
     }
+
+    @Test
+    fun listenerReportsItemsOnEverySnapshot() {
+        val reported = mutableListOf<List<Item>>()
+        repository.startListening { reported.add(it) }
+
+        items.emit(itemDocument("a", "Alpha"), itemDocument("x", "bad"))
+        items.emit()
+
+        assertEquals(listOf(listOf(Item("a", "Alpha")), emptyList()), reported)
+    }
+
+    @Test
+    fun listenerErrorIsNotReportedAsAChange() {
+        val reported = mutableListOf<List<Item>>()
+        repository.startListening { reported.add(it) }
+
+        items.listener.captured.onEvent(null, mockk<FirebaseFirestoreException>())
+
+        assertTrue(reported.isEmpty())
+    }
 }
