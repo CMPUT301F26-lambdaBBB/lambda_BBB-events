@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.lambda_bbb_events.model.services.MapFallback
+import com.example.lambda_bbb_events.model.services.MapProvider
 import com.example.lambda_bbb_events.view.ui.components.map.MapCommand
 import com.example.lambda_bbb_events.view.ui.components.map.MapsJavaScriptView
 import com.example.lambda_bbb_events.view.ui.components.map.clickableMapScript
@@ -20,7 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Tests moving the marker of the location map from the app. The page's script runs in a real
+ * Tests moving the marker of the Google location map from the app. The page's script runs in a real
  * WebView with a stand-in for Google's library, so nothing is loaded from Google.
  */
 @RunWith(AndroidJUnit4::class)
@@ -30,6 +32,7 @@ class MapMoveUITest {
     val composeTestRule = createComposeRule()
 
     private val events = mutableListOf<Pair<String, JSONObject>>()
+    private val fallback = MapFallback(apiKey = "key")
     private var command by mutableStateOf<MapCommand?>(null)
 
     private val page = """
@@ -58,6 +61,8 @@ class MapMoveUITest {
                 html = page,
                 modifier = Modifier.size(200.dp),
                 command = command,
+                provider = MapProvider.GOOGLE,
+                fallback = fallback,
                 onEvent = { name, data -> events.add(name to data) }
             )
         }
@@ -80,6 +85,16 @@ class MapMoveUITest {
             assertEquals(-118.1, position.getDouble("lng"), 0.0)
         }
         assertFalse(events.any { it.first == "locationSelected" })
+    }
+
+    @Test
+    fun rejectedKeySwitchesToOpenStreetMap() {
+        openMap()
+        assertEquals(MapProvider.GOOGLE, fallback.provider)
+        composeTestRule.runOnIdle { command = MapCommand("send('authFailure');") }
+
+        composeTestRule.waitUntil(10_000) { fallback.provider == MapProvider.OPEN_STREET_MAP }
+        assertFalse(named("authFailure").isEmpty())
     }
 
     @Test

@@ -10,7 +10,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 /*
- * Searches Google for places by name, using the Places API (New).
+ * Searches for places by name. [GooglePlaceSearch] uses Google's Places API (New).
  *
  * Reference:
  * https://developers.google.com/maps/documentation/places/web-service/place-autocomplete
@@ -26,21 +26,35 @@ private const val NEARBY_RADIUS_METRES = 50_000.0
 private const val TOO_MANY_REQUESTS = 429
 
 /**
- * Thrown when the Maps key has reached its usage limit. Demo keys work again the next day.
+ * Thrown when the place search has been used too much. Google demo keys work again the next day.
  */
 class PlaceSearchLimitException : IOException("The place search limit was reached")
 
 /**
+ * Thrown when Google does not accept the Maps key, such as when it is wrong or not allowed to
+ * search for places.
+ */
+class PlaceSearchKeyException : IOException("The Maps key was not accepted")
+
+/**
+ * Thrown when a place cannot be looked up because its search service was switched since it was
+ * recommended. Searching again recommends places from the new service.
+ */
+class PlaceSearchSwitchedException : IOException("The place search service was switched")
+
+/**
  * A place recommended for what the user has typed.
  *
- * @property placeId Google's ID for the place, for [PlaceSearch.getPlace].
+ * @property placeId The search service's ID for the place.
  * @property name The place's name, such as "Banff National Park".
  * @property area Where the place is, such as "AB, Canada". May be empty.
+ * @property details The place's location, if it is already known.
  */
 data class PlaceSuggestion(
     val placeId: String,
     val name: String,
-    val area: String
+    val area: String,
+    val details: PlaceDetails? = null
 )
 
 /**
@@ -58,12 +72,8 @@ data class PlaceDetails(
 
 /**
  * Finds places by name, like the search bar in Google Maps.
- *
- * @param apiKey The Maps API key, which must allow the Places API (New).
  */
-class PlaceSearch(
-    private val apiKey: String = BuildConfig.MAPS_API_KEY
-) {
+interface PlaceSearch {
     /**
      * Gets recommended places for what the user has typed so far. Places near the given
      * location are preferred, but places anywhere can be recommended.
@@ -74,10 +84,40 @@ class PlaceSearch(
      * @param sessionToken Identifies one search. Use the same token while the user types and
      * for the [getPlace] call after it, then a new one for the next search.
      * @return Up to five places, best match first.
-     * @throws PlaceSearchLimitException if the key's usage limit is reached.
+     * @throws PlaceSearchLimitException if the usage limit is reached.
      * @throws IOException if the search fails for another reason, such as being offline.
      */
+    @Throws(IOException::class)
     suspend fun suggest(
+        query: String,
+        nearLatitude: Double,
+        nearLongitude: Double,
+        sessionToken: String
+    ): List<PlaceSuggestion>
+
+    /**
+     * Gets the location and address of a recommended place.
+     *
+     * @param suggestion The place.
+     * @param sessionToken The token used for the search that recommended the place.
+     * @throws PlaceSearchSwitchedException if the place is from a service no longer used.
+     * @throws PlaceSearchLimitException if the usage limit is reached.
+     * @throws IOException if the request fails for another reason, or the place has no location.
+     */
+    @Throws(IOException::class)
+    suspend fun getPlace(suggestion: PlaceSuggestion, sessionToken: String): PlaceDetails
+}
+
+/**
+ * Finds places by name with Google.
+ *
+ * @param apiKey The Maps API key, which must allow the Places API (New).
+ */
+class GooglePlaceSearch(
+    private val apiKey: String = BuildConfig.MAPS_API_KEY
+) : PlaceSearch {
+
+    override suspend fun suggest(
         query: String,
         nearLatitude: Double,
         nearLongitude: Double,
@@ -103,17 +143,9 @@ class PlaceSearch(
         return parseSuggestions(response)
     }
 
-    /**
-     * Gets the location and address of a recommended place.
-     *
-     * @param placeId The ID of the place, from [PlaceSuggestion.placeId].
-     * @param sessionToken The token used for the search that recommended the place.
-     * @throws PlaceSearchLimitException if the key's usage limit is reached.
-     * @throws IOException if the request fails for another reason, or the place has no location.
-     */
-    suspend fun getPlace(placeId: String, sessionToken: String): PlaceDetails {
+    override suspend fun getPlace(suggestion: PlaceSuggestion, sessionToken: String): PlaceDetails {
         val response = request(
-            url = "$PLACES_URL/${encode(placeId)}?sessionToken=${encode(sessionToken)}",
+            url = "$PLACES_URL/${encode(suggestion.placeId)}?sessionToken=${encode(sessionToken)}",
             fields = "location,formattedAddress,addressComponents"
         )
         return parsePlace(response)
@@ -148,17 +180,30 @@ class PlaceSearch(
             }
 
             val status = connection.responseCode
-            if (status == TOO_MANY_REQUESTS) {
-                throw PlaceSearchLimitException()
-            }
             if (status != HttpURLConnection.HTTP_OK) {
-                throw IOException("Place search failed with status $status")
+                val error = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                throw googleFailure(status, error.orEmpty())
             }
             JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
         } finally {
             connection.disconnect()
         }
     }
+}
+
+/**
+ * Finds why Google refused a request.
+ *
+ * @param status The response's HTTP status.
+ * @param error The response's text. Wrong keys have the same status as other bad requests, so
+ * they are recognized by the reason Google gives, such as "API_KEY_INVALID".
+ */
+internal fun googleFailure(status: Int, error: String): IOException = when {
+    status == TOO_MANY_REQUESTS -> PlaceSearchLimitException()
+    status == HttpURLConnection.HTTP_UNAUTHORIZED ||
+            status == HttpURLConnection.HTTP_FORBIDDEN ||
+            status == HttpURLConnection.HTTP_BAD_REQUEST && "API_KEY" in error -> PlaceSearchKeyException()
+    else -> IOException("Place search failed with status $status")
 }
 
 /**

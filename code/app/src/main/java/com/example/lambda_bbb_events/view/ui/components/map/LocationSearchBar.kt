@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.services.PlaceDetails
 import com.example.lambda_bbb_events.model.services.PlaceSearch
 import com.example.lambda_bbb_events.model.services.PlaceSearchLimitException
+import com.example.lambda_bbb_events.model.services.PlaceSearchSwitchedException
 import com.example.lambda_bbb_events.model.services.PlaceSuggestion
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.CancellationException
@@ -90,6 +91,8 @@ fun LocationSearchBar(
     var isSuggesting by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var sessionToken by remember { mutableStateOf(UUID.randomUUID().toString()) }
+    // The text being searched for again, because its place could not be looked up
+    var searchedAgain by remember { mutableStateOf<String?>(null) }
     var choosing by remember { mutableStateOf<Job?>(null) }
     val isLoading = isSuggesting || choosing?.isActive == true
     val scope = rememberCoroutineScope()
@@ -112,7 +115,11 @@ fun LocationSearchBar(
         try {
             suggestions = placeSearch.suggest(text, near.latitude, near.longitude, sessionToken)
             suggestedFor = text
-            message = if (suggestions.isEmpty()) "No places found." else null
+            message = when {
+                suggestions.isEmpty() -> "No places found."
+                text == searchedAgain -> "Choose the place again."
+                else -> null
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -131,9 +138,12 @@ fun LocationSearchBar(
         choosing?.cancel() // a slow earlier choice must not replace this one
         choosing = scope.launch {
             try {
-                onPlaceSelected(placeSearch.getPlace(suggestion.placeId, sessionToken))
+                onPlaceSelected(placeSearch.getPlace(suggestion, sessionToken))
             } catch (e: CancellationException) {
                 throw e
+            } catch (_: PlaceSearchSwitchedException) {
+                searchedAgain = suggestion.name.trim()
+                typedQuery = suggestion.name
             } catch (e: Exception) {
                 message = errorMessage(e)
             }
@@ -150,6 +160,7 @@ fun LocationSearchBar(
             value = query,
             onValueChange = {
                 message = null
+                searchedAgain = null
                 typedQuery = it
                 onQueryChange(it)
             },

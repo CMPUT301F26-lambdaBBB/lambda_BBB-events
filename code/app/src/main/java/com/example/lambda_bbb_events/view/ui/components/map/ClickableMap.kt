@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,16 +17,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.lambda_bbb_events.model.services.MapFallback
+import com.example.lambda_bbb_events.model.services.MapProvider
 import com.google.android.gms.maps.model.LatLng
 import java.util.Locale
 
 
 /*
- * Provides an interactive Google Map for selecting campsite locations
+ * Provides an interactive map for selecting campsite locations
  */
 
 /**
- * Builds the JavaScript for a map with one draggable marker. Tapping the map or dragging
+ * Builds the JavaScript for a Google Map with one draggable marker. Tapping the map or dragging
  * the marker moves it and sends a `locationSelected` event with its coordinates.
  *
  * Sends a `mapReady` event once the app can call `showLocation(lat, lng)`, which moves the
@@ -98,12 +101,29 @@ fun ClickableMap(
     onLocationSelected: (coordinates: LatLng, address: String, postalCode: String) -> Unit
 ) {
     val context = LocalContext.current
-    val html = remember(initialLocation) { mapPageHtml(clickableMapScript(initialLocation)) }
+    val provider = MapFallback.shared.provider
+
+    // Where the marker is, so that it stays there if the map is switched to another provider
+    var markerLocation by remember(initialLocation) { mutableStateOf(initialLocation) }
+    // A move the user has since replaced by tapping the map, which must not be made again
+    var replacedMove by remember { mutableStateOf<MapMove?>(null) }
+    LaunchedEffect(move) {
+        if (move != null) {
+            markerLocation = move.location
+        }
+    }
+
+    val html = remember(initialLocation, provider) {
+        when (provider) {
+            MapProvider.GOOGLE -> mapPageHtml(clickableMapScript(markerLocation))
+            MapProvider.OPEN_STREET_MAP -> osmPageHtml(osmClickableMapScript(markerLocation))
+        }
+    }
 
     // A move made before the map has loaded waits until it is ready
     var isReady by remember(html) { mutableStateOf(false) }
-    val command = remember(move, isReady) {
-        if (move != null && isReady) {
+    val command = remember(move, replacedMove, isReady) {
+        if (move != null && move !== replacedMove && isReady) {
             MapCommand("showLocation(${move.location.latitude}, ${move.location.longitude});")
         } else {
             null
@@ -118,6 +138,7 @@ fun ClickableMap(
     ) {
         MapsJavaScriptView(
             html = html,
+            provider = provider,
             modifier = Modifier.fillMaxSize(),
             command = command,
             onEvent = { name, data ->
@@ -127,6 +148,8 @@ fun ClickableMap(
                     isReady = false // the map was replaced by a message, so it cannot be moved
                 } else if (name == "locationSelected") {
                     val latLng = LatLng(data.optDouble("lat"), data.optDouble("lng"))
+                    markerLocation = latLng
+                    replacedMove = move
 
                     // Reverse geocode coordinates to retrieve address and postal code
                     fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->

@@ -16,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.model.services.PlaceDetails
 import com.example.lambda_bbb_events.model.services.PlaceSearch
 import com.example.lambda_bbb_events.model.services.PlaceSearchLimitException
+import com.example.lambda_bbb_events.model.services.PlaceSearchSwitchedException
 import com.example.lambda_bbb_events.model.services.PlaceSuggestion
 import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateCampsiteFormState
 import com.example.lambda_bbb_events.view.ui.user_screens.create.CreateLocationStep
@@ -33,7 +34,7 @@ import java.io.IOException
 
 /**
  * Tests searching for a campsite's location by name. The search is mocked, so nothing is sent
- * to Google.
+ * to the search service.
  */
 @OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -51,9 +52,9 @@ class LocationSearchUITest {
             PlaceSuggestion("lake", "Lake Louise", "AB, Canada"),
             PlaceSuggestion("jasper", "Jasper", "AB, Canada")
         )
-        coEvery { places.getPlace("lake", any()) } returns
+        coEvery { places.getPlace(match { it.placeId == "lake" }, any()) } returns
                 PlaceDetails(51.4, -116.2, "Lake Louise, AB, Canada", "T0L 1E0")
-        coEvery { places.getPlace("jasper", any()) } returns
+        coEvery { places.getPlace(match { it.placeId == "jasper" }, any()) } returns
                 PlaceDetails(52.9, -118.1, "Jasper, AB, Canada", "")
 
         composeTestRule.setContent {
@@ -127,6 +128,23 @@ class LocationSearchUITest {
         composeTestRule.mainClock.advanceTimeByFrame()
 
         coVerify(exactly = 0) { places.getPlace(any(), any()) }
+    }
+
+    @Test
+    fun switchingServicesWhileChoosingSearchesAgain() {
+        coEvery { places.getPlace(match { it.placeId == "jasper" }, any()) } throws PlaceSearchSwitchedException()
+        type("Jas")
+        waitForSuggestions()
+        composeTestRule.onNodeWithTag("locationSuggestion_jasper").performClick()
+        composeTestRule.waitUntilAtLeastOneExists(hasText("Choose the place again."), 5_000)
+
+        composeTestRule.onNodeWithTag("locationSuggestions").assertExists()
+        coVerify(exactly = 1) { places.suggest("Jasper", any(), any(), any()) }
+        assertEquals("", form.address) // nothing was filled in yet
+
+        composeTestRule.onNodeWithTag("locationSuggestion_lake").performClick()
+        composeTestRule.waitForIdle()
+        assertEquals("Lake Louise, AB, Canada", form.address)
     }
 
     @Test

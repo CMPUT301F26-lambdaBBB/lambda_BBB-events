@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.services.FallbackPlaceSearch
 import com.example.lambda_bbb_events.model.services.ImageProcessor
 import com.example.lambda_bbb_events.model.services.PlaceSearch
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
@@ -23,5 +24,5 @@ class AppControllers (
     val waitlistEntries: WaitlistEntryController,
     val images: ImageProcessor,
     val reviews: ReviewController,
-    val places: PlaceSearch = PlaceSearch()
+    val places: PlaceSearch = FallbackPlaceSearch()
 )
