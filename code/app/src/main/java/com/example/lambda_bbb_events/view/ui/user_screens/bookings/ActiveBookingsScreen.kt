@@ -1,4 +1,3 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import androidx.compose.foundation.BorderStroke
@@ -17,7 +16,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,12 +26,14 @@ import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.rating.formatRating
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import androidx.compose.ui.draw.clip
+import kotlinx.coroutines.launch
 
 /**
  * Displays the user's active campsite reservations.
@@ -48,6 +49,9 @@ fun ActiveBookingsScreen(
     navController: NavController,
     controllers: AppControllers
 ) {
+    val scope = rememberCoroutineScope()
+    var reservationToCancel by remember { mutableStateOf<Reservation?>(null) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
@@ -58,7 +62,7 @@ fun ActiveBookingsScreen(
         val reservations = controllers.reservations
             .getReservationsForEntrant(
                 controllers.users.user.deviceId
-            )
+            ).filter { it.isActive() }
 
         Column(
             modifier = Modifier
@@ -93,10 +97,40 @@ fun ActiveBookingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         reservation = reservation,
                         campsite = controllers.campsites
-                            .getCampsite(reservation.campsiteId)
+                            .getCampsite(reservation.campsiteId),
+                        onCancel = {
+                            reservationToCancel = reservation
+                        }
                     )
                 }
             }
+        }
+
+        if (reservationToCancel != null) {
+            AlertDialog(
+                onDismissRequest = { reservationToCancel = null },
+                title = { Text("Cancel Reservation") },
+                text = { Text("Are you sure you want to cancel your reservation at ${controllers.campsites.getCampsite(reservationToCancel!!.campsiteId)?.campsiteName ?: "this campsite"}?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val res = reservationToCancel!!
+                            reservationToCancel = null
+                            scope.launch {
+                                controllers.reservations.cancelReservation(res)
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Yes, Cancel")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { reservationToCancel = null }) {
+                        Text("No")
+                    }
+                }
+            )
         }
     }
 }
@@ -107,12 +141,14 @@ fun ActiveBookingsScreen(
  * @param reservation Reservation information.
  * @param campsite Campsite associated with the reservation.
  * @param modifier Modifier for customizing the card.
+ * @param onCancel Callback when cancel reservation is clicked.
  */
 @Composable
 fun ReservationCard(
     reservation: Reservation,
     campsite: Campsite?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCancel: () -> Unit = {}
 ) {
     val campsiteName = campsite?.campsiteName ?: "Unknown Name"
     val rating = campsite?.rating ?: 0f
@@ -201,7 +237,7 @@ fun ReservationCard(
                 ) {
                     DetailRow(
                         Icons.Default.Check,
-                        "Confirmed"
+                        if (reservation.status == ReservationStatus.CONFIRMED) "Confirmed" else "Pending"
                     )
 
                     DetailRow(
@@ -230,6 +266,19 @@ fun ReservationCard(
                     contentDescription = "View reservation",
                     tint = MaterialTheme.colorScheme.primary
                 )
+            }
+
+            if (reservation.isActive()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(text = "Cancel Reservation")
+                }
             }
         }
     }
