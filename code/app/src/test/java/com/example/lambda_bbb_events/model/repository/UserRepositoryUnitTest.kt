@@ -151,4 +151,27 @@ class UserRepositoryUnitTest {
 
         assertSame(entrant, repository.getCachedUser("entrant-1"))
     }
+
+    @Test
+    fun listeningRemovesUsersDeletedElsewhere() {
+        repository.startListening()
+        users.emit(userDocument("entrant-1", "ENTRANT"), userDocument("owner-1", "OWNER"))
+        assertSame(entrant, repository.getCachedUser("entrant-1"))
+
+        users.emit(userDocument("owner-1", "OWNER"))
+        assertNull(repository.getCachedUser("entrant-1"))
+
+        users.emit() // the whole collection was wiped
+        assertTrue(repository.users.isEmpty())
+    }
+
+    @Test
+    fun listeningUpdatesUsersPromotedElsewhere() {
+        repository.startListening()
+        users.emit(userDocument("admin-1", "ENTRANT"))
+
+        users.emit(userDocument("admin-1", "ADMIN"))
+
+        assertSame(admin, repository.getCachedUser("admin-1"))
+    }
 }

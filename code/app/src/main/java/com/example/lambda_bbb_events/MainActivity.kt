@@ -70,6 +70,8 @@ class MainActivity : ComponentActivity() {
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
+            // Keep users up to date, so the app reacts if this account is removed or promoted
+            userRepository.startListening()
         }
 
         val controllers = AppControllers(

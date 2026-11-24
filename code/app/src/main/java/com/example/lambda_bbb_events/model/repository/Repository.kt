@@ -148,9 +148,12 @@ abstract class Repository<T : Any>(
     }
 
     /**
-     * Starts keeping the cache synchronized with Firestore. Does nothing if already listening.
+     * Starts keeping the cache synchronized with Firestore, including changes made on other
+     * devices or directly in the database. Does nothing if already listening.
+     *
+     * @param onChange Called with every item each time the cache is synchronized.
      */
-    fun startListening() {
+    fun startListening(onChange: (List<T>) -> Unit = {}) {
         if (listenerRegistration != null) {
             return
         }
@@ -160,7 +163,9 @@ abstract class Repository<T : Any>(
                 return@addSnapshotListener
             }
             if (snapshot != null) {
-                replaceCache(convertAll(snapshot.documents))
+                val items = convertAll(snapshot.documents)
+                replaceCache(items)
+                onChange(items)
             }
         }
     }

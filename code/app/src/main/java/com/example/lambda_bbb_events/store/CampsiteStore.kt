@@ -20,6 +20,25 @@ class CampsiteStore(
     init {
         scope.launch {
             campsites.putAll(campsiteRepo.getAllCampsites())
+            campsiteRepo.startListening { replaceCampsites(it) }
+        }
+    }
+
+    /**
+     * Makes [campsites] match Firestore, so campsites added, changed, or deleted anywhere else
+     * are updated here too.
+     *
+     * @param latest Every campsite in Firestore.
+     */
+    private fun replaceCampsites(latest: List<Campsite>) {
+        val latestIds = latest.map { it.campsiteId }.toSet()
+        campsites.keys.retainAll(latestIds)
+
+        for (campsite in latest) {
+            // Campsite.equals ignores most details, so the map would keep the old copy if the
+            // latest one were just put over it
+            campsites.remove(campsite.campsiteId)
+            campsites[campsite.campsiteId] = campsite
         }
     }
 
