@@ -3,6 +3,7 @@ package com.example.lambda_bbb_events.controller
 import androidx.compose.runtime.MutableState
 import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.campsite.CampsiteFilters
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.store.CampsiteStore
 import io.mockk.every
@@ -111,6 +112,30 @@ class CampsiteControllerSearchUnitTest {
     }
 
     @Test
+    fun guestOptionsAreTheSizesOfActiveCampsites() {
+        assertEquals(listOf(2, 4, 8), controller.guestOptions)
+
+        campsites["forest"] = forest.copy(active = false)
+        campsites["hall"] = meadow.copy(campsiteId = "hall", maxOccupancy = 9999)
+        campsites["sameSize"] = meadow.copy(campsiteId = "sameSize")
+        assertEquals(listOf(2, 4, 9999), controller.guestOptions)
+    }
+
+    @Test
+    fun guestOptionsIgnoreFilters() {
+        controller.applyFilters(guestRange = 3..4)
+
+        assertEquals(listOf(2, 4, 8), controller.guestOptions)
+    }
+
+    @Test
+    fun noCampsitesHaveNoGuestOptions() {
+        campsites.clear()
+
+        assertEquals(emptyList<Int>(), controller.guestOptions)
+    }
+
+    @Test
     fun locationMatchesAddressOrNameIgnoringCase() {
         assertEquals(listOf("forest"), controller.applyFilters(location = "  jasper ").ids())
         assertEquals(listOf("meadow"), controller.applyFilters(location = "MEADOW").ids())
@@ -122,6 +147,20 @@ class CampsiteControllerSearchUnitTest {
             listOf("lakeside"),
             controller.applyFilters(starRating = 4.0, guestRange = 3..10).ids()
         )
+    }
+
+    @Test
+    fun appliedFiltersCanBeRead() {
+        assertEquals(CampsiteFilters(), controller.filters)
+
+        controller.applyFilters(july1, july1.plusDays(2), " Banff ", 4.0, 2..8)
+        assertEquals(
+            CampsiteFilters(july1, july1.plusDays(2), "Banff", 4.0, 2..8),
+            controller.filters
+        )
+
+        controller.clearFilters()
+        assertEquals(CampsiteFilters(), controller.filters)
     }
 
     @Test

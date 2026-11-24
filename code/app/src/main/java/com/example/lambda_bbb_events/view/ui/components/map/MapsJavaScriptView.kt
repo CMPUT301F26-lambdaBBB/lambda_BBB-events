@@ -11,8 +11,12 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.lambda_bbb_events.BuildConfig
@@ -109,12 +113,19 @@ internal fun mapPageHtml(script: String): String = """
 """.trimIndent()
 
 /**
+ * JavaScript to run on a map page that is already open. Every instance is run once, even if an
+ * earlier one had the same script.
+ */
+internal class MapCommand(val script: String)
+
+/**
  * Displays a map page built with [mapPageHtml] and passes its events to [onEvent].
  *
  * Drags on the map pan the map instead of scrolling the screen it is in.
  *
  * @param html The map page.
  * @param modifier Sets the size and shape of the map.
+ * @param command Run on the page when it changes. The page must have finished loading.
  * @param onEvent Called on the main thread with each event the page sends.
  */
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
@@ -122,10 +133,18 @@ internal fun mapPageHtml(script: String): String = """
 internal fun MapsJavaScriptView(
     html: String,
     modifier: Modifier = Modifier,
+    command: MapCommand? = null,
     onEvent: (name: String, data: JSONObject) -> Unit = { _, _ -> }
 ) {
     // The page is only created once, so it must always call the newest onEvent
     val currentOnEvent by rememberUpdatedState(onEvent)
+    var shownWebView by remember { mutableStateOf<WebView?>(null) }
+
+    LaunchedEffect(shownWebView, command) {
+        if (command != null) {
+            shownWebView?.evaluateJavascript(command.script, null)
+        }
+    }
 
     AndroidView(
         modifier = modifier,
@@ -153,6 +172,7 @@ internal fun MapsJavaScriptView(
 
             webView.tag = html
             webView.loadDataWithBaseURL(MAP_PAGE_BASE_URL, html, "text/html", "utf-8", null)
+            shownWebView = webView
             webView
         },
         update = { webView ->
@@ -161,6 +181,9 @@ internal fun MapsJavaScriptView(
                 webView.loadDataWithBaseURL(MAP_PAGE_BASE_URL, html, "text/html", "utf-8", null)
             }
         },
-        onRelease = { webView -> webView.destroy() }
+        onRelease = { webView ->
+            shownWebView = null
+            webView.destroy()
+        }
     )
 }

@@ -1,6 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.services.ImageProcessor
+import com.example.lambda_bbb_events.model.services.PlaceSearch
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 
 /**
@@ -11,6 +12,7 @@ import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
  * @property users Controller for user operations.
  * @property campsites Controller for campsite operations.
  * @property lotteries Controller for lottery operations.
+ * @property places Searches for places by name.
  */
 class AppControllers (
     val users: UserController,
@@ -18,5 +20,6 @@ class AppControllers (
     val lotteries: LotteryController,
     val reservations: ReservationController,
     val waitlistEntries: WaitlistEntryController,
-    val images: ImageProcessor
+    val images: ImageProcessor,
+    val places: PlaceSearch = PlaceSearch()
 )
