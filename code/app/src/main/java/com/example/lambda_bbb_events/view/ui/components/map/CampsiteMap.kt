@@ -10,35 +10,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.services.MapFallback
+import com.example.lambda_bbb_events.model.services.MapProvider
 import org.json.JSONArray
 import org.json.JSONObject
 
 /*
- * Provides a Google Map showing where campsites are.
+ * Provides a map showing where campsites are.
  */
 
 /** Zoom level used when showing a single campsite. */
-private const val SINGLE_CAMPSITE_ZOOM = 13
+internal const val SINGLE_CAMPSITE_ZOOM = 13
 
 /** Space in pixels kept between the outermost markers and the edge of the map. */
-private const val BOUNDS_PADDING = 48
+internal const val BOUNDS_PADDING = 48
 
 /**
  * Closest zoom used when framing several campsites. Without it, campsites at the same spot
  * zoom the map in so far that only a blank patch of ground shows.
  */
-private const val MAX_FRAMING_ZOOM = 14
+internal const val MAX_FRAMING_ZOOM = 14
 
 /**
- * Builds the JavaScript that draws a marker for each campsite and frames them.
- *
- * Tapping a marker opens an info window with the campsite's name and address, and tapping
- * "View campsite" sends a `campsiteClick` event with the campsite's ID.
- *
- * @param campsites The campsites to mark, all with a location.
+ * Lists the campsites for a map page. They are passed as JSON, which keeps quotes in names from
+ * breaking the page's script.
  */
-internal fun campsiteMapScript(campsites: List<Campsite>): String {
-    // The campsites are passed to the page as JSON, which keeps quotes in names from breaking the script
+internal fun campsiteMarkers(campsites: List<Campsite>): JSONArray {
     val markers = JSONArray()
     for (campsite in campsites) {
         val marker = JSONObject()
@@ -49,9 +46,20 @@ internal fun campsiteMapScript(campsites: List<Campsite>): String {
         marker.put("lng", campsite.longitude)
         markers.put(marker)
     }
+    return markers
+}
 
+/**
+ * Builds the JavaScript that draws a marker for each campsite on a Google Map and frames them.
+ *
+ * Tapping a marker opens an info window with the campsite's name and address, and tapping
+ * "View campsite" sends a `campsiteClick` event with the campsite's ID.
+ *
+ * @param campsites The campsites to mark, all with a location.
+ */
+internal fun campsiteMapScript(campsites: List<Campsite>): String {
     return """
-        const campsites = $markers;
+        const campsites = ${campsiteMarkers(campsites)};
 
         async function initMap() {
           const { Map, InfoWindow } = await google.maps.importLibrary('maps');
@@ -143,10 +151,17 @@ fun CampsiteMap(
         return
     }
 
-    val html = remember(located) { mapPageHtml(campsiteMapScript(located)) }
+    val provider = MapFallback.shared.provider
+    val html = remember(located, provider) {
+        when (provider) {
+            MapProvider.GOOGLE -> mapPageHtml(campsiteMapScript(located))
+            MapProvider.OPEN_STREET_MAP -> osmPageHtml(osmCampsiteMapScript(located))
+        }
+    }
 
     MapsJavaScriptView(
         html = html,
+        provider = provider,
         modifier = modifier.testTag("campsite_map"),
         onEvent = { name, data ->
             if (name == "campsiteClick" && onCampsiteClick != null) {

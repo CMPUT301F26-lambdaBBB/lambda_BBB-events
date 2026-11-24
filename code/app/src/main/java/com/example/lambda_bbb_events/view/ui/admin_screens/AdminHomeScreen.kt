@@ -109,7 +109,7 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Images",
                                     icon = Icons.Outlined.Image,
-                                    onClick = { /* TODO */ },
+                                    onClick = { navController.navigate("admin_images") },
                                     modifier = Modifier.weight(1f)
                                 )
                                 AdminToolTile(

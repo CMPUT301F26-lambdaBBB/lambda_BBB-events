@@ -100,6 +100,7 @@ fun CreateScreen(
                     1 -> CreateLocationStep(
                         form = form,
                         showMap = showMap,
+                        placeSearch = controllers.places,
                         onBack = { currentStep = 0 },
                         onNext = { currentStep = 2 }
                     )
