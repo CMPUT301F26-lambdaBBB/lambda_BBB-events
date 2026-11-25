@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.User
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileRow
 import com.example.lambda_bbb_events.view.ui.components.profile.ProfileSectionHeader
@@ -163,20 +163,14 @@ fun ProfileScreen(
             )
 
             // prompts alert dialog when log-out is clicked
-            // you can't log in to any account after logging out since it just navigates to signup for now
-            // need to work out way to log out with device id verification not causing re-login issue
             if (showDialog) {
                 ShowAlertDialog(
                     dialogLabel = "Log Out?",
-                    dialogCaption = "Please stay :(\nAlso note you cannot log back in so just refresh app",
+                    dialogCaption = "You can log back in with your email and phone number.",
                     confirmButton = {
                         showDialog = false
-                        navController.navigate("signup") {
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true // removes previous screens in back stack including home
-                            }
-                            launchSingleTop = true // prevent duplicate destination entries
-                        }
+                        // The app goes back to the welcome screen by itself
+                        controllers.users.logOut()
                     },
                     confirmText = "Log Out",
                     dismissState = { showDialog = false },

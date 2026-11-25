@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.campsite.Campsite
 
 /*
  * Defines a horizontally scrollable section of campsite cards

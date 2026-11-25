@@ -32,20 +32,32 @@ interface RecentlyViewedStore {
 }
 
 /**
- * Keeps recently viewed campsites in memory only. Used where no database is available.
+ * Keeps recently viewed campsites in memory only. Used in tests, where no database is available.
  */
 class InMemoryRecentlyViewedStore : RecentlyViewedStore {
+    /** When each campsite was last viewed, keyed by campsite ID. */
     private val views = mutableMapOf<String, Long>()
 
-    @Synchronized
-    override fun load(limit: Int): List<String> =
-        views.entries.sortedByDescending { it.value }.take(limit).map { it.key }
+    override fun load(limit: Int): List<String> {
+        val newestFirst = views.entries.sortedByDescending { it.value }
 
-    @Synchronized
+        val ids = mutableListOf<String>()
+        for (entry in newestFirst.take(limit)) {
+            ids.add(entry.key)
+        }
+        return ids
+    }
+
     override fun record(campsiteId: String, viewedAt: Long, limit: Int) {
         views[campsiteId] = viewedAt
-        val kept = load(limit).toSet()
-        views.keys.retainAll(kept)
+
+        // Forget the views that are no longer among the most recent
+        val kept = load(limit)
+        for (id in views.keys.toList()) {
+            if (id !in kept) {
+                views.remove(id)
+            }
+        }
     }
 }
 
@@ -99,7 +111,7 @@ class SqliteRecentlyViewedStore(
 
     override fun load(limit: Int): List<String> {
         val ids = mutableListOf<String>()
-        database.readableDatabase.query(
+        val cursor = database.readableDatabase.query(
             LocalDatabase.RECENTLY_VIEWED_TABLE,
             arrayOf(LocalDatabase.COLUMN_CAMPSITE_ID),
             null,
@@ -108,11 +120,11 @@ class SqliteRecentlyViewedStore(
             null,
             "${LocalDatabase.COLUMN_VIEWED_AT} DESC",
             limit.toString()
-        ).use { cursor ->
-            while (cursor.moveToNext()) {
-                ids.add(cursor.getString(0))
-            }
+        )
+        while (cursor.moveToNext()) {
+            ids.add(cursor.getString(0))
         }
+        cursor.close()
         return ids
     }
 
@@ -120,10 +132,9 @@ class SqliteRecentlyViewedStore(
         val db = database.writableDatabase
         db.beginTransaction()
         try {
-            val values = ContentValues().apply {
-                put(LocalDatabase.COLUMN_CAMPSITE_ID, campsiteId)
-                put(LocalDatabase.COLUMN_VIEWED_AT, viewedAt)
-            }
+            val values = ContentValues()
+            values.put(LocalDatabase.COLUMN_CAMPSITE_ID, campsiteId)
+            values.put(LocalDatabase.COLUMN_VIEWED_AT, viewedAt)
             db.insertWithOnConflict(
                 LocalDatabase.RECENTLY_VIEWED_TABLE,
                 null,

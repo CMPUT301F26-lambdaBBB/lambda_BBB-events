@@ -23,12 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.lambda_bbb_events.model.Campsite
+import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
-import java.util.Locale
+import com.example.lambda_bbb_events.view.ui.components.common.ImageFraming
 
 /*
  * Defines a compact campsite card for horizontally scrolling lists.
@@ -65,8 +66,10 @@ fun HorizontalCampsiteCard(
             .testTag("horizontal_campsite_card_${campsite.campsiteId}")
     ) {
         // Campsite image
+        // Framed like the list thumbnail and campsite details, so they all match
         CampsiteThumbnail(
             campsite = campsite,
+            framing = ImageFraming.THUMBNAIL,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(130.dp)
@@ -122,7 +125,7 @@ fun HorizontalCampsiteCard(
 
                 Text(
                     text = if (campsite.ratingCount > 0) {
-                        "${String.format(Locale.getDefault(), "%.1f", campsite.rating)} (${campsite.ratingCount})"
+                        "${String.format(LocalConfiguration.current.locales[0], "%.1f", campsite.rating)} (${campsite.ratingCount})"
                     } else {
                         "No reviews"
                     },

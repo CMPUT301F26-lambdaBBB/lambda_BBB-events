@@ -8,9 +8,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -78,7 +75,10 @@ abstract class Repository<T : Any>(
      * @throws IllegalArgumentException if the item's ID is blank.
      */
     open suspend fun add(item: T) {
-        val id = requireId(item)
+        val id = idOf(item)
+        if (id.isBlank()) {
+            throw IllegalArgumentException("Cannot store an item with a blank ID")
+        }
         collectionRef.document(id).set(toDocument(item)).await()
         putInCache(item)
     }
@@ -127,8 +127,10 @@ abstract class Repository<T : Any>(
      *
      * @return The list of items in the collection.
      */
-    open suspend fun getAll(): List<T> =
-        collectionRef.get().await().documents.mapNotNull { convert(it) }
+    open suspend fun getAll(): List<T> {
+        val snapshot = collectionRef.get().await()
+        return convertAll(snapshot.documents)
+    }
 
     /**
      * Gets an item from the cache without reading Firestore.
@@ -146,9 +148,12 @@ abstract class Repository<T : Any>(
     }
 
     /**
-     * Starts keeping the cache synchronized with Firestore. Does nothing if already listening.
+     * Starts keeping the cache synchronized with Firestore, including changes made on other
+     * devices or directly in the database. Does nothing if already listening.
+     *
+     * @param onChange Called with every item each time the cache is synchronized.
      */
-    fun startListening() {
+    fun startListening(onChange: (List<T>) -> Unit = {}) {
         if (listenerRegistration != null) {
             return
         }
@@ -157,7 +162,11 @@ abstract class Repository<T : Any>(
                 onListenError(error)
                 return@addSnapshotListener
             }
-            replaceCache(snapshot?.documents?.mapNotNull { convert(it) } ?: emptyList())
+            if (snapshot != null) {
+                val items = convertAll(snapshot.documents)
+                replaceCache(items)
+                onChange(items)
+            }
         }
     }
 
@@ -167,20 +176,6 @@ abstract class Repository<T : Any>(
     fun stopListening() {
         listenerRegistration?.remove()
         listenerRegistration = null
-    }
-
-    /**
-     * Streams every item in the collection, emitting a new list each time it changes.
-     */
-    fun observeAll(): Flow<List<T>> = callbackFlow {
-        val registration = collectionRef.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
-            }
-            trySend(snapshot?.documents?.mapNotNull { convert(it) } ?: emptyList())
-        }
-        awaitClose { registration.remove() }
     }
 
     /**
@@ -214,12 +209,28 @@ abstract class Repository<T : Any>(
         }
     }
 
-    private fun requireId(item: T): String {
-        val id = idOf(item)
-        require(id.isNotBlank()) { "Cannot store an item with a blank ID" }
-        return id
+    /**
+     * Converts a document into an item, or returns `null` if it is not a valid item.
+     */
+    private fun convert(document: DocumentSnapshot): T? {
+        try {
+            return fromDocument(document)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
-    private fun convert(document: DocumentSnapshot): T? =
-        runCatching { fromDocument(document) }.getOrNull()
+    /**
+     * Converts every document into an item, skipping documents that are not valid items.
+     */
+    private fun convertAll(documents: List<DocumentSnapshot>): List<T> {
+        val items = mutableListOf<T>()
+        for (document in documents) {
+            val item = convert(document)
+            if (item != null) {
+                items.add(item)
+            }
+        }
+        return items
+    }
 }

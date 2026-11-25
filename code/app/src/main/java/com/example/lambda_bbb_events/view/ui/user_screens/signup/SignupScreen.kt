@@ -2,15 +2,12 @@ package com.example.lambda_bbb_events.view.ui.user_screens.signup
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +24,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.model.formatting.DEFAULT_COUNTRY_CODE
+import com.example.lambda_bbb_events.model.formatting.formatPhoneNumber
+import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.PhoneNumberFieldWithTitle
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import kotlinx.coroutines.launch
 
 /*
@@ -51,11 +52,13 @@ import kotlinx.coroutines.launch
  * @param onCreateEntrant Callback that submits user information
  * and returns whether account creation succeeded.
  * Defaults to using the user controller.
+ * @param showBack Whether to show a back button, such as when opened from the welcome screen.
  */
 @Composable
 fun SignupScreen(
     navController: NavController,
     controllers: AppControllers? = null,
+    showBack: Boolean = false,
     onCreateEntrant: suspend (String, String, String) -> Boolean =
         { name, email, phone ->
             requireNotNull(controllers)
@@ -65,6 +68,7 @@ fun SignupScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var phoneCountry by remember { mutableStateOf(DEFAULT_COUNTRY_CODE) }
     var phone by remember { mutableStateOf("") }
     var showCreationError by remember { mutableStateOf(false) }
 
@@ -76,31 +80,16 @@ fun SignupScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(vertical = 12.dp)
             .testTag("signupScreen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ScreenTitle("Sign Up", navController, showNotifications = false)
+        ScreenTitle("Sign Up", navController, showBack = showBack, showNotifications = false)
 
         Spacer(Modifier.height(16.dp))
 
-        // placeholder for logo, change with real logo later if were even adding one
-        Box(
-            modifier = Modifier
-                .size(width = 240.dp, height = 120.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(12.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "LOGO",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        AppLogo(size = 120.dp)
         Text(
             text = "Lambda Camping",
             style = MaterialTheme.typography.headlineMedium,
@@ -127,11 +116,12 @@ fun SignupScreen(
             titleTag = "emailLabel"
         )
 
-        FormTextFieldWithTitle(
+        PhoneNumberFieldWithTitle(
             title = "Phone Number",
-            value = phone,
-            onValueChange = { phone = it },
-            placeholder = "+1",
+            country = phoneCountry,
+            onCountryChange = { phoneCountry = it },
+            number = phone,
+            onNumberChange = { phone = it },
             modifier = Modifier.testTag("phonenumberInput"),
             titleTag = "phonenumberLabel"
         )
@@ -145,7 +135,7 @@ fun SignupScreen(
                     val successful = onCreateEntrant(
                         name.trim(),
                         email.trim(),
-                        phone.trim()
+                        formatPhoneNumber(phoneCountry, phone)
                     )
 
                     if (!successful) {
@@ -163,7 +153,12 @@ fun SignupScreen(
 
         if (showCreationError) {
             Text(
-                text = "Unable to create account. Please review your information.",
+                // A device can only have one account, which is kept after logging out
+                text = if (controllers?.users?.hasAccountOnDevice == true) {
+                    "This device already has an account. Go back and log in instead."
+                } else {
+                    "Unable to create account. Please review your information."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error
             )

@@ -1,6 +1,6 @@
 package com.example.lambda_bbb_events.model.repository
 
-import com.example.lambda_bbb_events.model.Message
+import com.example.lambda_bbb_events.model.message.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore

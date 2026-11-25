@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.controller.LotteryPhase
-import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.model.lottery.Lottery
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

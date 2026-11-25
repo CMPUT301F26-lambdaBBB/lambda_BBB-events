@@ -3,9 +3,10 @@ package com.example.lambda_bbb_events.controller
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import com.example.lambda_bbb_events.model.AvailabilitySchedule
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.campsite.CampsiteFilters
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.model.local.InMemoryRecentlyViewedStore
 import com.example.lambda_bbb_events.model.local.RecentlyViewedStore
 import com.example.lambda_bbb_events.store.CampsiteStore
@@ -30,6 +31,10 @@ class CampsiteController(
     companion object {
         const val MAX_RECENTLY_VIEWED = 10
         const val MAX_FEATURED = 10
+
+        /** The lowest average rating, in stars, that counts as positive reviews. */
+        const val MIN_FEATURED_RATING = 4f
+        const val MAX_RECENTLY_ADDED = 10
     }
 
     private var _searchQuery = ""
@@ -37,18 +42,36 @@ class CampsiteController(
     val searchQuery: String
         get() = _searchQuery
 
-    private var startDate: LocalDate? = null
-    private var endDate: LocalDate? = null
-    private var location: String = ""
-    private var starRating: Double? = null
-    private var guestRange: IntRange? = null
+    /** The filters currently applied to [filteredCampsites] and [getSearchResults]. */
+    var filters = CampsiteFilters()
+        private set
 
+    /**
+     * Every campsite, including archived (inactive) ones. Use it to look up campsites that
+     * records refer to, such as past bookings. Browsing uses [activeCampsites].
+     */
     val campsites: Map<String, Campsite>
         get() = campsiteStore.campsites
 
-    val filteredCampsites: Map<String, Campsite>
-        get() = campsites.filterValues { meetsAllFilters(it) }
+    /** Campsites that can be browsed and booked. Archived (inactive) ones are left out. */
+    val activeCampsites: Map<String, Campsite>
+        get() = campsites.filterValues { it.active }
 
+    val filteredCampsites: Map<String, Campsite>
+        get() = activeCampsites.filterValues { meetsAllFilters(it) }
+
+    /**
+     * Every different number of guests that campsites allow, smallest first, for choosing a
+     * range to filter by. Other filters do not change it.
+     */
+    val guestOptions: List<Int>
+        get() = activeCampsites.values.map { it.maxOccupancy }.distinct().sorted()
+
+    /**
+     * IDs of recently viewed campsites, most recent first. Saved views are loaded on a
+     * background thread, so every use of this list is wrapped in `synchronized` to stop
+     * two threads changing it at once.
+     */
     private val recentlyViewedIds = mutableStateListOf<String>()
     private var lastViewedAt = 0L
 
@@ -56,8 +79,12 @@ class CampsiteController(
         scope.launch {
             val saved = recentlyViewedStore.load(MAX_RECENTLY_VIEWED)
             synchronized(recentlyViewedIds) {
-                // Views made while loading are newer, so keep them in front
-                saved.filterNot { it in recentlyViewedIds }.forEach { recentlyViewedIds.add(it) }
+                // Campsites viewed while loading are newer, so they stay in front
+                for (id in saved) {
+                    if (id !in recentlyViewedIds) {
+                        recentlyViewedIds.add(id)
+                    }
+                }
                 trimRecentlyViewed()
             }
         }
@@ -65,18 +92,47 @@ class CampsiteController(
 
     /** Recently viewed campsites, most recent first. */
     val recentlyViewed: List<Campsite>
-        get() = synchronized(recentlyViewedIds) { recentlyViewedIds.toList() }
-            .mapNotNull { campsites[it] }
+        get() {
+            val result = mutableListOf<Campsite>()
+            synchronized(recentlyViewedIds) {
+                for (id in recentlyViewedIds) {
+                    // Skip campsites that have since been deleted or archived
+                    val campsite = campsites[id]
+                    if (campsite != null && campsite.active) {
+                        result.add(campsite)
+                    }
+                }
+            }
+            return result
+        }
 
-    /** Active campsites with the highest ratings, best first. */
+    /**
+     * Active campsites ranked by their reviews. Campsites with positive reviews (an average
+     * of at least [MIN_FEATURED_RATING] stars) come first, and within each group the
+     * campsites with the most points from reviews come first. Campsites with equal points
+     * are ordered by average rating, then newest first, so until campsites are reviewed this
+     * is the same as the most recently added.
+     *
+     * @see Campsite.totalPoints
+     */
     val featuredCampsites: List<Campsite>
-        get() = campsites.values
-            .filter { it.active }
+        get() = activeCampsites.values
             .sortedWith(
-                compareByDescending<Campsite> { it.rating }
-                    .thenByDescending { it.ratingCount }
+                compareByDescending<Campsite> { hasPositiveReviews(it) }
+                    .thenByDescending { it.totalPoints() }
+                    .thenByDescending { it.rating }
+                    .thenByDescending { it.createdAt }
             )
             .take(MAX_FEATURED)
+
+    /**
+     * Active campsites, newest first. Campsites created before creation times were
+     * recorded come last.
+     */
+    val recentlyAddedCampsites: List<Campsite>
+        get() = activeCampsites.values
+            .sortedByDescending { it.createdAt }
+            .take(MAX_RECENTLY_ADDED)
 
     /**
      * Records that a campsite was viewed, moving it to the front of [recentlyViewed]
@@ -85,19 +141,25 @@ class CampsiteController(
      * @param campsiteId The ID of the viewed campsite.
      */
     fun markViewed(campsiteId: String) {
-        val viewedAt = synchronized(recentlyViewedIds) {
+        var viewedAt = 0L
+        synchronized(recentlyViewedIds) {
             recentlyViewedIds.remove(campsiteId)
             recentlyViewedIds.add(0, campsiteId)
             trimRecentlyViewed()
 
             // Views in the same millisecond still need a distinct order when saved
             lastViewedAt = maxOf(System.currentTimeMillis(), lastViewedAt + 1)
-            lastViewedAt
+            viewedAt = lastViewedAt
         }
 
         scope.launch {
             recentlyViewedStore.record(campsiteId, viewedAt, MAX_RECENTLY_VIEWED)
         }
+    }
+
+    /** Whether a campsite has been reviewed and averages at least [MIN_FEATURED_RATING] stars. */
+    private fun hasPositiveReviews(campsite: Campsite): Boolean {
+        return campsite.ratingCount > 0 && campsite.rating >= MIN_FEATURED_RATING
     }
 
     private fun trimRecentlyViewed() {
@@ -147,15 +209,21 @@ class CampsiteController(
         )
     }
 
-    fun removeCampsite(
-        campsite: Campsite,
+    suspend fun removeCampsite(
+        campsiteId: String,
         returnMessage: MutableState<String>
     ): Boolean {
+        return campsiteStore.removeCampsite(campsiteId, returnMessage)
+    }
 
-        return campsiteStore.removeCampsite(
-            campsite,
-            returnMessage
-        )
+    /**
+     * Archives every campsite owned by a user, such as when they delete their account.
+     * Archived campsites are inactive: kept for records, but hidden from browsing.
+     *
+     * @param ownerId The device ID of the owner.
+     */
+    suspend fun archiveCampsitesByOwner(ownerId: String) {
+        campsiteStore.archiveCampsitesByOwner(ownerId)
     }
 
     fun updateCampsite(
@@ -216,6 +284,18 @@ class CampsiteController(
         )
     }
 
+    /**
+     * Replaces a campsite's photos, and waits until they are saved. To upload or delete photos
+     * as well, use [CampsitePhotoController].
+     *
+     * @param campsiteId The ID of the campsite.
+     * @param photos The photos, starting with the thumbnail.
+     * @throws Exception if saving fails, in which case the photos are not changed.
+     */
+    suspend fun setPhotos(campsiteId: String, photos: List<ImageMetaData>) {
+        campsiteStore.setPhotos(campsiteId, photos)
+    }
+
     fun getCampsite(
         campsiteId: String
     ): Campsite? {
@@ -240,11 +320,13 @@ class CampsiteController(
         guestRange: IntRange? = null
     ): Map<String, Campsite> {
 
-        this.startDate = startDate
-        this.endDate = endDate
-        this.location = location.trim()
-        this.starRating = starRating
-        this.guestRange = guestRange
+        filters = CampsiteFilters(
+            startDate = startDate,
+            endDate = endDate,
+            location = location.trim(),
+            starRating = starRating,
+            guestRange = guestRange
+        )
         return filteredCampsites
     }
 
@@ -256,6 +338,10 @@ class CampsiteController(
         query: String
     ) {
         _searchQuery = query.trim()
+    }
+
+    fun getAllCampsites(): List<Campsite> {
+        return campsiteStore.campsites.values.toList()
     }
 
     fun getSearchResults(): List<Campsite> {
@@ -277,8 +363,8 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val start = startDate ?: return true
-        val end = endDate ?: start
+        val start = filters.startDate ?: return true
+        val end = filters.endDate ?: start
         return campsite.availability.isAvailable(start, end)
     }
 
@@ -286,7 +372,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val rating = starRating ?: return true
+        val rating = filters.starRating ?: return true
         return campsite.rating >= rating
     }
 
@@ -294,7 +380,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
-        val range = guestRange ?: return true
+        val range = filters.guestRange ?: return true
         return campsite.maxOccupancy in range
     }
 
@@ -302,6 +388,7 @@ class CampsiteController(
         campsite: Campsite
     ): Boolean {
 
+        val location = filters.location
         return location.isBlank() ||
                 campsite.address.contains(location, ignoreCase = true) ||
                 campsite.campsiteName.contains(location, ignoreCase = true)

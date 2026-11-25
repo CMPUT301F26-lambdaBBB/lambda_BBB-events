@@ -1,9 +1,9 @@
 package com.example.lambda_bbb_events.model.repository
 
 import android.util.Log
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.WaitlistEntry
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue

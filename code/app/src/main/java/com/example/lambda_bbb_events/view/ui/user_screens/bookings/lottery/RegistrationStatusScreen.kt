@@ -4,6 +4,7 @@ package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -14,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
@@ -42,6 +43,15 @@ fun RegistrationStatusScreen(
     val goBack = rememberBackAction(navController)
 
     val entry = controllers.waitlistEntries.getEntryById(entryId)
+    var campsiteId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(entry) {
+        if (entry != null) {
+            val lottery = controllers.lotteries.getLottery(entry.lotteryId)
+            campsiteId = lottery?.campsiteIds?.firstOrNull()
+        }
+    }
+
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
     val scope = rememberCoroutineScope()
@@ -57,8 +67,7 @@ fun RegistrationStatusScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .background(colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ScreenTitle(
@@ -86,7 +95,7 @@ fun RegistrationStatusScreen(
                     "You have successfully joined the lottery. Waiting for results."
 
                 WaitlistStatus.WON ->
-                    "Congratulations! You have won the lottery. Please accept or decline."
+                    "Congratulations! You have won the lottery. Please view available dates to reserve or decline."
 
                 WaitlistStatus.LOST ->
                     "Unfortunately, you were not selected in the lottery."
@@ -140,6 +149,22 @@ fun RegistrationStatusScreen(
         }
 
         if (entry?.status == WaitlistStatus.WON) {
+
+            //Bob: reservation here but not sure to where it navigate, right now assume it is campsite_check_availability
+            if (campsiteId != null) {
+                Button(
+                    onClick = {
+                        navController.navigate("campsite_check_availability/$campsiteId")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "View Available Dates",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+
             OutlinedButton(
                 onClick = {
                     showDeclineDialog = true

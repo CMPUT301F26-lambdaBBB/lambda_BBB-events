@@ -1,7 +1,7 @@
 package com.example.lambda_bbb_events.model.repository
 
-import com.example.lambda_bbb_events.model.ImageChunk
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.image.ImageChunk
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
@@ -62,25 +62,30 @@ class ImageRepository(
         imageId: String
     ): List<ImageChunk> {
 
-        return try {
-            chunksRef(imageId).get().await()
-                .documents.mapNotNull { document ->
+        try {
+            val documents = chunksRef(imageId).get().await().documents
+            val chunks = mutableListOf<ImageChunk>()
 
-                    val blob = document.getBlob("imageBytes")
-                        ?: return@mapNotNull null
+            for (document in documents) {
+                // Skip chunks that are missing their image data
+                val blob = document.getBlob("imageBytes")
+                if (blob == null) {
+                    continue
+                }
 
+                chunks.add(
                     ImageChunk(
                         imageId = document.getString("imageId") ?: "",
                         priority = document.getLong("priority")?.toInt() ?: 0,
                         bandHeight = document.getLong("bandHeight")?.toInt() ?: 0,
                         imageBytes = blob.toBytes()
                     )
-                }
-                .sortedBy { it.priority }
-
+                )
+            }
+            return chunks.sortedBy { it.priority }
         } catch (e: Exception) {
             e.printStackTrace()
-            emptyList()
+            return emptyList()
         }
     }
 

@@ -13,10 +13,13 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,13 +32,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.ReservationFilter
-import com.example.lambda_bbb_events.model.Reservation
-import com.example.lambda_bbb_events.model.generateQR
+import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.services.generateQR
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
+import com.example.lambda_bbb_events.view.ui.components.review.ReviewSection
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.reservation.OwnerReservationCard
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeDialog
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteImageCarousel
+import kotlinx.coroutines.launch
 
 /*
  * Displays campsite details and provides management actions
@@ -62,6 +67,11 @@ fun OwnerCampsiteDetailsScreen(
     campsiteId: String
 ) {
     val campsite = controllers.campsites.getCampsite(campsiteId)
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val returnMessage = remember { mutableStateOf("") }
 
     var showQrDialog by remember { mutableStateOf(false) }
     val qrThumbnail = remember(campsiteId) {
@@ -117,10 +127,99 @@ fun OwnerCampsiteDetailsScreen(
         return
     }
 
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isDeleting) {
+                    showDeleteDialog = false
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = "Delete Campsite?",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Are you sure you want to delete ${campsite.campsiteName}?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = "This action cannot be undone.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (returnMessage.value.isNotBlank()) {
+                        Text(
+                            text = returnMessage.value,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    onClick = {
+                        isDeleting = true
+                        returnMessage.value = ""
+                        scope.launch {
+                            try {
+                                val success = controllers.campsites.removeCampsite(campsiteId, returnMessage)
+                                if (success) {
+                                    showDeleteDialog = false
+                                    navController.popBackStack()
+                                }
+                            } finally {
+                                isDeleting = false
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        text = if (isDeleting) "Deleting..." else "Delete",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isDeleting,
+                    onClick = {
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "Cancel",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding() // keeps the review being written above the keyboard
     ) {
         item {
             Column(
@@ -249,7 +348,8 @@ fun OwnerCampsiteDetailsScreen(
                             backgroundColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
                             onClick = {
-                                // TODO: Implement campsite deletion with confirmation.
+                                returnMessage.value = ""
+                                showDeleteDialog = true
                             },
                             modifier = Modifier.weight(1f)
                         )
@@ -330,6 +430,15 @@ fun OwnerCampsiteDetailsScreen(
                     ReservationSection("Upcoming Reservations", upcomingReservations, guestNames)
                     ReservationSection("Past Reservations", pastReservations, guestNames)
                     ReservationSection("Cancelled Reservations", cancelledReservations, guestNames)
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+
+                    ReviewSection(
+                        campsite = campsite,
+                        controllers = controllers
+                    )
 
                     Spacer(
                         modifier = Modifier.height(50.dp)

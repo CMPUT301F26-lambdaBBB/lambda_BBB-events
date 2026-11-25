@@ -1,7 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
-import com.example.lambda_bbb_events.model.Reservation
-import com.example.lambda_bbb_events.model.ReservationStatus
+import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import java.time.LocalDate
 
@@ -31,6 +31,16 @@ class ReservationController(
      */
     fun getReservationsForEntrant(entrantId: String): List<Reservation> {
         return reservationRepository.getReservationsForEntrant(entrantId)
+    }
+
+    /**
+     * Cancels a reservation by updating its status to CANCELLED.
+     *
+     * @param reservation The reservation to cancel.
+     */
+    suspend fun cancelReservation(reservation: Reservation) {
+        val updated = reservation.copy(status = ReservationStatus.CANCELLED)
+        reservationRepository.updateReservation(updated)
     }
 
     /**

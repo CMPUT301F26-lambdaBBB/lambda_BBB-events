@@ -1,8 +1,5 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.create
 
-import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
-import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,8 +23,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.Campsite
-import com.example.lambda_bbb_events.model.ImageMetaData
+import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import java.time.LocalDate
@@ -35,9 +32,9 @@ import java.util.UUID
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndicator
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.example.lambda_bbb_events.view.ui.components.common.LocalImageProcessor
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
+import com.example.lambda_bbb_events.model.services.decodePhoto
+import androidx.compose.ui.geometry.Offset
 
 
 /**
@@ -59,7 +56,7 @@ fun CreateScreen(
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    val imageProcessor = LocalImageProcessor.current
+    val imageProcessor = controllers.images
     val context = LocalContext.current
 
     Scaffold(
@@ -70,8 +67,7 @@ fun CreateScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             ScreenTitle(title = "Create Campsite", navController = navController)
@@ -104,6 +100,7 @@ fun CreateScreen(
                     1 -> CreateLocationStep(
                         form = form,
                         showMap = showMap,
+                        placeSearch = controllers.places,
                         onBack = { currentStep = 0 },
                         onNext = { currentStep = 2 }
                     )
@@ -114,21 +111,18 @@ fun CreateScreen(
                         isSaving = isSaving,
                         errorMessage = saveError,
                         onDone = {
-                            val registrationStart = runCatching {
-                                LocalDate.parse(form.startRegistration)
-                            }.getOrNull()
-                            val registrationEnd = runCatching {
-                                LocalDate.parse(form.endRegistration)
-                            }.getOrNull()
-                            val bookingStart = runCatching {
-                                LocalDate.parse(form.startBooking)
-                            }.getOrNull()
-                            val bookingEnd = runCatching {
-                                LocalDate.parse(form.endBooking)
-                            }.getOrNull()
+                            val registrationStart = parseDateOrNull(form.startRegistration)
+                            val registrationEnd = parseDateOrNull(form.endRegistration)
+                            val bookingStart = parseDateOrNull(form.startBooking)
+                            val bookingEnd = parseDateOrNull(form.endBooking)
+                            val spots = form.numberOfSpots.toIntOrNull()
 
                             when {
                                 isSaving -> Unit
+                                spots == null || spots < 1 -> {
+                                    saveError = "Enter the number of spots (at least 1)."
+                                }
+
                                 registrationStart == null || registrationEnd == null ||
                                         bookingStart == null || bookingEnd == null -> {
                                     saveError = "Select valid registration and booking dates."
@@ -142,32 +136,23 @@ fun CreateScreen(
                                 else -> {
                                     isSaving = true
                                     saveError = null
-                                    try {
-                                        scope.launch {
+                                    scope.launch {
+                                        try {
                                             val campsiteId = UUID.randomUUID().toString()
                                             val ownerId = controllers.users.user.deviceId
-                                            val winnerCount = form.numberOfSpots.toIntOrNull() ?: 10
+                                            val winnerCount = spots
                                             val imageMetaData = mutableListOf<ImageMetaData>()
 
                                             for (uri in form.selectedImageUris) {
-                                                val bitmap =
-                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                                        ImageDecoder.decodeBitmap(
-                                                            ImageDecoder.createSource(
-                                                                context.contentResolver,
-                                                                uri
-                                                            )
-                                                        )
-                                                    } else {
-                                                        context.contentResolver.openInputStream(uri)
-                                                            ?.use { BitmapFactory.decodeStream(it) }
-                                                            ?: error("Could not read the selected image.")
-                                                    }
+                                                val bitmap = decodePhoto(context, uri)
+                                                val focus = form.photoFocus[uri] ?: Offset(0.5f, 0.5f)
 
                                                 imageMetaData += imageProcessor.uploadImage(
                                                     imageId = UUID.randomUUID().toString(),
                                                     uploaderUserId = ownerId,
-                                                    bitmap = bitmap
+                                                    bitmap = bitmap,
+                                                    focusX = focus.x,
+                                                    focusY = focus.y
                                                 )
                                             }
 
@@ -184,8 +169,7 @@ fun CreateScreen(
                                                 },
                                                 latitude = form.latitude,
                                                 longitude = form.longitude,
-                                                maxOccupancy = form.maxOccupancy.filter { it.isDigit() }
-                                                    .toIntOrNull() ?: 1,
+                                                maxOccupancy = form.maxOccupancy.toIntOrNull() ?: 1,
                                                 rulesPolicies = form.additionalRules.trim(),
                                                 tags = form.tags.toList(),
                                                 imageIds = imageMetaData
@@ -200,16 +184,14 @@ fun CreateScreen(
                                                 numberOfWinnersString = winnerCount.toString(),
                                                 waitlistCapacityString = winnerCount.toString()
                                             )
-                                            withContext(Dispatchers.Main) {
-                                                navController.navigate("home") {
-                                                    launchSingleTop = true
-                                                }
+                                            navController.navigate("home") {
+                                                launchSingleTop = true
                                             }
+                                        } catch (e: Exception) {
+                                            saveError = e.message ?: "Failed to create campsite."
+                                        } finally {
+                                            isSaving = false
                                         }
-                                    } catch (e: Exception) {
-                                        saveError = e.message ?: "Failed to create campsite."
-                                    } finally {
-                                        isSaving = false
                                     }
                                 }
                             }

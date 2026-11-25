@@ -1,9 +1,11 @@
 
 package com.example.lambda_bbb_events.view.ui.components.calendar
 
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import android.app.DatePickerDialog
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Icon
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.util.Locale
 
@@ -65,9 +68,15 @@ fun DatePickerField(
             onValueChange(formattedDate)
         },
         placeholder = {
+            // Narrow fields, such as the side by side filter dates, shrink the hint to one line
             Text(
                 text = "yyyy-mm-dd",
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 12.sp,
+                    maxFontSize = MaterialTheme.typography.bodyLarge.fontSize
+                )
             )
         },
         modifier = modifier,
@@ -89,9 +98,7 @@ fun DatePickerField(
         trailingIcon = {
             IconButton(
                 onClick = {
-                    val selectedDate = runCatching {
-                        LocalDate.parse(value)
-                    }.getOrNull() ?: LocalDate.now()
+                    val selectedDate = parseDateOrNull(value) ?: LocalDate.now()
 
                     DatePickerDialog(
                         context,

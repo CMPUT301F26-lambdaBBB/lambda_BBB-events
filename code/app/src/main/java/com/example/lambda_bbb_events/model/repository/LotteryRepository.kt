@@ -1,14 +1,16 @@
 package com.example.lambda_bbb_events.model.repository
 
-import com.example.lambda_bbb_events.model.Lottery
-import com.example.lambda_bbb_events.model.LotteryStatus
-import com.example.lambda_bbb_events.model.WaitlistEntry
-import com.example.lambda_bbb_events.model.WaitlistStatus
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.LotteryStatus
+import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
+import com.example.lambda_bbb_events.model.message.Message
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -53,33 +55,114 @@ class LotteryRepository(
      * @param id The `lotteryId` of the lottery to be deleted.
      */
     override suspend fun delete(id: String) {
-        // find every waitlist entry that has this lottery id
+        deleteAndNotifyWinners(id, makeNotice = null)
+    }
+
+    /**
+     * Deletes a lottery like [delete], and sends a message to each of its winners: the
+     * entries that won ([WaitlistStatus.WON]) or accepted their win
+     * ([WaitlistStatus.ACCEPTED]). The messages are written in the same batch as the
+     * deletion, so either the lottery is deleted and every winner is told, or nothing changes.
+     *
+     * @param id The `lotteryId` of the lottery to be deleted.
+     * @param makeNotice Makes the message for a winner's entry, or `null` to send none.
+     * @return The number of winners sent a message.
+     */
+    suspend fun deleteAndNotifyWinners(
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
+        val batch = db.batch()
+        val notified = queueLotteryDeletion(batch, id, makeNotice)
+        batch.commit().await()
+        removeFromCache(id)
+        return notified
+    }
+
+    private suspend fun queueLotteryDeletion(
+        batch: WriteBatch,
+        id: String,
+        makeNotice: ((WaitlistEntry) -> Message)?
+    ): Int {
+        var notified = 0
+
         val entriesSnapshot = db.collection("waitlistEntries")
             .whereEqualTo("lotteryId", id)
             .get()
             .await()
 
-        val batch = db.batch()
-
         for (entryDocument in entriesSnapshot.documents) {
-            // remove this entry's ID from the waitlistEntryIds of whichever user has it
             val usersSnapshot = db.collection("users")
                 .whereArrayContains("waitlistEntryIds", entryDocument.id)
                 .get()
                 .await()
 
             for (userDoc in usersSnapshot.documents) {
-                batch.update(userDoc.reference, "waitlistEntryIds",
-                    FieldValue.arrayRemove(entryDocument.id))
+                batch.update(
+                    userDoc.reference,
+                    "waitlistEntryIds",
+                    FieldValue.arrayRemove(entryDocument.id)
+                )
+            }
+
+            if (makeNotice != null) {
+                val entry = try {
+                    entryDocument.toObject(WaitlistEntry::class.java)
+                } catch (_: Exception) {
+                    null
+                }
+                if (entry != null && entry.status in WINNING_STATUSES) {
+                    val notice = makeNotice(entry)
+                    batch.set(db.collection("messages").document(notice.messageId), notice)
+                    notified++
+                }
             }
 
             batch.delete(entryDocument.reference)
         }
 
         batch.delete(collectionRef.document(id))
+        return notified
+    }
 
-        batch.commit().await()
-        removeFromCache(id)
+    internal suspend fun queueCampsiteLotteryDeletions(
+        batch: WriteBatch,
+        campsiteId: String
+    ) {
+        val lotteries = collectionRef
+            .whereArrayContains("campsiteIds", campsiteId)
+            .get()
+            .await()
+
+        for (lottery in lotteries.documents) {
+            queueLotteryDeletion(batch, lottery.id, makeNotice = null)
+        }
+    }
+
+    /**
+     * Reads every lottery a campsite owner created from Firestore, including ones not
+     * in the cache yet.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The owner's lotteries. Empty if [ownerId] is blank.
+     */
+    suspend fun getLotteriesByOwner(ownerId: String): List<Lottery> {
+        if (ownerId.isBlank()) {
+            return emptyList()
+        }
+        val snapshot = collectionRef.whereEqualTo("ownerId", ownerId).get().await()
+        return snapshot.documents.mapNotNull { document ->
+            try {
+                fromDocument(document)
+            } catch (e: Exception) {
+                null // skip lotteries that are not valid
+            }
+        }
+    }
+
+    private companion object {
+        /** Statuses of entries that won a lottery, so hold a booking. */
+        val WINNING_STATUSES = setOf(WaitlistStatus.WON, WaitlistStatus.ACCEPTED)
     }
 
     /**

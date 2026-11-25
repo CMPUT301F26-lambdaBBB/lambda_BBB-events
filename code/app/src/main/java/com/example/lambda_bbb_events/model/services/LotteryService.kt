@@ -1,6 +1,6 @@
 package com.example.lambda_bbb_events.model.services
 
-import com.example.lambda_bbb_events.model.Lottery
+import com.example.lambda_bbb_events.model.lottery.Lottery
 
 
 /**
