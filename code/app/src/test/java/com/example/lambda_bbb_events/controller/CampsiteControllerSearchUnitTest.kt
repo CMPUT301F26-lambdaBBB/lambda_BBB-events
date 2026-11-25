@@ -6,11 +6,14 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.campsite.CampsiteFilters
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.store.CampsiteStore
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -270,7 +273,7 @@ class CampsiteControllerSearchUnitTest {
     }
 
     @Test
-    fun addAndRemoveDelegateToStore() {
+    fun addAndRemoveDelegateToStore() = runTest {
         val added = slot<String>()
         every {
             store.addCampsite(
@@ -280,13 +283,13 @@ class CampsiteControllerSearchUnitTest {
                 ratingCount = any(), availability = any(), active = any(), returnMessage = any()
             )
         } returns true
-        every { store.removeCampsite(any(), any()) } returns true
+        coEvery { store.removeCampsite(any(), any()) } returns true
         val message = mockk<MutableState<String>>(relaxed = true)
 
         assertTrue(controller.addCampsite(campsiteId = "new", campsiteName = "New"))
-        assertTrue(controller.removeCampsite(forest, message))
+        assertTrue(controller.removeCampsite("forest", message))
 
         assertEquals("new", added.captured)
-        verify(exactly = 1) { store.removeCampsite(forest, message) }
+        coVerify(exactly = 1) { store.removeCampsite("forest", message) }
     }
 }
