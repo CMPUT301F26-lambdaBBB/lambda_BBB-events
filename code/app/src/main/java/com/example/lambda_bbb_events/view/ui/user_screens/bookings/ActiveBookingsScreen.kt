@@ -16,6 +16,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +36,11 @@ import com.example.lambda_bbb_events.view.ui.components.rating.formatRating
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import androidx.compose.ui.draw.clip
+import com.example.lambda_bbb_events.controller.ReservationController
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.launch
+import kotlin.String
 
 /**
  * Displays the user's active campsite reservations.
@@ -64,6 +71,24 @@ fun ActiveBookingsScreen(
                 controllers.users.user.deviceId
             ).filter { it.isActive() }
 
+
+        LaunchedEffect(Unit) {
+            if (reservations.isEmpty()) {
+                val temp1 = Reservation(
+                    reservationId = Firebase.firestore.collection("reservations").document().id,
+                    campsiteId = "9e7da29a-c66a-41e6-a484-282a250b5489",
+                    entrantId = controllers.users.user.deviceId,
+                    ownerId = "9d292e2cafa28c07",
+                    startDate = "",
+                    endDate = "",
+                    guests = 1,
+                    status = ReservationStatus.PENDING,
+                    ruleConfirmed = false
+                )
+                controllers.reservations.reservationRepository.addReservation(temp1)
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,7 +106,7 @@ fun ActiveBookingsScreen(
             Spacer(modifier = Modifier.height(25.dp))
 
             Text(
-                text = "Active Reservations",
+                text = "Active Reservations: ${reservations.size}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -315,3 +340,4 @@ fun DetailRow(
         )
     }
 }
+
