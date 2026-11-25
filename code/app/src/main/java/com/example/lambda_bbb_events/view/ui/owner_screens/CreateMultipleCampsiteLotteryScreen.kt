@@ -124,6 +124,11 @@ fun CreateMultipleCampsiteLotteryScreen(
 
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
 
+            Text(
+                text = "Enter Lottery Details",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
             DateRangeCard(
                 title = "Registration Period",
                 startDate = registrationStart,
