@@ -80,57 +80,46 @@ fun MyCampsitesScreen(
                 navController = navController
             )
 
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Button(
+                onClick = {
+                    scope.launch {
+                        controllers.users.becomeOwner()
+                        navController.navigate("create_campsite")
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            controllers.users.becomeOwner()
-                            navController.navigate("create_campsite")
-                        }
-                    },
-                    modifier = Modifier.weight(1.3f)
-                ) {
-                    Text(
-                        text = "+ Create Campsite",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontSize = 12.sp,
-                        maxLines = 1
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        val firstCampsiteId =
-                            myCampsites.firstOrNull()?.campsiteId ?: ""
-
-                        if (firstCampsiteId.isNotEmpty()) {
-                            navController.navigate(
-                                "manage_lottery/$firstCampsiteId"
-                            )
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "No campsite is created yet",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Manage Lottery",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontSize = 12.sp,
-                        maxLines = 1
-                    )
-                }
+                Text(
+                    text = "+ Create Campsite",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
             }
 
+            OutlinedButton(
+                onClick = {
+                    if (myCampsites.size >= 2) {
+                        navController.navigate(
+                            "create_multiple_campsite_lottery"
+                        )
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "You need to have at least 2 campsites made.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "+ Create multiple campsite lottery",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
 
             Spacer(
                 modifier = Modifier.height(20.dp)

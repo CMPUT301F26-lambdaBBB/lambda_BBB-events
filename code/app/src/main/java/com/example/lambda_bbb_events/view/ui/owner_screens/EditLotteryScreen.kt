@@ -190,7 +190,6 @@ fun EditLotteryScreen(
                             val error = controllers.lotteries.updateLottery(
                                 lotteryId = currentLottery.lotteryId,
                                 ownerId = controllers.users.user.deviceId,
-                                campsiteId = currentCampsiteId,
                                 registrationStart = parseDateOrNull(registrationStart),
                                 registrationEnd = parseDateOrNull(registrationEnd),
                                 bookingStart = parseDateOrNull(bookingStart),
