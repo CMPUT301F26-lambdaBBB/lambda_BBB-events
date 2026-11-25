@@ -114,7 +114,7 @@ fun CreateMultipleCampsiteLotteryScreen(
                 val isSelected = campsiteId in selectedIds
                 VerticalCampsiteCardWithCheckbox(
                     campsite = campsite,
-                    isSelected = false,
+                    isSelected = isSelected,
                     onClick = {
                         if (isSelected) selectedIds.remove(campsiteId)
                         else selectedIds.add(campsiteId)
