@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
@@ -64,10 +65,10 @@ class ReservationController(
         }
 
         if (filter == ReservationFilter.UPCOMING) {
-            return result.sortedBy { LocalDate.parse(it.startDate) }
+            return result.sortedBy { parseDateOrNull(it.startDate) ?: LocalDate.MAX }
         }
 
-        return result.sortedByDescending { LocalDate.parse(it.startDate) }
+        return result.sortedByDescending { parseDateOrNull(it.startDate) ?: LocalDate.MIN }
     }
 
     /**
@@ -81,7 +82,7 @@ class ReservationController(
         val isCancelled = reservation.status == ReservationStatus.CANCELLED ||
                 reservation.status == ReservationStatus.REJECTED
 
-        val endDate = LocalDate.parse(reservation.endDate)
+        val endDate = parseDateOrNull(reservation.endDate)
         val hasEnded = reservation.status == ReservationStatus.COMPLETED ||
                 (endDate != null && endDate.isBefore(LocalDate.now()))
 
