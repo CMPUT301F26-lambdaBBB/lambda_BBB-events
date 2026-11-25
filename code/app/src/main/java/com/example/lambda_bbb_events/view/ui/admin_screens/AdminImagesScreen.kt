@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.campsite.Campsite
+import com.example.lambda_bbb_events.model.repository.ImageRepository
 import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.ui.theme.TypeTabBar
@@ -45,7 +47,8 @@ import com.example.lambda_bbb_events.view.ui.components.common.ImageFraming
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.common.StoredImage
-import com.google.apps.card.v1.OnClick
+import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
+import kotlinx.coroutines.launch
 
 /**
  * The image data for an image in the gallery.
@@ -60,6 +63,8 @@ private data class GalleryImage(
     val imageId: String,
     val label: String,
     val isUserPicture: Boolean,
+    val campsiteId: String = "",
+    val userId: String = "",
     val focusX: Float = 0.5f,
     val focusY: Float = 0.5f
 )
@@ -72,14 +77,20 @@ fun AdminImagesScreen(
     val isAdmin = controllers.users.currentUser?.role == UserRole.ADMIN
 
     var users by remember { mutableStateOf<List<User>>(emptyList()) }
-    var campsites by remember { mutableStateOf<List<Campsite>>(emptyList()) }
     var query by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
 
     val tabNames = listOf("All", "Campsites", "Users")
     var selectedTab by remember { mutableStateOf(0) }
 
-    LaunchedEffect(isAdmin) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedGalleryImage: GalleryImage? by remember { mutableStateOf(null) }
+    var removeError by remember { mutableStateOf(false) }
+    var reloadCount by remember { mutableStateOf(0) } // used to refresh manually
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(isAdmin, reloadCount) {
         isLoading = true
         if (isAdmin) {
             users = try {
@@ -93,7 +104,7 @@ fun AdminImagesScreen(
 
     val allImages = mutableListOf<GalleryImage>()
 
-    campsites = controllers.campsites.getAllCampsites().sortedBy { it.campsiteName.lowercase() }
+    val campsites = controllers.campsites.getAllCampsites().sortedBy { it.campsiteName.lowercase() }
     for (campsite in campsites) {
         campsite.imageIds.forEachIndexed { index, image ->
             allImages.add(
@@ -101,6 +112,7 @@ fun AdminImagesScreen(
                     imageId = image.imageId,
                     label = "${campsite.campsiteName} #${index + 1}",
                     isUserPicture = false,
+                    campsiteId = campsite.campsiteId,
                     focusX = image.focusX,
                     focusY = image.focusY
                 )
@@ -108,14 +120,15 @@ fun AdminImagesScreen(
         }
     }
 
-    users = users.sortedBy { it.name.lowercase() }
-    for (user in users) {
+    val sortedUsers = users.sortedBy { it.name.lowercase() }
+    for (user in sortedUsers) {
         if (user.profilePictureImageId.isNotBlank()) {
             allImages.add(
                 GalleryImage(
                     imageId = user.profilePictureImageId,
                     label = user.name,
-                    isUserPicture = true
+                    isUserPicture = true,
+                    userId = user.deviceId
                 )
             )
         }
@@ -200,6 +213,12 @@ fun AdminImagesScreen(
                     )
                 }
 
+                Text(
+                    text = "Click an image to delete it.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (shownImages.isEmpty()) {
@@ -219,10 +238,56 @@ fun AdminImagesScreen(
                         items(shownImages) { image ->
                             AdminImageCard(
                                 image,
-                                onClick = {}
+                                onClick = {
+                                    selectedGalleryImage = image
+                                    removeError = false
+                                    showDialog = true
+                                }
                             )
                         }
                     }
+                }
+
+                if (showDialog) {
+                    ShowAlertDialog(
+                        dialogLabel = "Remove Image?",
+                        dialogCaption = "Are you sure you want to delete? This image will be removed.",
+                        confirmButton = {
+                            showDialog = false
+                            scope.launch {
+                                try {
+                                    val image = selectedGalleryImage
+                                    if (image != null) {
+                                        // take the image off its campsite or user first before deleting in db
+                                        if (image.isUserPicture) {
+                                            controllers.users.removeProfilePicture(image.userId)
+                                        } else {
+                                            val campsite = controllers.campsites.getCampsite(image.campsiteId)
+                                            if (campsite != null) {
+                                                val remaining = campsite.imageIds.filter { it.imageId != image.imageId }
+                                                controllers.campsites.updateCampsite(
+                                                    image.campsiteId,
+                                                    campsite.copy(imageIds = remaining)
+                                                )
+                                            }
+                                        }
+
+                                        if (controllers.images.deleteImage(image.imageId)) {
+                                            reloadCount++
+                                        } else {
+                                            removeError = true
+                                        }
+                                    }
+                                } catch (_: Exception) { // catches error and shows error to user
+                                    removeError = true
+                                }
+                            }
+                        },
+                        confirmText = "Remove",
+                        dismissState = { showDialog = false },
+                        cancelText = "Cancel",
+                        modifier = Modifier
+                    )
                 }
             }
         }

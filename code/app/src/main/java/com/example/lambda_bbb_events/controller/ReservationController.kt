@@ -34,6 +34,16 @@ class ReservationController(
     }
 
     /**
+     * Cancels a reservation by updating its status to CANCELLED.
+     *
+     * @param reservation The reservation to cancel.
+     */
+    suspend fun cancelReservation(reservation: Reservation) {
+        val updated = reservation.copy(status = ReservationStatus.CANCELLED)
+        reservationRepository.updateReservation(updated)
+    }
+
+    /**
      * Gets the reservations of a campsite that match the filter. They are sorted by
      * earliest first.
      *
