@@ -156,15 +156,27 @@ fun LotteryBookingsScreen(
                         val lottery = lotteries[entry.lotteryId]
 
                         if (lottery != null) {
-                            val campsite = campsites[lottery.campsiteIds.firstOrNull() ?: ""]
+                            // a lottery can cover several campsites
+                            val lotteryCampsites = ArrayList<Campsite>()
+                            val campsiteIds = lottery.campsiteIds
+                            for (id in campsiteIds) {
+                                val campsite = controllers.campsites.getCampsite(id)
+                                if (campsite != null) {
+                                    lotteryCampsites.add(campsite)
+                                }
+                            }
 
                             LotteryEntryCard(
-                                campsiteName = campsite?.campsiteName ?: "Unknown campsite",
-                                address = campsite?.address ?: "",
+                                campsiteName = if (lotteryCampsites.isEmpty()) {
+                                    "Unknown campsite"
+                                } else {
+                                    lotteryCampsites.joinToString(", ") { it.campsiteName }
+                                },
+                                address = if (lotteryCampsites.size == 1) lotteryCampsites[0].address else "",
                                 entry = entry,
                                 lottery = lottery,
                                 onClick = {
-                                    if (campsite != null) {
+                                    if (lotteryCampsites.isNotEmpty()) {
                                         navController.navigate("registrationStatus/${entry.entryId}")
                                     }
                                 }

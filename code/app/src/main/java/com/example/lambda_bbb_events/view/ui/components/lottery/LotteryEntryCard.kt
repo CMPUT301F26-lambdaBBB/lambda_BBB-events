@@ -40,7 +40,7 @@ import java.util.Locale
  * state of the entry (e.g. in waitlist, won, lost, etc.), when the registration ends,
  * the booking period, and the number of guests.
  *
- * @param campsiteName The name of the campsite the lottery is for.
+ * @param campsiteNames The name(s) of the campsite the lottery is for.
  * @param address The address of the campsite. Not shown if no address.
  * @param entry The entrant's waitlist entry.
  * @param lottery The lottery the entry belongs to.
