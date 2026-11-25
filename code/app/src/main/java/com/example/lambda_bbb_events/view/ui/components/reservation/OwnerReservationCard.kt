@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import java.time.LocalDate
@@ -77,13 +78,17 @@ fun OwnerReservationCard(
             ReservationStatusPill(reservation.status)
         }
 
+        val startDate = parseDateOrNull(reservation.startDate)
+        val endDate = parseDateOrNull(reservation.endDate)
+
         InfoRow(
             icon = Icons.Outlined.CalendarMonth,
             label = "Reservation Dates",
-            value = formatDateRangeFromLocalDate(
-                LocalDate.parse(reservation.startDate),
-                LocalDate.parse(reservation.endDate)
-            )
+            value = if (startDate != null && endDate != null) {
+                formatDateRangeFromLocalDate(startDate, endDate)
+            } else {
+                "Dates unknown"
+            }
         )
 
         InfoRow(

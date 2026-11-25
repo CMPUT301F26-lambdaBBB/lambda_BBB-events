@@ -168,24 +168,6 @@ fun OwnerLotteryDetailsScreen(
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (currentLottery.campsiteIds.size > 1) {
-                    item {
-                        val names = ArrayList<String>()
-                        val campsiteIds = currentLottery.campsiteIds
-                        for (id in campsiteIds) {
-                            val campsite = controllers.campsites.getCampsite(id)
-                            if (campsite != null) {
-                                names.add(campsite.campsiteName)
-                            }
-                        }
-                        Text(
-                            text = "Multiple Campsites: " + names.joinToString(", "),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
                 item {
                     OwnerLotteryCard(
                         lotteryNumber = lotteryNumber,
