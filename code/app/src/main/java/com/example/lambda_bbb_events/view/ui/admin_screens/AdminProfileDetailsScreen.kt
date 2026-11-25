@@ -312,18 +312,14 @@ fun AdminProfileDetailsScreen(
                         )
                     }
 
-                    // prompts alert dialog when remove is clicked
                     if (showDialog) {
                         ShowAlertDialog(
                             dialogLabel = "Remove Profile?",
-                            dialogCaption = "${shownUser.name}'s profile will be removed.\nThis action cannot be undone.",
+                            dialogCaption = "Are you sure you want to delete? ${shownUser.name}'s profile will be removed.",
                             confirmButton = {
                                 showDialog = false
-                                scope.launch { // starts coroutine so firebase deletion runs without freezing app
+                                scope.launch {
                                     try {
-                                        // Delete the user's lotteries and archive their campsites first, so a
-                                        // failure leaves the profile in place to retry instead of leaving them
-                                        // orphaned. Campsites are kept, inactive, for past bookings and records.
                                         controllers.lotteries.cancelLotteriesOfDeletedOwner(userId) { campsiteId ->
                                             controllers.campsites.getCampsite(campsiteId)?.campsiteName
                                         }
@@ -333,7 +329,7 @@ fun AdminProfileDetailsScreen(
                                         } else {
                                             removeError = true
                                         }
-                                    } catch (_: Exception) { // a failed execution is caught by catch
+                                    } catch (_: Exception) { // catches error and shows error to user
                                         removeError = true
                                     }
                                 }
@@ -373,13 +369,6 @@ private fun RoleChip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Shield,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = roleName,
                 style = MaterialTheme.typography.labelLarge,

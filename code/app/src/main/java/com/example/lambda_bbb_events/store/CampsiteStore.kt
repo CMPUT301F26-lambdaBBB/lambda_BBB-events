@@ -129,6 +129,7 @@ class CampsiteStore(
 
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
+            campsites.remove(campsiteID)
             campsites[campsiteID] = campsite
             scope.launch {
                 campsiteRepo.updateCampsite(campsiteID, campsite)
