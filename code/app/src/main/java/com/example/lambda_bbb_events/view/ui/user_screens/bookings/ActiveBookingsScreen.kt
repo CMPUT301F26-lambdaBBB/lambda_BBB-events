@@ -76,7 +76,7 @@ fun ActiveBookingsScreen(
             if (reservations.isEmpty()) {
                 val temp1 = Reservation(
                     reservationId = Firebase.firestore.collection("reservations").document().id,
-                    campsiteId = "5073c38f-245e-434d-8861-8cef65313a77",
+                    campsiteId = "9e7da29a-c66a-41e6-a484-282a250b5489",
                     entrantId = controllers.users.user.deviceId,
                     ownerId = "9d292e2cafa28c07",
                     startDate = "",
@@ -106,7 +106,7 @@ fun ActiveBookingsScreen(
             Spacer(modifier = Modifier.height(25.dp))
 
             Text(
-                text = "Active Reservations",
+                text = "Active Reservations: ${reservations.size}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
