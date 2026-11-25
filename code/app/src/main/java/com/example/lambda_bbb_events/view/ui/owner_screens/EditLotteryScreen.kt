@@ -87,16 +87,14 @@ fun EditLotteryScreen(
         return
     }
 
-    val currentCampsiteId = currentLottery.campsiteIds.firstOrNull()
-    if (currentCampsiteId == null) {
-        Text("Campsite ID not found")
-        return
-    }
+    val campsiteIds = currentLottery.campsiteIds
 
-    val currentCampsite = controllers.campsites.getCampsite(currentCampsiteId)
-    if (currentCampsite == null) {
-        Text("Campsite not found")
-        return
+    val currentCampsites = ArrayList<Campsite>()
+    for (id in campsiteIds) {
+        val campsite = controllers.campsites.getCampsite(id)
+        if (campsite != null) {
+            currentCampsites.add(campsite)
+        }
     }
 
     var registrationStart by remember { mutableStateOf(
@@ -121,10 +119,12 @@ fun EditLotteryScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            VerticalCampsiteCard(
-                currentCampsite,
-                onClick = {}
-            )
+            for (campsite in currentCampsites) {
+                VerticalCampsiteCard(
+                    campsite,
+                    onClick = {}
+                )
+            }
 
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
 
