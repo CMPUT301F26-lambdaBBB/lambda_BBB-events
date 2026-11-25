@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+
 import androidx.compose.runtime.MutableState
 import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
@@ -21,6 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
+
 
 /**
  * Tests [CampsiteController] searching, filtering, and editing.
