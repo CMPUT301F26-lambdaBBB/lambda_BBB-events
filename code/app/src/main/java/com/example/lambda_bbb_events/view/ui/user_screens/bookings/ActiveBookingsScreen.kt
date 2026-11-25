@@ -1,4 +1,3 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import androidx.compose.foundation.BorderStroke
@@ -18,6 +17,8 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,6 +33,11 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import androidx.compose.ui.draw.clip
+import com.example.lambda_bbb_events.controller.ReservationController
+import com.example.lambda_bbb_events.model.ReservationStatus
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import kotlin.String
 
 /**
  * Displays the user's active campsite reservations.
@@ -54,10 +60,29 @@ fun ActiveBookingsScreen(
         }
     ) { innerPadding ->
 
+
         val reservations = controllers.reservations
-            .getReservationsForEntrant(
-                controllers.users.user.deviceId
-            )
+            .getReservationsForEntrant(controllers.users.user.deviceId)
+
+        LaunchedEffect(Unit) {
+            if (reservations.isEmpty()) {
+                val temp1 = Reservation(
+                    reservationId = Firebase.firestore.collection("reservations").document().id,
+                    campsiteId = "5073c38f-245e-434d-8861-8cef65313a77",
+                    entrantId = controllers.users.user.deviceId,
+                    ownerId = "9d292e2cafa28c07",
+                    startDate = "",
+                    endDate = "",
+                    guests = 1,
+                    status = ReservationStatus.PENDING,
+                    ruleConfirmed = false
+                )
+                controllers.reservations.reservationRepository.addReservation(temp1)
+            }
+        }
+
+
+
 
         Column(
             modifier = Modifier
@@ -266,3 +291,4 @@ fun DetailRow(
         )
     }
 }
+

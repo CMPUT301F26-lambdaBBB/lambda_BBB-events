@@ -36,7 +36,6 @@ class ReservationRepository(
      * @param reservation The reservation to add.
      */
     suspend fun addReservation(reservation: Reservation) = add(reservation)
-
     /**
      * Deletes a reservation from the Firestore database.
      *
