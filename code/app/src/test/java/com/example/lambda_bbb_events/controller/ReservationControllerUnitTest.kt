@@ -89,4 +89,19 @@ class ReservationControllerUnitTest {
 
         assertEquals(listOf(tomorrow), controller.getReservationsForEntrant("ed"))
     }
+
+    @Test
+    fun entrantReservationsHaveCorrectEntrantId() {
+        val entrantId = "ed"
+        val res1 = reservation("res-1", -10, -5).copy(entrantId = entrantId)
+        val res2 = reservation("res-2", -20, -15).copy(entrantId = entrantId)
+
+        every { repository.getReservationsForEntrant(entrantId) } returns listOf(res1, res2)
+
+        val reservations = controller.getReservationsForEntrant(entrantId)
+        org.junit.Assert.assertTrue(reservations.isNotEmpty())
+        for (res in reservations) {
+            assertEquals(entrantId, res.entrantId)
+        }
+    }
 }
