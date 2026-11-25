@@ -278,7 +278,7 @@ fun AdminImagesScreen(
                                             removeError = true
                                         }
                                     }
-                                } catch (_: Exception) { // catches erro and shows error to user
+                                } catch (_: Exception) { // catches error and shows error to user
                                     removeError = true
                                 }
                             }
