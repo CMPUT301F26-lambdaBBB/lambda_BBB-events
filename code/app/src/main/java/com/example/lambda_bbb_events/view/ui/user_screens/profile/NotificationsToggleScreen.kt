@@ -33,7 +33,7 @@ fun Notification_Toggle(
     navController: NavController,
     controllers: AppControllers,
 ) {
-    var isToggled by remember { mutableStateOf(controllers.users.user.notificationsEnabled) }
+    var isToggled by remember { mutableStateOf(controllers.users.currentUser?.notificationsEnabled == true) }
     val scope = rememberCoroutineScope()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

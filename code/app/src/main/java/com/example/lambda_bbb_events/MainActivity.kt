@@ -21,10 +21,10 @@ import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.ReviewController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
+import com.example.lambda_bbb_events.controller.NotificationController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
 import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
 import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
-import com.example.lambda_bbb_events.model.repository.CampsiteRepository
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.ReviewRepository
@@ -62,7 +62,6 @@ class MainActivity : ComponentActivity() {
         // Android device ID in Kotlin language [Video]. YouTube.
         // https://www.youtube.com/watch?v=W5yYiZ45u9I
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-
         val userRepository = UserRepository()
         val lotteryRepository = LotteryRepository()
         val campsiteStore = CampsiteStore(lotteryRepository = lotteryRepository)
@@ -70,6 +69,9 @@ class MainActivity : ComponentActivity() {
         val waitlistEntryRepository = WaitlistEntryRepository()
         val reviewRepository = ReviewRepository()
         val imageProcessor = ImageProcessor()
+        val userController = UserController(userRepository, deviceId,SharedPreferencesSessionStore(applicationContext))
+        val notifications = NotificationController(applicationContext,userController)
+        notifications.createNotificationChannel()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -91,7 +93,8 @@ class MainActivity : ComponentActivity() {
             reservations = ReservationController(reservationRepository),
             waitlistEntries = WaitlistEntryController(waitlistEntryRepository),
             images = imageProcessor,
-            reviews = ReviewController(reviewRepository)
+            reviews = ReviewController(reviewRepository),
+            notifications = notifications
         )
 
         setContent {

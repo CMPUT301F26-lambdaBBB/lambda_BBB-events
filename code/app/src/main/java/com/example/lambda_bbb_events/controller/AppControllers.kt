@@ -24,5 +24,6 @@ class AppControllers (
     val waitlistEntries: WaitlistEntryController,
     val images: ImageProcessor,
     val reviews: ReviewController,
-    val places: PlaceSearch = FallbackPlaceSearch()
+    val places: PlaceSearch = FallbackPlaceSearch(),
+    val notifications: NotificationController,
 )
