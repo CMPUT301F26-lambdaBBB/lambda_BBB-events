@@ -20,6 +20,7 @@ import com.example.lambda_bbb_events.model.services.PlaceSearch
  * @property messages Controller for messaging operations.
  * @property notificationPreferences Controller for notification preferences.
  * @property messageNotifications Controller for incoming message alerts.
+ * @property adminLogs Controller for administrative notification and message logs.
  */
 class AppControllers(
     val users: UserController,
@@ -34,5 +35,6 @@ class AppControllers(
     val notificationPreferences: NotificationPreferenceController =
         NotificationPreferenceController(users),
     val messageNotifications: MessageNotificationController =
-        MessageNotificationController(users)
+        MessageNotificationController(users),
+    val adminLogs: AdminLogController = AdminLogController()
 )

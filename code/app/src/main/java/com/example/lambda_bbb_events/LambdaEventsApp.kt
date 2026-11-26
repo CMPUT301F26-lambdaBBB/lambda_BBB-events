@@ -24,6 +24,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminHomeScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminImagesScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.logs.AdminLogsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfileDetailsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
 import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
@@ -354,6 +355,16 @@ private fun MainApp(
                 AdminProfileDetailsScreen(navController, controllers, userId)
             }
             composable("admin_images") { AdminImagesScreen(navController, controllers) }
+            composable("admin_logs") {
+                if (isAdmin) {
+                    AdminLogsScreen(
+                        navController = navController,
+                        controllers = controllers
+                    )
+                } else {
+                    Text("Access denied.")
+                }
+            }
         }
     }
 }
