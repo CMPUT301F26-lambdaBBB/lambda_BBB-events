@@ -24,6 +24,9 @@ import org.junit.Test
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * This whole file was written with the help of this AI tool.
+ * Prompts:
+ * - "Fix the github action now"
+ * - "I mean it passes because you removed the tests cases."
  */
 
 /**

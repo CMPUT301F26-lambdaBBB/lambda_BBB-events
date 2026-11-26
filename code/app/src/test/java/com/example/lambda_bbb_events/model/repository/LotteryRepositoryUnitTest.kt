@@ -52,6 +52,8 @@ class LotteryRepositoryUnitTest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Fix the github action now"
      */
     private fun lotteryIsGoneOnServer() {
         every { lotteries.document("lottery-1").get(Source.SERVER) } returns
@@ -192,6 +194,9 @@ class LotteryRepositoryUnitTest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Fix the github action now"
+     * - "I mean it passes because you removed the tests cases."
      */
     private fun deletingLotteryWithEntrant(reservations: List<Reservation>): DocumentReference {
         val entryDoc = documentOf("entry-1", WaitlistEntry::class.java, null)
@@ -251,6 +256,9 @@ class LotteryRepositoryUnitTest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Fix the github action now"
+     * - "I mean it passes because you removed the tests cases."
      */
     private fun <T : Any> objectsSnapshot(type: Class<T>, items: List<T>): QuerySnapshot {
         val snapshot = querySnapshotOf()
@@ -263,6 +271,9 @@ class LotteryRepositoryUnitTest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Fix the github action now"
+     * - "I mean it passes because you removed the tests cases."
      */
     @Test
     fun deletingTheOnlyEligibleLotteryRevokesOwnerMessagingAccess() = runTest {
@@ -282,6 +293,9 @@ class LotteryRepositoryUnitTest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Fix the github action now"
+     * - "I mean it passes because you removed the tests cases."
      */
     @Test
     fun deletingALotteryKeepsAccessWhenAReservationIsStillActive() = runTest {

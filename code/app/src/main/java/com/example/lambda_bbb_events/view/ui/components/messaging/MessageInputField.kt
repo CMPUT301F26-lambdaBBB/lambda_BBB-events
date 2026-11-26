@@ -47,6 +47,11 @@ import com.example.lambda_bbb_events.view.ui.components.common.formTextFieldColo
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Hey could you fix the view for the messages. It seems a bit weird with a fully non rounded
+ *   top area and the fact you can't press enter to send a message and also because the profile
+ *   photo isn't shown."
+ * - "Can you make sure the new messages stuff follows the previous app layouts."
  */
 @Composable
 fun MessageInputField(
@@ -125,6 +130,10 @@ fun MessageInputField(
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Hey could you fix the view for the messages. It seems a bit weird with a fully non rounded
+ *   top area and the fact you can't press enter to send a message and also because the profile
+ *   photo isn't shown."
  */
 private fun sendOnEnter(event: KeyEvent, onSend: () -> Unit): Boolean {
     val isEnter = event.key == Key.Enter || event.key == Key.NumPadEnter

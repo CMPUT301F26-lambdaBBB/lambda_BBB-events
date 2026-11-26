@@ -46,6 +46,14 @@ import kotlinx.coroutines.launch
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Hey could you fix the view for the messages. It seems a bit weird with a fully non rounded
+ *   top area and the fact you can't press enter to send a message and also because the profile
+ *   photo isn't shown."
+ * - "Can you make sure the new messages stuff follows the previous app layouts."
+ * - "Also please clean up a database and offer a way for users to delete messages with a message
+ *   deleted plus. Show also that messages are active."
+ * - "So to clarify I want to allow users and admins to remove messages."
  */
 @Composable
 fun ChatScreen(
@@ -261,6 +269,10 @@ fun ChatScreen(
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Also please clean up a database and offer a way for users to delete messages with a message
+ *   deleted plus. Show also that messages are active."
+ * - "So to clarify I want to allow users and admins to remove messages."
  */
 @Composable
 private fun DeleteMessageDialog(
@@ -287,6 +299,10 @@ private fun DeleteMessageDialog(
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Also please clean up a database and offer a way for users to delete messages with a message
+ *   deleted plus. Show also that messages are active."
+ * - "So to clarify I want to allow users and admins to remove messages."
  */
 private suspend fun deleteMessage(
     messageController: MessageController,
