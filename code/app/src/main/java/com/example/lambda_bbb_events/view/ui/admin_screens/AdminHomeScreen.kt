@@ -115,7 +115,9 @@ fun AdminHomeScreen(
                                 AdminToolTile(
                                     title = "Logs",
                                     icon = Icons.Outlined.Description,
-                                    onClick = { /* TODO */ },
+                                    onClick = {
+                                        navController.navigate("admin_logs")
+                                    },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -139,7 +141,7 @@ fun AdminHomeScreen(
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.clickable {
-                                    // TODO: go to logs i guess
+                                    navController.navigate("admin_logs")
                                 }
                             )
                         }
