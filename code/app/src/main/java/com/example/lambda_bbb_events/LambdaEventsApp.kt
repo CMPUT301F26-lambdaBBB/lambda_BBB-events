@@ -70,6 +70,7 @@ import androidx.compose.runtime.setValue
 import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.user_screens.bookings.BookingReceiptScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.ViewBookedDatesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatRoute
 import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.rememberCoroutineScope
@@ -198,6 +199,10 @@ private fun MainApp(
             composable("owner_campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
+            }
+            composable("view_booked_dates/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                ViewBookedDatesScreen(navController, controllers, campsiteId)
             }
             composable("create_lottery/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
