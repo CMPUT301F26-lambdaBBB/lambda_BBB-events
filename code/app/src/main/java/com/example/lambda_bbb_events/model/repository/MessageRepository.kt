@@ -83,6 +83,12 @@ class MessageRepository(
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun sendMessage(
         content: String,
@@ -160,6 +166,10 @@ class MessageRepository(
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Also please clean up a database and offer a way for users to delete messages with a
+     *   message deleted plus. Show also that messages are active."
+     * - "So to clarify I want to allow users and admins to remove messages."
      */
     suspend fun deleteMessage(
         messageId: String,
@@ -223,6 +233,12 @@ class MessageRepository(
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun hasEligibleOwnerAccess(
         entrantId: String,

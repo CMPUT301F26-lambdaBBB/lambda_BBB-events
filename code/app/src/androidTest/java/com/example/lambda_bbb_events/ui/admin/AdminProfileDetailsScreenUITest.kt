@@ -352,6 +352,9 @@ class AdminProfileDetailsScreenUITest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
      */
     @Test
     fun messageButtonOpensTheAdminsConversationWithTheUser() {
@@ -370,6 +373,9 @@ class AdminProfileDetailsScreenUITest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
      */
     @Test
     fun failedMessageShowsAnErrorAndStaysOnTheProfile() {
@@ -390,6 +396,9 @@ class AdminProfileDetailsScreenUITest {
      * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
      * https://claude.com/claude-code
      * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
      */
     @Test
     fun messageButtonIsHiddenOnTheAdminsOwnProfile() {

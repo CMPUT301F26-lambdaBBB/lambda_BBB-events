@@ -31,6 +31,15 @@ import kotlinx.coroutines.delay
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Hey could you fix the view for the messages. It seems a bit weird with a fully non rounded
+ *   top area and the fact you can't press enter to send a message and also because the profile
+ *   photo isn't shown."
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 fun ChatRoute(
@@ -128,6 +137,15 @@ fun ChatRoute(
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Hey could you fix the view for the messages. It seems a bit weird with a fully non rounded
+ *   top area and the fact you can't press enter to send a message and also because the profile
+ *   photo isn't shown."
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 private fun OpenChat(
@@ -168,6 +186,12 @@ private fun OpenChat(
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 private fun rememberCanSend(chat: Conversation, currentUserId: String): Boolean {
@@ -200,6 +224,12 @@ private fun rememberCanSend(chat: Conversation, currentUserId: String): Boolean 
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
  * https://claude.com/claude-code
  * Written with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 private suspend fun checkOwnerEligibility(
     messageRepository: MessageRepository,
