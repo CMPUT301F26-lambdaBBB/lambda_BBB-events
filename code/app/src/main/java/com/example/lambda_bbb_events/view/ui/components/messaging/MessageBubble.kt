@@ -41,6 +41,11 @@ import java.text.SimpleDateFormat
  * @param onLongClick Called when the message is long-pressed, or `null` if
  * it cannot be acted on, such as when it cannot be deleted.
  * @param modifier Modifier applied to the message container.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun MessageBubble(
@@ -114,6 +119,11 @@ fun MessageBubble(
  * @param content Text of the message.
  * @param isOwnMessage Whether the current user sent the message.
  * @param onLongClick Called when the bubble is long-pressed, or `null` to ignore long presses.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun MessageContentBubble(
@@ -165,6 +175,11 @@ private fun MessageContentBubble(
 
 /**
  * Displays the outlined placeholder left where a deleted message was.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun DeletedMessageBubble() {

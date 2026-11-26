@@ -9,6 +9,11 @@ import com.example.lambda_bbb_events.model.user.UserRole
 /*
  * Builds the people shown on the notification page, each listed once no matter how many
  * campsites connect them to the current user.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
  */
 
 /**

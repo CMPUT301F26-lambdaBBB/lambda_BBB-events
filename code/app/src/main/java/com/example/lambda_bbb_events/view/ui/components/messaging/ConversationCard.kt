@@ -35,6 +35,11 @@ import java.text.SimpleDateFormat
  * @param contactImageId The contact's profile picture ID, blank to show the default icon.
  * @param onClick Callback invoked when the conversation is selected.
  * @param modifier Modifier applied to the conversation container.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun ConversationCard(

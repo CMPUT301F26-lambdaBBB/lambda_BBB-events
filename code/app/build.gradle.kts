@@ -64,6 +64,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     // Play services compile against Fragment 1.1.0, which is too old for registerForActivityResult
+    // Reference: Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+    // https://claude.com/claude-code. This fix was found with the help of this AI tool.
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)

@@ -78,6 +78,11 @@ class MessageRepository(
      * @throws IllegalArgumentException If the message is invalid.
      * @throws IllegalStateException If the sender is not permitted
      * to send messages or the conversation does not exist.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun sendMessage(
         content: String,
@@ -150,6 +155,11 @@ class MessageRepository(
      * @param requesterId Device ID of the person deleting it.
      * @param isAdmin Whether that person is an administrator.
      * @throws IllegalStateException If the message does not exist or the person may not delete it.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     suspend fun deleteMessage(
         messageId: String,
@@ -208,6 +218,11 @@ class MessageRepository(
      * @param entrantId Device ID of the entrant.
      * @param ownerId Device ID of the campsite owner.
      * @return True if the entrant remains eligible for owner messaging.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     suspend fun hasEligibleOwnerAccess(
         entrantId: String,

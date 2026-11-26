@@ -61,6 +61,11 @@ class MessageController(
      * @param contactId Device ID of the campsite owner or administrator.
      * @param type Type of conversation.
      * @return Unique identifier of the conversation.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun createConversation(
         contactId: String,
@@ -80,6 +85,11 @@ class MessageController(
      * @param userId Device ID of the user to message.
      * @return Unique identifier of the conversation.
      * @throws IllegalStateException If the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     suspend fun startConversationWithUser(userId: String): String {
         check(isAdmin) {
@@ -128,6 +138,11 @@ class MessageController(
      * @param content Text content of the message.
      * @throws IllegalStateException If no conversation is open
      * or no user is signed in.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun sendMessage(content: String) {
         val repository = messageRepository
@@ -148,6 +163,11 @@ class MessageController(
      * @param messageId Unique identifier of the message.
      * @throws IllegalStateException If no conversation is open
      * or the current user may not delete the message.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     suspend fun deleteMessage(messageId: String) {
         val repository = messageRepository
@@ -164,6 +184,11 @@ class MessageController(
      * Whether the current user may delete [message].
      *
      * @param message The message to check.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     fun canDelete(message: Message): Boolean {
         val user = userController.currentUser ?: return false
@@ -175,6 +200,11 @@ class MessageController(
      *
      * @param conversationId Unique identifier of the conversation.
      * @return Conversation object or null if unavailable.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun getConversation(
         conversationId: String
@@ -212,6 +242,11 @@ class MessageController(
      *
      * @return The administrator's own conversations, or none if
      * the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun getAdminConversations(): List<Conversation> {
         if (!isAdmin) return emptyList()
@@ -246,6 +281,11 @@ class MessageController(
      *
      * @return Flow of the administrator's own conversations.
      * @throws IllegalStateException If the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     fun observeAdminConversations(): Flow<List<Conversation>> {
         check(isAdmin) {

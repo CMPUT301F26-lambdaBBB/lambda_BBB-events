@@ -15,6 +15,11 @@ import com.google.firebase.Timestamp
  * @property deleted Whether the message was deleted. A deleted
  *                   message keeps its place in the conversation,
  *                   but its content is removed.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * The deleted property, canBeDeletedBy, and DELETED_TEXT were written with the help of this AI tool.
  */
 class Message(
     val messageId: String = "",

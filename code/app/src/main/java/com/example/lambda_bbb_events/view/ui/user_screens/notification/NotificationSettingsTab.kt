@@ -31,6 +31,11 @@ import kotlinx.coroutines.launch
  * @param contacts People who can message the user, each listed once.
  * @param preferenceController Controller for notification preferences.
  * @param modifier Modifier applied to the settings container.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun NotificationSettingsTab(
@@ -243,6 +248,11 @@ fun NotificationSettingsTab(
  *
  * @param preference The user's notification preference for the contact.
  * @return "Unmuted", "Muted indefinitely", or "Temporarily muted".
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 private fun muteStatus(preference: NotificationPreference): String {
     return when {

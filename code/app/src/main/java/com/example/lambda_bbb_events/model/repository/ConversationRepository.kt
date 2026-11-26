@@ -15,6 +15,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 /**
  * Manages conversations stored in Firebase Firestore.
  *

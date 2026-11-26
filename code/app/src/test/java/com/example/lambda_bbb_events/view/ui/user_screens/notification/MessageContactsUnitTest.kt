@@ -13,6 +13,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 class MessageContactsUnitTest {
     private val camper = Entrant(deviceId = "ed", name = "Ed")
     private val owner = CampsiteOwner(deviceId = "olive", name = "Olive", profilePictureImageId = "olive-pic")

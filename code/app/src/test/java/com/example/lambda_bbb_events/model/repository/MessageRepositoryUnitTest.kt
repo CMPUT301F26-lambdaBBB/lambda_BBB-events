@@ -19,6 +19,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 /**
  * Tests listening for, sending, and deleting messages with [MessageRepository] against a mocked Firestore,
  * in an admin conversation between camper "ed" and administrator "ada".

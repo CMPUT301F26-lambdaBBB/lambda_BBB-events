@@ -83,6 +83,11 @@ fun NotificationRow(
  * @param title Text displayed as the section heading.
  * @param modifier Modifier used to customize the heading's
  * layout and appearance.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun NotificationSectionHeader(

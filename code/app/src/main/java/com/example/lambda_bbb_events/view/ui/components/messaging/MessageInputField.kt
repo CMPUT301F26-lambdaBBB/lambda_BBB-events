@@ -42,6 +42,11 @@ import com.example.lambda_bbb_events.view.ui.components.common.formTextFieldColo
  * @param onSend Callback invoked when the send button is pressed.
  * @param enabled Whether the input field and send button are enabled.
  * @param modifier Modifier applied to the input container.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun MessageInputField(
@@ -115,6 +120,11 @@ fun MessageInputField(
  * @param event The key event received by the text field.
  * @param onSend Called when the message should be sent.
  * @return `true` if the event was consumed.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 private fun sendOnEnter(event: KeyEvent, onSend: () -> Unit): Boolean {
     val isEnter = event.key == Key.Enter || event.key == Key.NumPadEnter
