@@ -1,15 +1,10 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings.lottery
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,58 +13,129 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
+import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
+import java.time.ZoneId
 
 /**
  * Displays the registration status of a waitlist entry.
  *
- * Retrieves the waitlist entry using its unique ID and displays
- * its current status, corresponding message, and registration details.
- * The displayed information reflects the entry's status in Firestore.
+ * Allows entrants to review lottery results, leave the waitlist,
+ * confirm a reservation, or decline a lottery win.
  *
- * @param navController The [NavController] used for navigation.
- * @param controllers The [AppControllers] used to access waitlist entry information.
- * @param entryId The unique ID of the waitlist entry.
+ * After a reservation is successfully confirmed, the entrant
+ * navigates directly to the booking receipt screen.
+ *
+ * @param navController The controller used for navigation.
+ * @param controllers Shared application controllers.
+ * @param entryId The unique identifier of the waitlist entry.
+ * @param onConfirmReservation Callback that saves the reservation
+ * and updates the waitlist status. Throws an exception on failure.
  */
 @Composable
 fun RegistrationStatusScreen(
     navController: NavController,
     controllers: AppControllers,
-    entryId: String
+    entryId: String,
+    onConfirmReservation: (
+    suspend (String, String, LocalDate, LocalDate, Int) -> Unit
+    )? = null
 ) {
     val goBack = rememberBackAction(navController)
+    val scope = rememberCoroutineScope()
 
     val entry = controllers.waitlistEntries.getEntryById(entryId)
-    var campsiteId by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(entry) {
-        if (entry != null) {
-            val lottery = controllers.lotteries.getLottery(entry.lotteryId)
-            campsiteId = lottery?.campsiteIds?.firstOrNull()
-        }
-    }
 
     val statusColors = MaterialTheme.bookingStatusColors
     val colorScheme = MaterialTheme.colorScheme
-    val scope = rememberCoroutineScope()
 
-    var showLeaveDialog by remember { mutableStateOf(false) }
-    var isLeaving by remember { mutableStateOf(false) }
+    var campsiteId by remember {
+        mutableStateOf<String?>(null)
+    }
 
-    var showDeclineDialog by remember { mutableStateOf(false) }
-    var isDeclining by remember { mutableStateOf(false) }
+    var fromDate by remember {
+        mutableStateOf<LocalDate?>(null)
+    }
 
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var endDate by remember {
+        mutableStateOf<LocalDate?>(null)
+    }
+
+    var showLeaveDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showDeclineDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var isLeaving by remember {
+        mutableStateOf(false)
+    }
+
+    var isDeclining by remember {
+        mutableStateOf(false)
+    }
+
+    var isConfirming by remember {
+        mutableStateOf(false)
+    }
+
+    var errorMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    // Retrieve the campsite and booking dates from the lottery.
+    LaunchedEffect(entry?.lotteryId) {
+
+        campsiteId = null
+        fromDate = null
+        endDate = null
+
+        if (entry != null) {
+            try {
+                val lottery = controllers.lotteries
+                    .getLottery(entry.lotteryId)
+
+                if (lottery != null) {
+
+                    campsiteId = lottery.campsiteIds.singleOrNull()
+
+                    fromDate = lottery.bookingStart
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+
+                    endDate = lottery.bookingEnd
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+
+                } else {
+                    errorMessage = "Lottery not found."
+                }
+
+            } catch (e: CancellationException) {
+                throw e
+
+            } catch (e: Exception) {
+                errorMessage =
+                    e.message ?: "Failed to load lottery information."
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background),
+            .background(colorScheme.background)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
         ScreenTitle(
             title = "Registration Status",
             navController = navController,
@@ -77,25 +143,31 @@ fun RegistrationStatusScreen(
         )
 
         if (entry == null) {
+
             Text(
                 text = "Loading registration information...",
                 style = MaterialTheme.typography.bodyMedium
             )
+
         } else {
+
             val registrationStatus = when (entry.status) {
                 WaitlistStatus.IN_WAITLIST -> "In Waitlist"
-                WaitlistStatus.WON -> "Lottery Won"
-                WaitlistStatus.LOST -> "Lottery Lost"
+                WaitlistStatus.WON -> "Won the Lottery"
+                WaitlistStatus.LOST -> "Lost the Lottery"
                 WaitlistStatus.ACCEPTED -> "Reservation Accepted"
                 WaitlistStatus.DECLINED -> "Reservation Declined"
             }
 
             val registrationMessage = when (entry.status) {
+
                 WaitlistStatus.IN_WAITLIST ->
-                    "You have successfully joined the lottery. Waiting for results."
+                    "You have successfully joined the lottery. " +
+                            "Waiting for results."
 
                 WaitlistStatus.WON ->
-                    "Congratulations! You have won the lottery. Please view available dates to reserve or decline."
+                    "Congratulations! You have won the lottery. " +
+                            "Please confirm or decline your reservation."
 
                 WaitlistStatus.LOST ->
                     "Unfortunately, you were not selected in the lottery."
@@ -108,13 +180,16 @@ fun RegistrationStatusScreen(
             }
 
             val statusColor = when (entry.status) {
+
                 WaitlistStatus.IN_WAITLIST ->
                     statusColors.pendingBackground
 
-                WaitlistStatus.WON, WaitlistStatus.ACCEPTED ->
+                WaitlistStatus.WON,
+                WaitlistStatus.ACCEPTED ->
                     colorScheme.primaryContainer
 
-                WaitlistStatus.LOST, WaitlistStatus.DECLINED ->
+                WaitlistStatus.LOST,
+                WaitlistStatus.DECLINED ->
                     colorScheme.errorContainer
             }
 
@@ -124,89 +199,207 @@ fun RegistrationStatusScreen(
                 boxColor = statusColor
             )
 
-            Text(
-                text = "Number of Guests: ${entry.numberOfGuests}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        if (entry?.status == WaitlistStatus.IN_WAITLIST) {
-            OutlinedButton(
-                onClick = {
-                    showLeaveDialog = true
-                },
-                enabled = !isLeaving,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(
-                    text = if (isLeaving) "Leaving..." else "Leave Waitlist",
-                    style = MaterialTheme.typography.labelLarge
-                )
+            val campsiteName = campsiteId?.let {
+                controllers.campsites.campsites[it]?.campsiteName
             }
-        }
 
-        if (entry?.status == WaitlistStatus.WON) {
+            // Display registration and booking information.
+            OutlinedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
 
-            //Bob: reservation here but not sure to where it navigate, right now assume it is campsite_check_availability
-            if (campsiteId != null) {
-                Button(
+                    Text(
+                        text = "You Selected",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = campsiteName
+                            ?: "Campsite selection required",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = "From: ${fromDate ?: "Unavailable"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = "To: ${endDate ?: "Unavailable"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = "Number of Guests: ${entry.numberOfGuests}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // Allow entrants to leave the lottery waitlist.
+            if (entry.status == WaitlistStatus.IN_WAITLIST) {
+
+                OutlinedButton(
                     onClick = {
-                        navController.navigate("campsite_check_availability/$campsiteId")
+                        showLeaveDialog = true
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    enabled = !isLeaving,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colorScheme.error
+                    )
                 ) {
                     Text(
-                        text = "View Available Dates",
+                        text = if (isLeaving) {
+                            "Leaving..."
+                        } else {
+                            "Leave Waitlist"
+                        },
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
 
-            OutlinedButton(
-                onClick = {
-                    showDeclineDialog = true
-                },
-                enabled = !isDeclining,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(
-                    text = if (isDeclining) "Declining..." else "Decline Reservation",
-                    style = MaterialTheme.typography.labelLarge
-                )
+            // Allow lottery winners to confirm or decline.
+            if (entry.status == WaitlistStatus.WON) {
+
+                Button(
+                    onClick = confirmClick@{
+
+                        val selectedCampsiteId =
+                            campsiteId ?: return@confirmClick
+
+                        val selectedFromDate =
+                            fromDate ?: return@confirmClick
+
+                        val selectedEndDate =
+                            endDate ?: return@confirmClick
+
+                        val confirmReservation =
+                            onConfirmReservation
+
+                        if (confirmReservation == null) {
+                            errorMessage =
+                                "Reservation confirmation is not connected yet."
+                            return@confirmClick
+                        }
+
+                        if (isConfirming) return@confirmClick
+
+                        isConfirming = true
+                        errorMessage = null
+
+                        scope.launch {
+                            try {
+
+                                // Save the confirmed reservation.
+                                confirmReservation(
+                                    entryId,
+                                    selectedCampsiteId,
+                                    selectedFromDate,
+                                    selectedEndDate,
+                                    entry.numberOfGuests
+                                )
+
+                                // Navigate directly to Booking Receipt.
+                                navController.navigate("booking_receipt/lottery_$entryId") {
+                                    popUpTo("registrationStatus/{entryId}") {
+                                        inclusive = true
+                                    }
+
+                                    launchSingleTop = true
+                                }
+
+                            } catch (e: CancellationException) {
+                                throw e
+
+                            } catch (e: Exception) {
+                                errorMessage = e.message
+                                    ?: "Failed to confirm reservation."
+
+                            } finally {
+                                isConfirming = false
+                            }
+                        }
+                    },
+                    enabled = !isConfirming &&
+                            !isDeclining &&
+                            campsiteId != null &&
+                            fromDate != null &&
+                            endDate != null,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (isConfirming) {
+                            "Confirming..."
+                        } else {
+                            "Confirm Reservation"
+                        },
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        showDeclineDialog = true
+                    },
+                    enabled = !isDeclining && !isConfirming,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colorScheme.error
+                    )
+                ) {
+                    Text(
+                        text = if (isDeclining) {
+                            "Declining..."
+                        } else {
+                            "Decline Reservation"
+                        },
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
 
-        if (errorMessage != null) {
+        errorMessage?.let {
             Text(
-                text = errorMessage ?: "",
+                text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
+                color = colorScheme.error
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 
+    // Leave waitlist confirmation dialog.
     if (showLeaveDialog && entry != null) {
+
         AlertDialog(
             onDismissRequest = {
                 if (!isLeaving) {
                     showLeaveDialog = false
                 }
             },
+
             title = {
                 Text("Leave Waitlist?")
             },
+
             text = {
                 Text(
                     "Are you sure you want to leave this lottery? " +
                             "Your registration will be removed."
                 )
             },
+
             confirmButton = {
                 TextButton(
                     enabled = !isLeaving,
@@ -216,26 +409,34 @@ fun RegistrationStatusScreen(
 
                         scope.launch {
                             try {
-                                controllers.waitlistEntries.leaveWaitlist(entry)
+
+                                controllers.waitlistEntries
+                                    .leaveWaitlist(entry)
 
                                 showLeaveDialog = false
                                 goBack()
+
+                            } catch (e: CancellationException) {
+                                throw e
+
                             } catch (e: Exception) {
                                 errorMessage =
                                     e.message ?: "Failed to leave waitlist."
-                                showLeaveDialog = false
+
                             } finally {
+                                showLeaveDialog = false
                                 isLeaving = false
                             }
                         }
                     }
                 ) {
                     Text(
-                        text = "Leave",
-                        color = MaterialTheme.colorScheme.error
+                        text = if (isLeaving) "Leaving..." else "Leave",
+                        color = colorScheme.error
                     )
                 }
             },
+
             dismissButton = {
                 TextButton(
                     enabled = !isLeaving,
@@ -249,21 +450,26 @@ fun RegistrationStatusScreen(
         )
     }
 
+    // Decline reservation confirmation dialog.
     if (showDeclineDialog && entry != null) {
+
         AlertDialog(
             onDismissRequest = {
                 if (!isDeclining) {
                     showDeclineDialog = false
                 }
             },
+
             title = {
                 Text("Decline Reservation?")
             },
+
             text = {
                 Text(
                     "Are you sure you want to decline your lottery win?"
                 )
             },
+
             confirmButton = {
                 TextButton(
                     enabled = !isDeclining,
@@ -273,10 +479,17 @@ fun RegistrationStatusScreen(
 
                         scope.launch {
                             try {
-                                controllers.waitlistEntries.declineWin(entry)
+
+                                controllers.waitlistEntries
+                                    .declineWin(entry)
+
+                            } catch (e: CancellationException) {
+                                throw e
+
                             } catch (e: Exception) {
-                                errorMessage =
-                                    e.message ?: "Failed to decline reservation."
+                                errorMessage = e.message
+                                    ?: "Failed to decline reservation."
+
                             } finally {
                                 showDeclineDialog = false
                                 isDeclining = false
@@ -285,11 +498,16 @@ fun RegistrationStatusScreen(
                     }
                 ) {
                     Text(
-                        text = "Decline",
-                        color = MaterialTheme.colorScheme.error
+                        text = if (isDeclining) {
+                            "Declining..."
+                        } else {
+                            "Decline"
+                        },
+                        color = colorScheme.error
                     )
                 }
             },
+
             dismissButton = {
                 TextButton(
                     enabled = !isDeclining,

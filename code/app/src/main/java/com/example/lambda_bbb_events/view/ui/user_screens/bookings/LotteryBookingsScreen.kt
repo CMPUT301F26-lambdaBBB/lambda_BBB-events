@@ -1,53 +1,36 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
-import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
-import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.ui.theme.BookingsTypeBar
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.LotteryEntryCard
-
-/*
- * Defines the lottery bookings screen, allowing navigation between
- * reservation categories and viewing of lottery entries.
- *
- * TODO: Retrieve and display the user's lottery entries.
- */
+import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
+import kotlinx.coroutines.CancellationException
 
 /**
- * Displays the user's lottery bookings screen.
+ * Displays the user's lottery bookings.
  *
- * Provides navigation between active, past, and lottery
- * reservations, along with a section for lottery entries.
+ * Shows lottery entries that have not been converted
+ * into confirmed reservations.
+ *
+ * Accepted lottery entries are excluded because their
+ * reservations are displayed in Active or Past Bookings.
+ *
+ * Provides navigation to the registration status screen.
  *
  * @param navController Handles screen navigation.
  * @param controllers Provides access to application controllers.
@@ -57,40 +40,74 @@ fun LotteryBookingsScreen(
     navController: NavController,
     controllers: AppControllers
 ) {
-    var entries by remember { mutableStateOf<List<WaitlistEntry>>(emptyList()) }
-    var lotteries by remember { mutableStateOf<Map<String, Lottery>>(emptyMap()) }   // by lotteryId
-    var campsites by remember { mutableStateOf<Map<String, Campsite>>(emptyMap()) }  // by campsiteId
-    var isLoading by remember { mutableStateOf(true) }
+    val entrantId = controllers.users.user.deviceId
 
-    LaunchedEffect(Unit) {
-        val loadedEntries = controllers.waitlistEntries.getEntriesForEntrant(
-            controllers.users.user.deviceId
-        )
-        val loadedLotteries = mutableMapOf<String, Lottery>()
-        val loadedCampsites = mutableMapOf<String, Campsite>()
+    var entries by remember {
+        mutableStateOf<List<WaitlistEntry>>(emptyList())
+    }
 
-        for (entry in loadedEntries) {
-            val lottery = controllers.lotteries.getLottery(entry.lotteryId)
+    var lotteries by remember {
+        mutableStateOf<Map<String, Lottery>>(emptyMap())
+    }
 
-            if (lottery != null) {
-                loadedLotteries[lottery.lotteryId] = lottery
+    var isLoading by remember {
+        mutableStateOf(true)
+    }
 
-                val campsiteId = lottery.campsiteIds.firstOrNull()
+    var errorMessage by remember {
+        mutableStateOf<String?>(null)
+    }
 
-                if (campsiteId != null) {
-                    val campsite = controllers.campsites.getCampsite(campsiteId)
+    var reloadKey by remember {
+        mutableStateOf(0)
+    }
 
-                    if (campsite != null) {
-                        loadedCampsites[campsiteId] = campsite
-                    }
+    LaunchedEffect(entrantId, reloadKey) {
+
+        isLoading = true
+        errorMessage = null
+
+        try {
+
+            // Retrieve lottery entries belonging to the entrant.
+            val loadedEntries = controllers.waitlistEntries
+                .getEntriesForEntrant(entrantId)
+                .filter { entry ->
+                    entry.status != WaitlistStatus.ACCEPTED
+                }
+
+            val loadedLotteries = mutableMapOf<String, Lottery>()
+
+            // Retrieve the associated lotteries.
+            for (entry in loadedEntries) {
+
+                if (entry.lotteryId in loadedLotteries) {
+                    continue
+                }
+
+                val lottery = controllers.lotteries
+                    .getLottery(entry.lotteryId)
+
+                if (lottery != null) {
+                    loadedLotteries[lottery.lotteryId] = lottery
                 }
             }
-        }
 
-        entries = loadedEntries
-        lotteries = loadedLotteries
-        campsites = loadedCampsites
-        isLoading = false
+            entries = loadedEntries
+            lotteries = loadedLotteries
+
+        } catch (e: CancellationException) {
+            throw e
+
+        } catch (e: Exception) {
+
+            errorMessage = e.message
+                ?: "Failed to load lottery entries."
+
+        } finally {
+
+            isLoading = false
+        }
     }
 
     Scaffold(
@@ -99,13 +116,16 @@ fun LotteryBookingsScreen(
             BottomNavigationBar(navController)
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .testTag("lottery_bookings")
         ) {
+
             ScreenTitle(
                 title = "My Reservations",
                 navController = navController
@@ -116,71 +136,197 @@ fun LotteryBookingsScreen(
             Spacer(modifier = Modifier.height(25.dp))
 
             Text(
-                text = "In Lottery",
+                text = "Lottery Entries: ${entries.size}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            } else if (entries.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "You have not joined any lotteries yet.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(entries) { entry ->
-                        val lottery = lotteries[entry.lotteryId]
+            when {
 
-                        if (lottery != null) {
-                            // a lottery can cover several campsites
-                            val lotteryCampsites = ArrayList<Campsite>()
-                            val campsiteIds = lottery.campsiteIds
-                            for (id in campsiteIds) {
-                                val campsite = controllers.campsites.getCampsite(id)
-                                if (campsite != null) {
-                                    lotteryCampsites.add(campsite)
+                // Display loading indicator.
+                isLoading -> {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.testTag(
+                                "lottery_bookings_loading"
+                            )
+                        )
+                    }
+                }
+
+                // Display loading errors.
+                errorMessage != null -> {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        Text(
+                            text = errorMessage
+                                ?: "Failed to load lottery entries.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag(
+                                "lottery_bookings_error"
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedButton(
+                            onClick = {
+                                reloadKey++
+                            },
+                            modifier = Modifier.testTag(
+                                "retry_lottery_bookings"
+                            )
+                        ) {
+                            Text("Try Again")
+                        }
+                    }
+                }
+
+                // Display an empty state.
+                entries.isEmpty() -> {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Text(
+                            text = "No lottery entries.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag(
+                                "empty_lottery_bookings"
+                            )
+                        )
+                    }
+                }
+
+                // Display lottery entries.
+                else -> {
+
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement =
+                            Arrangement.spacedBy(12.dp),
+                        contentPadding =
+                            PaddingValues(bottom = 16.dp)
+                    ) {
+
+                        items(
+                            items = entries,
+                            key = { it.entryId }
+                        ) { entry ->
+
+                            val lottery = lotteries[entry.lotteryId]
+
+                            if (lottery != null) {
+
+                                // A lottery may cover multiple campsites.
+                                val lotteryCampsites =
+                                    lottery.campsiteIds.mapNotNull { id ->
+
+                                        controllers.campsites
+                                            .getCampsite(id)
+                                    }
+
+                                val campsiteName =
+                                    if (lotteryCampsites.isEmpty()) {
+
+                                        "Unknown campsite"
+
+                                    } else {
+
+                                        lotteryCampsites.joinToString(", ") {
+                                            it.campsiteName
+                                        }
+                                    }
+
+                                val address =
+                                    if (lotteryCampsites.size == 1) {
+
+                                        lotteryCampsites.first().address
+
+                                    } else {
+
+                                        ""
+                                    }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag(
+                                            "lottery_entry_${entry.entryId}"
+                                        )
+                                ) {
+
+                                    LotteryEntryCard(
+                                        campsiteName = campsiteName,
+                                        address = address,
+                                        entry = entry,
+                                        lottery = lottery,
+                                        onClick = {
+
+                                            navController.navigate(
+                                                "registrationStatus/" +
+                                                        entry.entryId
+                                            ) {
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    )
                                 }
-                            }
 
-                            LotteryEntryCard(
-                                campsiteName = if (lotteryCampsites.isEmpty()) {
-                                    "Unknown campsite"
-                                } else {
-                                    lotteryCampsites.joinToString(", ") { it.campsiteName }
-                                },
-                                address = if (lotteryCampsites.size == 1) lotteryCampsites[0].address else "",
-                                entry = entry,
-                                lottery = lottery,
-                                onClick = {
-                                    if (lotteryCampsites.isNotEmpty()) {
-                                        navController.navigate("registrationStatus/${entry.entryId}")
+                            } else {
+
+                                // Handle missing lottery information.
+                                OutlinedCard(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement =
+                                            Arrangement.spacedBy(8.dp)
+                                    ) {
+
+                                        Text(
+                                            text = "Lottery unavailable",
+                                            style = MaterialTheme
+                                                .typography.titleMedium
+                                        )
+
+                                        Text(
+                                            text = "The associated lottery " +
+                                                    "could not be found.",
+                                            style = MaterialTheme
+                                                .typography.bodyMedium,
+                                            color = MaterialTheme
+                                                .colorScheme.onSurfaceVariant
+                                        )
                                     }
                                 }
-                            )
+                            }
                         }
                     }
                 }

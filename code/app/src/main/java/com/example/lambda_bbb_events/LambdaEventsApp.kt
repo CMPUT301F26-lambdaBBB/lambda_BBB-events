@@ -63,19 +63,18 @@ import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.WelcomeScreen
 import androidx.compose.runtime.remember
-import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatScreen
-import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import com.example.lambda_bbb_events.model.Conversation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.user.UserRole
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.BookingReceiptScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.ViewBookedDatesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatRoute
 import kotlinx.coroutines.CancellationException
-
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 /*
  * Displays loading and signup states before opening the
@@ -220,6 +219,7 @@ private fun MainApp(
                 val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
                 OwnerLotteryDetailsScreen(navController, controllers, lotteryId)
             }
+
             composable("registrationStatus/{entryId}") { backStackEntry ->
                 val entryId =
                     backStackEntry.arguments?.getString("entryId") ?: ""
@@ -227,8 +227,95 @@ private fun MainApp(
                 RegistrationStatusScreen(
                     navController = navController,
                     controllers = controllers,
-                    entryId = entryId
+                    entryId = entryId,
+                    onConfirmReservation = {
+                            id, campsiteId, fromDate, endDate, guests ->
+
+                        controllers.reservations.confirmLotteryReservation(
+                            entryId = id,
+                            entrantId = controllers.users.user.deviceId,
+                            campsiteId = campsiteId,
+                            fromDate = fromDate,
+                            endDate = endDate,
+                            numberOfGuests = guests
+                        )
+                    }
                 )
+            }
+
+            composable("booking_receipt/{reservationId}") { backStackEntry ->
+
+                val reservationId =
+                    backStackEntry.arguments?.getString("reservationId") ?: ""
+
+                val reservation = controllers.reservations
+                    .reservationRepository
+                    .getReservation(reservationId)
+
+                val scope = rememberCoroutineScope()
+
+                var isCancelling by remember {
+                    mutableStateOf(false)
+                }
+
+                var errorMessage by remember {
+                    mutableStateOf<String?>(null)
+                }
+
+                if (
+                    reservation != null &&
+                    reservation.entrantId ==
+                    controllers.users.currentUser?.deviceId &&
+                    (reservation.status == ReservationStatus.CONFIRMED ||
+                            isCancelling)
+                ) {
+                    val campsiteName = controllers.campsites
+                        .campsites[reservation.campsiteId]
+                        ?.campsiteName ?: "Unknown campsite"
+
+                    BookingReceiptScreen(
+                        navController = navController,
+                        campsiteName = campsiteName,
+                        fromDate = reservation.startDate,
+                        endDate = reservation.endDate,
+                        numberOfGuests = reservation.guests,
+                        isCancelling = isCancelling,
+                        errorMessage = errorMessage,
+                        onCancelReservation = {
+                            if (!isCancelling) {
+                                isCancelling = true
+                                errorMessage = null
+
+                                scope.launch {
+                                    try {
+                                        controllers.reservations
+                                            .cancelReservation(reservation)
+
+                                        navController.navigate("active_bookings") {
+                                            popUpTo("booking_receipt/{reservationId}") {
+                                                inclusive = true
+                                            }
+
+                                            launchSingleTop = true
+                                        }
+
+                                    } catch (e: CancellationException) {
+                                        throw e
+
+                                    } catch (e: Exception) {
+                                        errorMessage = e.message
+                                            ?: "Failed to cancel reservation."
+
+                                    } finally {
+                                        isCancelling = false
+                                    }
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    Text("Confirmed reservation not available.")
+                }
             }
 
             composable(
