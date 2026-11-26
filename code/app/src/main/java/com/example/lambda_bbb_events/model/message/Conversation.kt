@@ -1,19 +1,23 @@
 package com.example.lambda_bbb_events.model
 
+import com.example.lambda_bbb_events.model.message.ConversationType
 import com.google.firebase.Timestamp
 
 /**
- * Represents a conversation between a camper and a campsite
- * owner or authorized administrators.
+ * Represents a private conversation between a camper and one other person: a campsite
+ * owner or a specific administrator.
  *
- * Each conversation contains multiple messages stored
- * in a Firestore subcollection.
+ * There is one conversation per pair of people, no matter how many of the owner's
+ * campsites the camper is enrolled in, so each contact appears once. Each conversation
+ * contains multiple messages stored in a Firestore subcollection.
  *
- * @property conversationId Unique identifier of the conversation.
- * @property campsiteId Unique identifier of the associated campsite.
+ * @property conversationId Unique identifier of the conversation, see [ownerConversationId]
+ * and [adminConversationId].
+ * @property campsiteId The campsite the camper was enrolled in when the conversation started.
+ * Empty when an administrator started the conversation from the user's profile.
  * @property userId Unique identifier of the camper.
- * @property ownerId Unique identifier of the campsite owner.
- *                   Empty for admin conversations.
+ * @property ownerId Unique identifier of the campsite owner. Empty for admin conversations.
+ * @property adminId Unique identifier of the administrator. Empty for owner conversations.
  * @property type Type of conversation (OWNER or ADMIN).
  * @property lastMessage Content of the most recent message.
  * @property updatedAt Timestamp of the most recent update.
@@ -23,7 +27,66 @@ class Conversation(
     val campsiteId: String = "",
     val userId: String = "",
     val ownerId: String = "",
+    val adminId: String = "",
     val type: String = "",
     val lastMessage: String = "",
     var updatedAt: Timestamp = Timestamp.now()
-)
+) {
+
+    /**
+     * Gets the ID of the person [viewerId] is talking to in this conversation.
+     *
+     * @param viewerId Device ID of the person viewing the conversation.
+     * @return The other participant's device ID.
+     */
+    fun contactIdFor(viewerId: String): String {
+        if (viewerId != userId) {
+            return userId
+        }
+        return if (type == ConversationType.ADMIN.name) adminId else ownerId
+    }
+
+    /**
+     * Whether [personId] is one of the two people in this conversation.
+     *
+     * @param personId Device ID to check.
+     */
+    fun hasParticipant(personId: String): Boolean {
+        return personId.isNotBlank() &&
+                (personId == userId || personId == contactIdFor(userId))
+    }
+
+    /**
+     * Whether this conversation uses the one-per-pair ID scheme. Conversations from before
+     * it were kept per campsite and shared by all administrators, and are no longer shown.
+     */
+    fun hasCurrentId(): Boolean {
+        val expectedId = when (type) {
+            ConversationType.OWNER.name -> ownerConversationId(userId, ownerId)
+            ConversationType.ADMIN.name -> adminConversationId(userId, adminId)
+            else -> return false
+        }
+        return conversationId == expectedId
+    }
+
+    companion object {
+
+        /**
+         * Gets the ID of the conversation between a camper and a campsite owner.
+         *
+         * @param userId Device ID of the camper.
+         * @param ownerId Device ID of the campsite owner.
+         */
+        fun ownerConversationId(userId: String, ownerId: String): String =
+            "owner_${userId}_${ownerId}"
+
+        /**
+         * Gets the ID of the conversation between a camper and an administrator.
+         *
+         * @param userId Device ID of the camper.
+         * @param adminId Device ID of the administrator.
+         */
+        fun adminConversationId(userId: String, adminId: String): String =
+            "admin_${userId}_${adminId}"
+    }
+}

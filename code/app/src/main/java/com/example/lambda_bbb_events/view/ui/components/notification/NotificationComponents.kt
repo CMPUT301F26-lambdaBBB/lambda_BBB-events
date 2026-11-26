@@ -77,6 +77,9 @@ fun NotificationRow(
 /**
  * Displays a section heading for grouping notification options.
  *
+ * Includes the space above and below it, so sections are evenly spaced
+ * without extra spacers.
+ *
  * @param title Text displayed as the section heading.
  * @param modifier Modifier used to customize the heading's
  * layout and appearance.
@@ -92,6 +95,6 @@ fun NotificationSectionHeader(
         color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp)
+            .padding(top = 24.dp, bottom = 4.dp)
     )
 }

@@ -8,7 +8,7 @@ import com.google.firebase.Timestamp
  * Supports permanent muting, temporary muting,
  * and enabling notifications.
  *
- * @property contactId Device ID of the contact or ADMIN_SUPPORT.
+ * @property contactId Device ID of the contact.
  * @property muted Whether notifications are muted.
  * @property mutedUntil Time when temporary muting expires.
  * Null represents indefinite muting when muted is true.
