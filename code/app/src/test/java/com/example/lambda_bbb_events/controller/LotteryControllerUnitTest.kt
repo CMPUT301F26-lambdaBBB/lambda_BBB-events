@@ -3,7 +3,7 @@ package com.example.lambda_bbb_events.controller
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
-import com.example.lambda_bbb_events.model.message.Message
+import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -62,7 +62,7 @@ class LotteryControllerUnitTest {
         capacity: String = "10"
     ) = controller.createLottery(
         ownerId = "owner-1",
-        campsiteId = "site-1",
+        campsiteIds = listOf("site-1"),
         registrationStart = registrationStart,
         registrationEnd = registrationEnd,
         bookingStart = bookingStart,
@@ -78,7 +78,6 @@ class LotteryControllerUnitTest {
     ) = controller.updateLottery(
         lotteryId = lotteryId,
         ownerId = "owner-1",
-        campsiteId = "site-1",
         registrationStart = today,
         registrationEnd = registrationEnd,
         bookingStart = today.plusDays(3),
