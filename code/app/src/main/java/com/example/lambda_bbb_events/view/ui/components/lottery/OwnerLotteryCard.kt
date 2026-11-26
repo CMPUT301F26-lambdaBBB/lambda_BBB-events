@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.LotteryPhase
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import java.text.SimpleDateFormat
@@ -47,10 +48,20 @@ fun OwnerLotteryCard(
     lotteryNumber: Int,
     lottery: Lottery,
     phase: LotteryPhase,
+    controllers: AppControllers,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val cardShape = RoundedCornerShape(16.dp)
+
+    val names = ArrayList<String>()
+    val campsiteIds = lottery.campsiteIds
+    for (id in campsiteIds) {
+        val campsite = controllers.campsites.getCampsite(id)
+        if (campsite != null) {
+            names.add(campsite.campsiteName)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -79,6 +90,14 @@ fun OwnerLotteryCard(
                 Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = "View lottery",
                 modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+
+        if (names.size > 1) {
+            Text(
+                text = "Multiple Campsites: " + names.joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

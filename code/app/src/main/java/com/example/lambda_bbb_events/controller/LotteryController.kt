@@ -72,7 +72,7 @@ class LotteryController(
      */
     suspend fun createLottery(
         ownerId: String,
-        campsiteId: String,
+        campsiteIds: List<String>,
         registrationStart: LocalDate?,
         registrationEnd: LocalDate?,
         bookingStart: LocalDate?,
@@ -81,6 +81,10 @@ class LotteryController(
         waitlistCapacityString: String
     ): String? {
         val today = LocalDate.now()
+
+        if (campsiteIds.isEmpty()) {
+            return "Please pick at least one campsite."
+        }
 
         // inpuut check the dates
         if (registrationStart == null || registrationEnd == null ||
@@ -129,13 +133,19 @@ class LotteryController(
         val newRegistrationEnd = toEndOfDay(registrationEnd)
 
         // a campsite shouldn't have multiple conflicting lottery periods / overlap
-        val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
-        for (existing in existingLotteries) {
-            val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
-                    !newRegistrationStart.after(existing.registrationEnd)
+        for (campsiteId in campsiteIds) {
+            val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
+            for (existing in existingLotteries) {
+                val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
+                        !newRegistrationStart.after(existing.registrationEnd)
 
-            if (existing.status != LotteryStatus.CANCELLED && overlaps) {
-                return "This campsite already has a lottery with an overlapping registration period."
+                if (existing.status != LotteryStatus.CANCELLED && overlaps) {
+                    return if (campsiteIds.size == 1) {
+                        "This campsite already has a lottery with an overlapping registration period."
+                    } else {
+                        "One of the selected campsites already has a lottery with an overlapping registration period."
+                    }
+                }
             }
         }
 
@@ -145,7 +155,7 @@ class LotteryController(
         lotteryRepository.addLottery(
             Lottery(
                 lotteryId = UUID.randomUUID().toString(),
-                campsiteIds = listOf(campsiteId),
+                campsiteIds = campsiteIds,
                 ownerId = ownerId,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
@@ -162,8 +172,8 @@ class LotteryController(
     /**
      * Creates a lottery for a campsite. Includes input validation.
      *
+     * @param lotteryId The ID of the lottery to update.
      * @param ownerId The device ID of the owner of the lottery.
-     * @param campsiteId The ID of the campsite of the lottery.
      * @param registrationStart The start date of the registration period.
      * @param registrationEnd The end date of the registration period.
      * @param bookingStart The start date of the booking period.
@@ -175,7 +185,6 @@ class LotteryController(
     suspend fun updateLottery(
         lotteryId: String,
         ownerId: String,
-        campsiteId: String,
         registrationStart: LocalDate?,
         registrationEnd: LocalDate?,
         bookingStart: LocalDate?,
@@ -238,16 +247,22 @@ class LotteryController(
         val newRegistrationEnd = toEndOfDay(registrationEnd)
 
         // a campsite shouldn't have multiple conflicting lottery periods / overlap
-        val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
-        for (existing in existingLotteries) {
-            if (existing.lotteryId == lotteryId) {
-                continue
-            }
-            val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
-                    !newRegistrationStart.after(existing.registrationEnd)
+        for (campsiteId in existingLottery.campsiteIds) {
+            val existingLotteries = lotteryRepository.getLotteriesForCampsite(campsiteId)
+            for (existing in existingLotteries) {
+                if (existing.lotteryId == lotteryId) {
+                    continue
+                }
+                val overlaps = !existing.registrationStart.after(newRegistrationEnd) &&
+                        !newRegistrationStart.after(existing.registrationEnd)
 
-            if (existing.status != LotteryStatus.CANCELLED && overlaps) {
-                return "This campsite already has a lottery with an overlapping registration period."
+                if (existing.status != LotteryStatus.CANCELLED && overlaps) {
+                    return if (existingLottery.campsiteIds.size == 1) {
+                        "This campsite already has a lottery with an overlapping registration period."
+                    } else {
+                        "A campsite in this lottery already has a lottery with an overlapping registration period."
+                    }
+                }
             }
         }
 
@@ -257,7 +272,7 @@ class LotteryController(
         lotteryRepository.updateLottery(
             Lottery(
                 lotteryId = lotteryId,
-                campsiteIds = listOf(campsiteId),
+                campsiteIds = existingLottery.campsiteIds,
                 ownerId = ownerId,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,

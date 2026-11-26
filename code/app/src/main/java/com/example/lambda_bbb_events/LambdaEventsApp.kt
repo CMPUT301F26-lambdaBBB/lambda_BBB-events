@@ -28,6 +28,7 @@ import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfileDetailsSc
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
 import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
 import com.example.lambda_bbb_events.view.ui.owner_screens.CreateLotteryScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.CreateMultipleCampsiteLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditCampsiteScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.EditLotteryScreen
 import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
@@ -177,7 +178,7 @@ private fun MainApp(
             composable("signup") { SignupScreen(navController, controllers) }
             composable("home") { HomeScreen(navController, controllers) }
             composable("active_bookings") { ActiveBookingsScreen(navController, controllers) }
-            composable("past_bookings") { PastBookingsScreen(navController) }
+            composable("past_bookings") { PastBookingsScreen(navController, controllers) }
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
@@ -201,6 +202,9 @@ private fun MainApp(
             composable("create_lottery/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CreateLotteryScreen(navController, controllers, campsiteId)
+            }
+            composable("create_multiple_campsite_lottery") {
+                CreateMultipleCampsiteLotteryScreen(navController, controllers)
             }
             composable("edit_lottery/{lotteryId}") { backStackEntry ->
                 val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""

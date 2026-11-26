@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.repository.ReservationRepository
@@ -34,6 +35,16 @@ class ReservationController(
     }
 
     /**
+     * Cancels a reservation by updating its status to CANCELLED.
+     *
+     * @param reservation The reservation to cancel.
+     */
+    suspend fun cancelReservation(reservation: Reservation) {
+        val updated = reservation.copy(status = ReservationStatus.CANCELLED)
+        reservationRepository.updateReservation(updated)
+    }
+
+    /**
      * Gets the reservations of a campsite that match the filter. They are sorted by
      * earliest first.
      *
@@ -54,10 +65,10 @@ class ReservationController(
         }
 
         if (filter == ReservationFilter.UPCOMING) {
-            return result.sortedBy { LocalDate.parse(it.startDate) }
+            return result.sortedBy { parseDateOrNull(it.startDate) ?: LocalDate.MAX }
         }
 
-        return result.sortedByDescending { LocalDate.parse(it.startDate) }
+        return result.sortedByDescending { parseDateOrNull(it.startDate) ?: LocalDate.MIN }
     }
 
     /**
@@ -71,7 +82,7 @@ class ReservationController(
         val isCancelled = reservation.status == ReservationStatus.CANCELLED ||
                 reservation.status == ReservationStatus.REJECTED
 
-        val endDate = LocalDate.parse(reservation.endDate)
+        val endDate = parseDateOrNull(reservation.endDate)
         val hasEnded = reservation.status == ReservationStatus.COMPLETED ||
                 (endDate != null && endDate.isBefore(LocalDate.now()))
 

@@ -163,7 +163,7 @@ fun CreateLotteryScreen(
                             // and createLottery answers that with an error message
                             val error = controllers.lotteries.createLottery(
                                 ownerId = controllers.users.user.deviceId,
-                                campsiteId = campsiteId,
+                                campsiteIds = listOf(campsiteId),
                                 registrationStart = parseDateOrNull(registrationStart),
                                 registrationEnd = parseDateOrNull(registrationEnd),
                                 bookingStart = parseDateOrNull(bookingStart),

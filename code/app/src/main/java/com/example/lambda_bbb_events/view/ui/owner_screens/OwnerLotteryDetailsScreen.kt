@@ -173,6 +173,7 @@ fun OwnerLotteryDetailsScreen(
                         lotteryNumber = lotteryNumber,
                         lottery = currentLottery,
                         phase = controllers.lotteries.getPhase(currentLottery),
+                        controllers = controllers,
                         onClick = {}
                     )
                 }

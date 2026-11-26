@@ -120,7 +120,7 @@ class RemoteChangesTest {
     fun deletingACampsiteElsewhereRemovesItFromTheOpenApp() {
         val campsiteId = testData.newId("campsites", prefix = "test-campsite")
         runBlocking { campsiteRepository.addCampsite(Campsite(campsiteId = campsiteId, campsiteName = "Lakeside")) }
-        val store = CampsiteStore(campsiteRepository)
+        val store = CampsiteStore(campsiteRepository, lotteryRepository = mockk(relaxed = true))
         composeTestRule.waitUntil(TIMEOUT) { campsiteId in store.campsites }
 
         runBlocking { otherDevice.document("campsites/$campsiteId").delete().await() }

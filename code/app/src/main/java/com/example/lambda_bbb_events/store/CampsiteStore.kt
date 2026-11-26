@@ -129,6 +129,7 @@ class CampsiteStore(
 
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
+            campsites.remove(campsiteID)
             campsites[campsiteID] = campsite
             scope.launch {
                 campsiteRepo.updateCampsite(campsiteID, campsite)
@@ -140,6 +141,22 @@ class CampsiteStore(
             return false
         }
         return true
+    }
+
+    /**
+     * Replaces a campsite's photos, and waits until Firestore has saved them.
+     *
+     * @param campsiteId The ID of the campsite.
+     * @param photos The photos, starting with the thumbnail.
+     * @throws Exception if Firestore fails, in which case the photos are not changed.
+     */
+    suspend fun setPhotos(campsiteId: String, photos: List<ImageMetaData>) {
+        campsiteRepo.setPhotos(campsiteId, photos)
+
+        // Campsite.equals ignores photos, so the map would keep the old copy if the new one
+        // were just put over it
+        val campsite = campsites.remove(campsiteId) ?: return
+        campsites[campsiteId] = campsite.copy(imageIds = photos)
     }
 
     fun getByOwner(ownerId: String): Campsite {
