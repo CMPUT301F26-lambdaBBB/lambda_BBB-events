@@ -1,6 +1,8 @@
 package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
+import com.example.lambda_bbb_events.model.repository.LotteryRepository
+import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -28,7 +30,11 @@ class WaitlistEntryControllerUnitTest {
         every { repository.getEntries("lottery-1") } returns listOf(middle, oldest, newest)
         every { repository.getEntriesForEntrant("ed") } returns listOf(oldest, newest, middle)
         every { repository.waitlistEntries } returns listOf(oldest, middle, newest)
-        controller = WaitlistEntryController(repository)
+        controller = WaitlistEntryController(
+            repository,
+            mockk<LotteryRepository>(relaxed = true),
+            mockk<ReservationRepository>(relaxed = true)
+        )
     }
 
     @Test

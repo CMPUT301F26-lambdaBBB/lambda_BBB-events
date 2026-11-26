@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.model.repository
 
+import com.example.lambda_bbb_events.model.Conversation
 import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
@@ -68,21 +69,30 @@ class MessageRepository(
     /**
      * Sends a message within the current conversation.
      *
-     * Validates sender permissions and messaging eligibility.
-     * Stores the message and updates the conversation
-     * summary in an atomic batch operation.
+     * Validates that the sender takes part in the conversation and, for owner
+     * conversations, that the camper is still eligible to message the owner.
+     * Stores the message and updates the conversation summary in an atomic batch operation.
      *
      * @param content Text content of the message.
      * @param senderId Device ID of the sender.
-     * @param isAdmin Whether the sender is an administrator.
      * @throws IllegalArgumentException If the message is invalid.
      * @throws IllegalStateException If the sender is not permitted
      * to send messages or the conversation does not exist.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun sendMessage(
         content: String,
-        senderId: String,
-        isAdmin: Boolean = false
+        senderId: String
     ) {
         require(senderId.isNotBlank()) {
             "Sender ID cannot be empty"
@@ -101,72 +111,17 @@ class MessageRepository(
         val conversation = conversationRef
             .get()
             .await()
+            .toObject(Conversation::class.java)
+            ?: error("Conversation does not exist")
 
-        check(conversation.exists()) {
-            "Conversation does not exist"
+        check(conversation.hasCurrentId() && conversation.hasParticipant(senderId)) {
+            "Unauthorized sender"
         }
 
-        val userId = conversation.getString("userId")
-            ?: error("User ID not found")
-
-        val ownerId = conversation.getString("ownerId")
-            ?: ""
-
-        val campsiteId = conversation.getString("campsiteId")
-            ?: error("Campsite ID not found")
-
-        val type = conversation.getString("type")
-
-        val recipientId = when (type) {
-
-            ConversationType.OWNER.name -> {
-
-                check(senderId == userId || senderId == ownerId) {
-                    "Unauthorized sender"
-                }
-
-                val access = db
-                    .collection("messagingAccess")
-                    .document(userId)
-                    .collection("campsites")
-                    .document(campsiteId)
-                    .get(Source.SERVER)
-                    .await()
-
-                check(
-                    access.getBoolean("active") == true &&
-                            access.getString("ownerId") == ownerId
-                ) {
-                    "Messaging access is no longer available"
-                }
-
-                check(
-                    hasEligibleEnrollment(
-                        entrantId = userId,
-                        campsiteId = campsiteId,
-                        ownerId = ownerId
-                    )
-                ) {
-                    "The lottery enrollment or reservation has ended"
-                }
-
-                if (senderId == userId) {
-                    ownerId
-                } else {
-                    userId
-                }
+        if (conversation.type == ConversationType.OWNER.name) {
+            check(hasEligibleOwnerAccess(conversation.userId, conversation.ownerId)) {
+                "The lottery enrollment or reservation has ended"
             }
-
-            ConversationType.ADMIN.name -> {
-
-                when {
-                    senderId == userId -> "ADMIN_SUPPORT"
-                    isAdmin -> userId
-                    else -> error("Unauthorized sender")
-                }
-            }
-
-            else -> error("Invalid conversation type")
         }
 
         val messageRef = collectionRef.document()
@@ -175,7 +130,7 @@ class MessageRepository(
             "messageId" to messageRef.id,
             "content" to trimmedContent,
             "senderId" to senderId,
-            "recipientId" to recipientId,
+            "recipientId" to conversation.contactIdFor(senderId),
             "timestamp" to FieldValue.serverTimestamp()
         )
 
@@ -193,6 +148,116 @@ class MessageRepository(
             )
 
         }.await()
+    }
+
+    /**
+     * Deletes a message for both people in the conversation.
+     *
+     * The message keeps its place but its content is removed from the database, and it is
+     * marked as deleted so it shows as [Message.DELETED_TEXT]. If it was the conversation's
+     * most recent message, the conversation preview shows that text too.
+     *
+     * @param messageId Unique identifier of the message.
+     * @param requesterId Device ID of the person deleting it.
+     * @param isAdmin Whether that person is an administrator.
+     * @throws IllegalStateException If the message does not exist or the person may not delete it.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Also please clean up a database and offer a way for users to delete messages with a
+     *   message deleted plus. Show also that messages are active."
+     * - "So to clarify I want to allow users and admins to remove messages."
+     */
+    suspend fun deleteMessage(
+        messageId: String,
+        requesterId: String,
+        isAdmin: Boolean = false
+    ) {
+        val conversationSnapshot = conversationRef
+            .get()
+            .await()
+
+        val conversation = conversationSnapshot
+            .toObject(Conversation::class.java)
+            ?: error("Conversation does not exist")
+
+        check(conversation.hasParticipant(requesterId)) {
+            "Unauthorized user"
+        }
+
+        val messageRef = collectionRef.document(messageId)
+
+        val message = messageRef
+            .get()
+            .await()
+            .toObject(Message::class.java)
+            ?: error("Message does not exist")
+
+        check(message.canBeDeletedBy(requesterId, isAdmin)) {
+            "You cannot delete this message"
+        }
+
+        val lastMessageId = conversationSnapshot.getString("lastMessageId")
+
+        db.runBatch { batch ->
+
+            batch.update(
+                messageRef,
+                mapOf(
+                    "content" to "",
+                    "deleted" to true,
+                    "deletedAt" to FieldValue.serverTimestamp()
+                )
+            )
+
+            if (lastMessageId == messageId) {
+                batch.update(conversationRef, "lastMessage", Message.DELETED_TEXT)
+            }
+
+        }.await()
+    }
+
+    /**
+     * Checks whether the entrant can still message a campsite owner: they must have active
+     * messaging access and an eligible reservation or lottery enrollment at any of the
+     * owner's campsites.
+     *
+     * @param entrantId Device ID of the entrant.
+     * @param ownerId Device ID of the campsite owner.
+     * @return True if the entrant remains eligible for owner messaging.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
+     */
+    suspend fun hasEligibleOwnerAccess(
+        entrantId: String,
+        ownerId: String
+    ): Boolean {
+        val campsiteIds = db
+            .collection("messagingAccess")
+            .document(entrantId)
+            .collection("campsites")
+            .whereEqualTo("ownerId", ownerId)
+            .whereEqualTo("active", true)
+            .get(Source.SERVER)
+            .await()
+            .documents
+            .map { it.id }
+
+        return campsiteIds.any { campsiteId ->
+            hasEligibleEnrollment(entrantId, campsiteId, ownerId)
+        }
     }
 
     /**

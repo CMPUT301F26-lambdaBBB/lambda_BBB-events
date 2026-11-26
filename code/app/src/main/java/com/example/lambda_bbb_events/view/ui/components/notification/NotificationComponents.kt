@@ -77,9 +77,23 @@ fun NotificationRow(
 /**
  * Displays a section heading for grouping notification options.
  *
+ * Includes the space above and below it, so sections are evenly spaced
+ * without extra spacers.
+ *
  * @param title Text displayed as the section heading.
  * @param modifier Modifier used to customize the heading's
  * layout and appearance.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 fun NotificationSectionHeader(
@@ -92,6 +106,6 @@ fun NotificationSectionHeader(
         color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp)
+            .padding(top = 24.dp, bottom = 4.dp)
     )
 }

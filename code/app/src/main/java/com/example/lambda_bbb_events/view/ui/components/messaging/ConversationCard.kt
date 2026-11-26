@@ -2,19 +2,14 @@ package com.example.lambda_bbb_events.view.ui.components.messaging
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -24,25 +19,40 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.Conversation
+import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 import java.text.SimpleDateFormat
 
 /**
  * Displays a conversation preview within the messaging tab.
  *
- * Shows the contact's display name, associated campsite,
- * most recent message, and timestamp.
+ * Shows the contact's profile picture and display name, what connects them to
+ * the user, the most recent message, and its time. Lines up with the other
+ * notification rows.
  *
  * @param conversation The conversation to display.
  * @param contactName Display name of the conversation contact.
- * @param campsiteName Name of the associated campsite.
+ * @param subtitle What connects the contact to the user, such as their campsites.
+ * @param contactImageId The contact's profile picture ID, blank to show the default icon.
  * @param onClick Callback invoked when the conversation is selected.
  * @param modifier Modifier applied to the conversation container.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 fun ConversationCard(
     conversation: Conversation,
     contactName: String,
-    campsiteName: String,
+    subtitle: String,
+    contactImageId: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -53,59 +63,26 @@ fun ConversationCard(
         conversation.updatedAt,
         locale
     ) {
-        conversation.updatedAt?.let {
-            SimpleDateFormat(
-                "h:mm a",
-                locale
-            ).format(it.toDate())
-        } ?: ""
+        SimpleDateFormat(
+            "h:mm a",
+            locale
+        ).format(conversation.updatedAt.toDate())
     }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(
-                horizontal = 16.dp,
-                vertical = 12.dp
-            ),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // Contact avatar
-        Surface(
-            modifier = Modifier.size(48.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
+        ProfilePicture(
+            imageId = contactImageId,
+            size = 48.dp
+        )
 
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
-
-                if (contactName.isNotBlank()) {
-
-                    Text(
-                        text = contactName.take(1).uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme
-                            .onPrimaryContainer
-                    )
-
-                } else {
-
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme
-                            .onPrimaryContainer
-                    )
-                }
-            }
-        }
-
-        // Conversation information
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -116,7 +93,6 @@ fun ConversationCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                // Contact name
                 Text(
                     text = contactName,
                     style = MaterialTheme.typography.titleMedium,
@@ -125,7 +101,6 @@ fun ConversationCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Timestamp
                 if (conversation.lastMessage.isNotBlank()) {
 
                     Text(
@@ -137,16 +112,14 @@ fun ConversationCard(
                 }
             }
 
-            // Campsite name
             Text(
-                text = campsiteName,
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            // Latest message preview
             Text(
                 text = conversation.lastMessage.ifBlank {
                     "No messages yet"
@@ -158,7 +131,6 @@ fun ConversationCard(
             )
         }
 
-        // Navigation arrow
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,

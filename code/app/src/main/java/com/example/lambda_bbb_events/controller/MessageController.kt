@@ -9,6 +9,7 @@ import com.example.lambda_bbb_events.model.message.ConversationType
 import com.example.lambda_bbb_events.model.repository.MessageRepository
 import com.example.lambda_bbb_events.model.repository.ConversationRepository
 import com.example.lambda_bbb_events.model.user.UserRole
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Controls messaging operations between the user interface
@@ -55,20 +56,58 @@ class MessageController(
         get() = messageRepository?.messages ?: emptyList()
 
     /**
-     * Creates or retrieves a conversation for a campsite.
+     * Creates or retrieves the current user's conversation with a contact.
      *
-     * @param campsiteId Unique identifier of the campsite.
+     * @param contactId Device ID of the campsite owner or administrator.
      * @param type Type of conversation.
      * @return Unique identifier of the conversation.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun createConversation(
-        campsiteId: String,
+        contactId: String,
         type: ConversationType
     ): String {
         return conversationRepository.createConversation(
-            campsiteId = campsiteId,
+            contactId = contactId,
             type = type,
             userId = currentUserId
+        )
+    }
+
+    /**
+     * Creates or retrieves the current administrator's conversation with a user,
+     * so the administrator can message them from their profile.
+     *
+     * @param userId Device ID of the user to message.
+     * @return Unique identifier of the conversation.
+     * @throws IllegalStateException If the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
+     */
+    suspend fun startConversationWithUser(userId: String): String {
+        check(isAdmin) {
+            "Administrator access required"
+        }
+
+        return conversationRepository.startAdminConversation(
+            userId = userId,
+            adminId = currentUserId
         )
     }
 
@@ -108,6 +147,17 @@ class MessageController(
      * @param content Text content of the message.
      * @throws IllegalStateException If no conversation is open
      * or no user is signed in.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun sendMessage(content: String) {
         val repository = messageRepository
@@ -115,9 +165,57 @@ class MessageController(
 
         repository.sendMessage(
             content = content,
-            senderId = currentUserId,
+            senderId = currentUserId
+        )
+    }
+
+    /**
+     * Deletes a message from the currently opened conversation for both people.
+     *
+     * Users can delete their own messages, and administrators can delete any
+     * message in their conversations.
+     *
+     * @param messageId Unique identifier of the message.
+     * @throws IllegalStateException If no conversation is open
+     * or the current user may not delete the message.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Also please clean up a database and offer a way for users to delete messages with a
+     *   message deleted plus. Show also that messages are active."
+     * - "So to clarify I want to allow users and admins to remove messages."
+     */
+    suspend fun deleteMessage(messageId: String) {
+        val repository = messageRepository
+            ?: error("No conversation is currently open")
+
+        repository.deleteMessage(
+            messageId = messageId,
+            requesterId = currentUserId,
             isAdmin = isAdmin
         )
+    }
+
+    /**
+     * Whether the current user may delete [message].
+     *
+     * @param message The message to check.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Also please clean up a database and offer a way for users to delete messages with a
+     *   message deleted plus. Show also that messages are active."
+     * - "So to clarify I want to allow users and admins to remove messages."
+     */
+    fun canDelete(message: Message): Boolean {
+        val user = userController.currentUser ?: return false
+        return message.canBeDeletedBy(user.deviceId, isAdmin)
     }
 
     /**
@@ -125,14 +223,24 @@ class MessageController(
      *
      * @param conversationId Unique identifier of the conversation.
      * @return Conversation object or null if unavailable.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun getConversation(
         conversationId: String
     ): Conversation? {
         return conversationRepository.getConversation(
             conversationId = conversationId,
-            userId = currentUserId,
-            isAdmin = isAdmin
+            userId = currentUserId
         )
     }
 
@@ -159,13 +267,27 @@ class MessageController(
     }
 
     /**
-     * Retrieves shared administrator conversations.
+     * Retrieves conversations addressed to the current administrator.
      *
-     * @return List of administrator conversations.
+     * @return The administrator's own conversations, or none if
+     * the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
     suspend fun getAdminConversations(): List<Conversation> {
+        if (!isAdmin) return emptyList()
+
         return conversationRepository.getAdminConversations(
-            isAdmin = isAdmin
+            adminId = currentUserId
         )
     }
 
@@ -190,12 +312,29 @@ class MessageController(
         )
 
     /**
-     * Observes shared administrator conversations in real time.
+     * Observes conversations addressed to the current administrator in real time.
      *
-     * @return Flow of administrator conversations.
+     * @return Flow of the administrator's own conversations.
+     * @throws IllegalStateException If the current user is not an administrator.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
+     * Prompts:
+     * - "Now on the notification page as well. Please also remove the profile duplication bug.
+     *   Also please fix the way the admins work since it seems all admins share an account. One
+     *   more thing is to fix the notification page so that the spacing looks right."
+     * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+     *   chats per admin".
      */
-    fun observeAdminConversations() =
-        conversationRepository.observeAdminConversations(
-            isAdmin = isAdmin
+    fun observeAdminConversations(): Flow<List<Conversation>> {
+        check(isAdmin) {
+            "Administrator access required"
+        }
+
+        return conversationRepository.observeAdminConversations(
+            adminId = currentUserId
         )
+    }
 }

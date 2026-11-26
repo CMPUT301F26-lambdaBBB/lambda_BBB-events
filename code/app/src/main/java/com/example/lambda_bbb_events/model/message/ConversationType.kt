@@ -12,8 +12,8 @@ enum class ConversationType {
     OWNER,
 
     /**
-     * Shared conversation between a camper and
-     * authorized administrators.
+     * Private conversation between a camper and
+     * one specific administrator.
      */
     ADMIN
 }

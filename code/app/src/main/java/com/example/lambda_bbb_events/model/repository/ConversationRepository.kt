@@ -2,21 +2,40 @@ package com.example.lambda_bbb_events.model.repository
 
 import com.example.lambda_bbb_events.model.Conversation
 import com.example.lambda_bbb_events.model.message.ConversationType
+import com.example.lambda_bbb_events.model.user.UserRole
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
+ * - "Okay so there are no conversations yet so can I have admins be able to message users from
+ *   the profile admin screen"
+ */
+
 /**
  * Manages conversations stored in Firebase Firestore.
  *
- * Provides functionality for creating and retrieving
- * conversations for campers, campsite owners, and administrators.
+ * Provides functionality for creating and retrieving private conversations between
+ * campers and campsite owners or individual administrators. Only conversations that use
+ * the one-per-pair ID scheme are returned, see [Conversation.hasCurrentId].
  *
  * @param db Firestore database instance.
  */
@@ -30,22 +49,23 @@ class ConversationRepository(
     private val messagingAccessRef =
         db.collection("messagingAccess")
 
+    private val usersRef =
+        db.collection("users")
+
     /**
-     * Creates a conversation associated with a campsite.
+     * Creates or retrieves the conversation between a camper and a contact.
      *
-     * A deterministic conversation ID prevents duplicate
-     * conversations for the same camper, campsite, and type.
-     * Existing conversations are preserved.
+     * The conversation ID is built from the two people, so each pair has exactly one
+     * conversation and existing conversations are preserved.
      *
-     * @param campsiteId Unique identifier of the campsite.
+     * @param contactId Device ID of the campsite owner or administrator.
      * @param type Type of conversation.
      * @param userId Device ID of the camper.
      * @return Unique identifier of the conversation.
-     * @throws IllegalStateException If enrollment is not found
-     * or owner messaging is unavailable.
+     * @throws IllegalStateException If the camper may not message the contact.
      */
     suspend fun createConversation(
-        campsiteId: String,
+        contactId: String,
         type: ConversationType,
         userId: String
     ): String {
@@ -54,93 +74,154 @@ class ConversationRepository(
             "User ID cannot be empty"
         }
 
-        require(campsiteId.isNotBlank()) {
-            "Campsite ID cannot be empty"
+        require(contactId.isNotBlank() && contactId != userId) {
+            "Invalid contact"
         }
 
-        val accessRef = messagingAccessRef
-            .document(userId)
-            .collection("campsites")
-            .document(campsiteId)
+        val campsiteId = when (type) {
+            ConversationType.OWNER -> findOwnerCampsite(userId, contactId)
+            ConversationType.ADMIN -> findAdminCampsite(userId, contactId)
+        }
 
-        val conversationId =
-            "${campsiteId}_${userId}_${type.name}"
+        val conversationId = when (type) {
+            ConversationType.OWNER -> Conversation.ownerConversationId(userId, contactId)
+            ConversationType.ADMIN -> Conversation.adminConversationId(userId, contactId)
+        }
 
-        val conversationRef =
-            conversationsRef.document(conversationId)
+        val conversation = mapOf(
+            "conversationId" to conversationId,
+            "campsiteId" to campsiteId,
+            "userId" to userId,
+            "ownerId" to if (type == ConversationType.OWNER) contactId else "",
+            "adminId" to if (type == ConversationType.ADMIN) contactId else "",
+            "type" to type.name,
+            "lastMessage" to "",
+            "lastMessageId" to "",
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
 
-        db.runTransaction { transaction ->
-
-            val access = transaction.get(accessRef)
-
-            check(access.exists()) {
-                "User has not enrolled in this campsite"
-            }
-
-            val ownerId = if (type == ConversationType.OWNER) {
-
-                check(access.getBoolean("active") == true) {
-                    "Owner messaging is unavailable"
-                }
-
-                val id = access.getString("ownerId")
-                    ?: error("Campsite owner not found")
-
-                check(id.isNotBlank() && id != userId) {
-                    "Invalid campsite owner"
-                }
-
-                id
-
-            } else {
-                ""
-            }
-
-            val existing = transaction.get(conversationRef)
-
-            if (!existing.exists()) {
-
-                val conversation = mapOf(
-                    "conversationId" to conversationId,
-                    "campsiteId" to campsiteId,
-                    "userId" to userId,
-                    "ownerId" to ownerId,
-                    "type" to type.name,
-                    "lastMessage" to "",
-                    "lastMessageId" to "",
-                    "updatedAt" to FieldValue.serverTimestamp()
-                )
-
-                transaction.set(
-                    conversationRef,
-                    conversation
-                )
-
-            } else {
-                check(existing.getString("ownerId") == ownerId) {
-                    "Conversation owner has changed"
-                }
-            }
-
-            conversationId
-
-        }.await()
+        createIfMissing(conversationsRef.document(conversationId), conversation)
 
         return conversationId
     }
 
     /**
-     * Retrieves a conversation available to the current user.
+     * Creates or retrieves the conversation an administrator starts with a user from
+     * their profile. Unlike a camper, an administrator does not need the user to have
+     * enrolled in a campsite first.
+     *
+     * @param userId Device ID of the user being messaged.
+     * @param adminId Device ID of the administrator.
+     * @return Unique identifier of the conversation.
+     * @throws IllegalStateException If [adminId] is not an administrator or the user does not exist.
+     */
+    suspend fun startAdminConversation(
+        userId: String,
+        adminId: String
+    ): String {
+
+        require(userId.isNotBlank() && adminId.isNotBlank() && userId != adminId) {
+            "Invalid conversation participants"
+        }
+
+        val admin = usersRef.document(adminId).get(Source.SERVER).await()
+
+        check(admin.getString("role") == UserRole.ADMIN.name) {
+            "Administrator access required"
+        }
+
+        check(usersRef.document(userId).get(Source.SERVER).await().exists()) {
+            "User not found"
+        }
+
+        val conversationId = Conversation.adminConversationId(userId, adminId)
+
+        val conversation = mapOf(
+            "conversationId" to conversationId,
+            "campsiteId" to "",
+            "userId" to userId,
+            "ownerId" to "",
+            "adminId" to adminId,
+            "type" to ConversationType.ADMIN.name,
+            "lastMessage" to "",
+            "lastMessageId" to "",
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+
+        createIfMissing(conversationsRef.document(conversationId), conversation)
+
+        return conversationId
+    }
+
+    /**
+     * Finds a campsite of [ownerId]'s that [userId] can currently message them about.
+     *
+     * @return The campsite's ID.
+     * @throws IllegalStateException If the camper has no active access to the owner.
+     */
+    private suspend fun findOwnerCampsite(userId: String, ownerId: String): String {
+        val access = messagingAccessRef
+            .document(userId)
+            .collection("campsites")
+            .whereEqualTo("ownerId", ownerId)
+            .whereEqualTo("active", true)
+            .get(Source.SERVER)
+            .await()
+
+        return access.documents.firstOrNull()?.id
+            ?: error("Owner messaging is unavailable")
+    }
+
+    /**
+     * Checks that [adminId] is an administrator and finds a campsite [userId] has enrolled
+     * in, since campers can contact administrators once they have enrolled anywhere.
+     *
+     * @return The campsite's ID.
+     * @throws IllegalStateException If the contact is not an administrator or the camper has
+     * never enrolled in a campsite.
+     */
+    private suspend fun findAdminCampsite(userId: String, adminId: String): String {
+        val admin = usersRef.document(adminId).get(Source.SERVER).await()
+
+        check(admin.getString("role") == UserRole.ADMIN.name) {
+            "Contact is not an administrator"
+        }
+
+        val access = messagingAccessRef
+            .document(userId)
+            .collection("campsites")
+            .limit(1)
+            .get(Source.SERVER)
+            .await()
+
+        return access.documents.firstOrNull()?.id
+            ?: error("User has not enrolled in a campsite")
+    }
+
+    /**
+     * Writes [conversation] to [conversationRef] unless the conversation already exists.
+     */
+    private suspend fun createIfMissing(
+        conversationRef: DocumentReference,
+        conversation: Map<String, Any>
+    ) {
+        db.runTransaction { transaction ->
+            if (!transaction.get(conversationRef).exists()) {
+                transaction.set(conversationRef, conversation)
+            }
+        }.await()
+    }
+
+    /**
+     * Retrieves a conversation the current user takes part in.
      *
      * @param conversationId Unique identifier of the conversation.
      * @param userId Device ID of the current user.
-     * @param isAdmin Whether the current user is an administrator.
      * @return Conversation object or null if unavailable.
      */
     suspend fun getConversation(
         conversationId: String,
-        userId: String,
-        isAdmin: Boolean = false
+        userId: String
     ): Conversation? {
 
         require(userId.isNotBlank())
@@ -152,24 +233,8 @@ class ConversationRepository(
             .toObject(Conversation::class.java)
             ?: return null
 
-        val canAccess = when (conversation.type) {
-
-            ConversationType.OWNER.name -> {
-                conversation.userId == userId ||
-                        conversation.ownerId == userId
-            }
-
-            ConversationType.ADMIN.name -> {
-                conversation.userId == userId || isAdmin
-            }
-
-            else -> false
-        }
-
-        return if (canAccess) {
-            conversation
-        } else {
-            null
+        return conversation.takeIf {
+            it.hasCurrentId() && it.hasParticipant(userId)
         }
     }
 
@@ -185,12 +250,9 @@ class ConversationRepository(
 
         require(userId.isNotBlank())
 
-        return conversationsRef
-            .whereEqualTo("userId", userId)
-            .get()
-            .await()
-            .toObjects(Conversation::class.java)
-            .sortedByDescending { it.updatedAt }
+        return getConversations(
+            conversationsRef.whereEqualTo("userId", userId)
+        )
     }
 
     /**
@@ -205,36 +267,22 @@ class ConversationRepository(
 
         require(ownerId.isNotBlank())
 
-        return conversationsRef
-            .whereEqualTo("ownerId", ownerId)
-            .whereEqualTo("type", ConversationType.OWNER.name)
-            .get()
-            .await()
-            .toObjects(Conversation::class.java)
-            .sortedByDescending { it.updatedAt }
+        return getConversations(ownerQuery(ownerId))
     }
 
     /**
-     * Retrieves all shared administrator conversations.
+     * Retrieves conversations addressed to an administrator.
      *
-     * @param isAdmin Whether the current user is an administrator.
-     * @return List of shared administrator conversations.
-     * @throws IllegalStateException If the user is not an administrator.
+     * @param adminId Device ID of the administrator.
+     * @return List of the administrator's own conversations.
      */
     suspend fun getAdminConversations(
-        isAdmin: Boolean
+        adminId: String
     ): List<Conversation> {
 
-        check(isAdmin) {
-            "Administrator access required"
-        }
+        require(adminId.isNotBlank())
 
-        return conversationsRef
-            .whereEqualTo("type", ConversationType.ADMIN.name)
-            .get()
-            .await()
-            .toObjects(Conversation::class.java)
-            .sortedByDescending { it.updatedAt }
+        return getConversations(adminQuery(adminId))
     }
 
     /**
@@ -250,8 +298,7 @@ class ConversationRepository(
         require(userId.isNotBlank())
 
         return observeConversations(
-            conversationsRef
-                .whereEqualTo("userId", userId)
+            conversationsRef.whereEqualTo("userId", userId)
         )
     }
 
@@ -267,39 +314,47 @@ class ConversationRepository(
 
         require(ownerId.isNotBlank())
 
-        return observeConversations(
-            conversationsRef
-                .whereEqualTo("ownerId", ownerId)
-                .whereEqualTo(
-                    "type",
-                    ConversationType.OWNER.name
-                )
-        )
+        return observeConversations(ownerQuery(ownerId))
     }
 
     /**
-     * Observes shared administrator conversations in real time.
+     * Observes conversations addressed to an administrator in real time.
      *
-     * @param isAdmin Whether the current user is an administrator.
-     * @return Flow containing administrator conversations.
-     * @throws IllegalStateException If the user is not an administrator.
+     * @param adminId Device ID of the administrator.
+     * @return Flow containing the administrator's own conversations.
      */
     fun observeAdminConversations(
-        isAdmin: Boolean
+        adminId: String
     ): Flow<List<Conversation>> {
 
-        check(isAdmin) {
-            "Administrator access required"
-        }
+        require(adminId.isNotBlank())
 
-        return observeConversations(
-            conversationsRef
-                .whereEqualTo(
-                    "type",
-                    ConversationType.ADMIN.name
-                )
-        )
+        return observeConversations(adminQuery(adminId))
     }
+
+    /**
+     * Gets the query for owner conversations addressed to [ownerId].
+     */
+    private fun ownerQuery(ownerId: String): Query =
+        conversationsRef
+            .whereEqualTo("ownerId", ownerId)
+            .whereEqualTo("type", ConversationType.OWNER.name)
+
+    /**
+     * Gets the query for administrator conversations addressed to [adminId].
+     */
+    private fun adminQuery(adminId: String): Query =
+        conversationsRef
+            .whereEqualTo("adminId", adminId)
+            .whereEqualTo("type", ConversationType.ADMIN.name)
+
+    /**
+     * Retrieves the current conversations matching [query], most recent first.
+     */
+    private suspend fun getConversations(query: Query): List<Conversation> =
+        currentConversations(
+            query.get().await().toObjects(Conversation::class.java)
+        )
 
     /**
      * Observes conversations matching a Firestore query.
@@ -322,13 +377,11 @@ class ConversationRepository(
             }
 
             try {
-
-                val conversations = snapshot
-                    ?.toObjects(Conversation::class.java)
-                    ?.sortedByDescending { it.updatedAt }
-                    ?: emptyList()
-
-                trySend(conversations)
+                trySend(
+                    currentConversations(
+                        snapshot?.toObjects(Conversation::class.java).orEmpty()
+                    )
+                )
 
             } catch (e: Exception) {
                 close(e)
@@ -339,4 +392,13 @@ class ConversationRepository(
             listener.remove()
         }
     }
+
+    /**
+     * Drops conversations from before the one-per-pair ID scheme and orders the rest by
+     * recent activity.
+     */
+    private fun currentConversations(conversations: List<Conversation>): List<Conversation> =
+        conversations
+            .filter { it.hasCurrentId() }
+            .sortedByDescending { it.updatedAt }
 }

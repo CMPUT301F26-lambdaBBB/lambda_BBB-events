@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.ui.admin
 
+import androidx.compose.material3.Text
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -42,7 +43,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Tests promoting users to admin and removing users from [AdminProfileDetailsScreen], opened
+ * Tests messaging, promoting users to admin, and removing users from [AdminProfileDetailsScreen], opened
  * by clicking the user in [AdminProfilesScreen]. Controllers are mocked, so nothing is written
  * to the database.
  */
@@ -84,6 +85,9 @@ class AdminProfileDetailsScreenUITest {
                 composable("admin_profile_details/{userId}") { entry ->
                     val userId = entry.arguments?.getString("userId") ?: ""
                     AdminProfileDetailsScreen(navController, controllers, userId)
+                }
+                composable("chat/{conversationId}") { entry ->
+                    Text("Chat ${entry.arguments?.getString("conversationId")}")
                 }
             }
         }
@@ -341,6 +345,67 @@ class AdminProfileDetailsScreenUITest {
         composeTestRule.onNodeWithText("Could not remove this profile. Please try again.")
             .performScrollTo()
             .assertIsDisplayed()
+    }
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
+     */
+    @Test
+    fun messageButtonOpensTheAdminsConversationWithTheUser() {
+        coEvery { controllers.messages.startConversationWithUser("user-1") } returns "admin_user-1_admin-1"
+        openProfile(entrant)
+
+        composeTestRule.onNodeWithTag("adminMessageUserButton").performScrollTo().performClick()
+        composeTestRule.waitForIdle()
+
+        coVerify { controllers.messages.startConversationWithUser("user-1") }
+        composeTestRule.onNodeWithText("Chat admin_user-1_admin-1").assertIsDisplayed()
+    }
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
+     */
+    @Test
+    fun failedMessageShowsAnErrorAndStaysOnTheProfile() {
+        coEvery { controllers.messages.startConversationWithUser("user-1") } throws IllegalStateException()
+        openProfile(entrant)
+
+        composeTestRule.onNodeWithTag("adminMessageUserButton").performScrollTo().performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("Could not open a conversation. Please try again.")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithTag("screen_admin_profile_details").assertIsDisplayed()
+    }
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Okay so there are no conversations yet so can I have admins be able to message users
+     *   from the profile admin screen"
+     */
+    @Test
+    fun messageButtonIsHiddenOnTheAdminsOwnProfile() {
+        showDetails(shown = admin, signedIn = admin)
+
+        composeTestRule.onNodeWithTag("adminRemoveProfileButton").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("adminMessageUserButton").assertDoesNotExist()
     }
 
     @Test

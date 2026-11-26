@@ -13,6 +13,7 @@ import com.example.lambda_bbb_events.controller.MessageController
 import com.example.lambda_bbb_events.controller.NotificationPreferenceController
 import com.example.lambda_bbb_events.model.Conversation
 import com.example.lambda_bbb_events.model.repository.MessagingAccessRepository
+import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import kotlinx.coroutines.CancellationException
@@ -30,9 +31,20 @@ import kotlinx.coroutines.flow.flowOf
  * @param currentUserId Device ID of the current user.
  * @param messageController Controller for messaging operations.
  * @param preferenceController Controller for notification preferences.
- * @param profileNames Map of user IDs to display names.
+ * @param profiles Every known user by device ID, for names and profile pictures.
  * @param campsiteNames Map of campsite IDs to campsite names.
  * @param isAdmin Whether the current user is an administrator.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
+ * Prompts:
+ * - "Now on the notification page as well. Please also remove the profile duplication bug. Also
+ *   please fix the way the admins work since it seems all admins share an account. One more thing
+ *   is to fix the notification page so that the spacing looks right."
+ * - Answers chosen when the AI asked how to do this: "Merge repeated contacts" and "Separate
+ *   chats per admin".
  */
 @Composable
 fun NotificationsScreen(
@@ -40,7 +52,7 @@ fun NotificationsScreen(
     currentUserId: String,
     messageController: MessageController,
     preferenceController: NotificationPreferenceController,
-    profileNames: Map<String, String> = emptyMap(),
+    profiles: Map<String, User> = emptyMap(),
     campsiteNames: Map<String, String> = emptyMap(),
     isAdmin: Boolean = false
 ) {
@@ -148,6 +160,14 @@ fun NotificationsScreen(
         }
     }
 
+    val conversationContacts = conversationContacts(
+        conversations, messagingAccess, currentUserId, profiles, campsiteNames
+    )
+
+    val availableContacts = availableContacts(
+        conversations, messagingAccess, currentUserId, profiles, campsiteNames
+    )
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController)
@@ -158,7 +178,6 @@ fun NotificationsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
 
             ScreenTitle(
@@ -168,11 +187,6 @@ fun NotificationsScreen(
                 showBack = true
             )
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
-            // Messages and Settings tabs.
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor =
@@ -239,11 +253,8 @@ fun NotificationsScreen(
                         else -> {
 
                             MessagesTab(
-                                conversations = conversations,
-                                messagingAccess = messagingAccess,
-                                currentUserId = currentUserId,
-                                profileNames = profileNames,
-                                campsiteNames = campsiteNames,
+                                conversations = conversationContacts,
+                                available = availableContacts,
                                 messageController = messageController,
                                 navController = navController,
                                 modifier = Modifier.weight(1f)
@@ -256,8 +267,8 @@ fun NotificationsScreen(
                 1 -> {
 
                     NotificationSettingsTab(
-                        messagingAccess = messagingAccess,
-                        profileNames = profileNames,
+                        contacts = (conversationContacts + availableContacts)
+                            .distinctBy { it.contactId },
                         preferenceController = preferenceController,
                         modifier = Modifier.weight(1f)
                     )
