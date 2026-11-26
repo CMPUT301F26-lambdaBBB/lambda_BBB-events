@@ -44,7 +44,7 @@ class LotteryControllerTest {
 
         val error = lotteryController.createLottery(
             ownerId = "testOwner",
-            campsiteId = campsiteId,
+            campsiteIds = listOf(campsiteId),
             registrationStart = today,
             registrationEnd = today.plusDays(2),
             bookingStart = today.plusDays(3),
