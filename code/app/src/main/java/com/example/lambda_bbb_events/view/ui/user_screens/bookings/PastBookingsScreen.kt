@@ -1,14 +1,7 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
+import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
@@ -30,41 +24,61 @@ import java.time.LocalDate
 /**
  * Displays the user's past campsite reservations.
  *
- * Provides navigation between reservation categories
- * and a scrollable list of past reservations.
+ * Includes completed, cancelled, rejected, and expired
+ * reservations, sorted by the most recent ending date.
  *
- * @param navController The [NavController] used for navigation.
- * @param controllers The [AppControllers] used to access reservation and campsite data.
+ * Provides navigation between reservation categories
+ * and displays reservation history in a scrollable list.
+ *
+ * @param navController Handles screen navigation.
+ * @param controllers Provides access to reservation and campsite data.
  */
 @Composable
 fun PastBookingsScreen(
     navController: NavController,
     controllers: AppControllers
 ) {
+    val reservations = controllers.reservations
+        .getReservationsForEntrant(
+            controllers.users.user.deviceId
+        )
+        .filter { reservation ->
+
+            val endDate = parseDateOrNull(
+                reservation.endDate
+            )
+
+            val hasEnded =
+                endDate != null &&
+                        endDate.isBefore(LocalDate.now())
+
+            val isInactive =
+                reservation.status == ReservationStatus.CANCELLED ||
+                        reservation.status == ReservationStatus.COMPLETED ||
+                        reservation.status == ReservationStatus.REJECTED
+
+            isInactive || hasEnded
+        }
+        .sortedByDescending {
+            parseDateOrNull(it.endDate) ?: LocalDate.MIN
+        }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(navController)
         }
     ) { innerPadding ->
-        val reservations = controllers.reservations
-            .getReservationsForEntrant(controllers.users.user.deviceId)
-            .filter { reservation ->
-                val isCancelled = reservation.status == ReservationStatus.CANCELLED ||
-                        reservation.status == ReservationStatus.REJECTED
-                val endDate = runCatching { LocalDate.parse(reservation.endDate) }.getOrNull()
-                val hasEnded = reservation.status == ReservationStatus.COMPLETED ||
-                        (endDate != null && endDate.isBefore(LocalDate.now()))
-                !isCancelled && hasEnded
-            }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .testTag("past_bookings")
         ) {
+
             ScreenTitle(
                 title = "My Reservations",
                 navController = navController
@@ -75,7 +89,7 @@ fun PastBookingsScreen(
             Spacer(modifier = Modifier.height(25.dp))
 
             Text(
-                text = "Past Reservations",
+                text = "Past Reservations: ${reservations.size}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -83,6 +97,7 @@ fun PastBookingsScreen(
             Spacer(modifier = Modifier.height(25.dp))
 
             if (reservations.isEmpty()) {
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -92,20 +107,36 @@ fun PastBookingsScreen(
                     Text(
                         text = "No past reservations.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag(
+                            "empty_past_bookings"
+                        )
                     )
                 }
+
             } else {
+
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(reservations) { reservation ->
+                    items(
+                        items = reservations,
+                        key = { it.reservationId }
+                    ) { reservation ->
+
                         ReservationCard(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag(
+                                    "past_reservation_${reservation.reservationId}"
+                                ),
                             reservation = reservation,
                             campsite = controllers.campsites
-                                .getCampsite(reservation.campsiteId)
+                                .getCampsite(reservation.campsiteId),
+                            onCancel = null,
+                            showChevron = false
                         )
                     }
                 }

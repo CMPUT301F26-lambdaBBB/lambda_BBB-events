@@ -45,6 +45,57 @@ class ReservationController(
     }
 
     /**
+     * Confirms a reservation for an entrant who has won a lottery.
+     *
+     * Creates a confirmed reservation and updates the associated
+     * waitlist entry status to ACCEPTED.
+     *
+     * @param entryId The unique identifier of the waitlist entry.
+     * @param entrantId The device ID of the current entrant.
+     * @param campsiteId The selected campsite identifier.
+     * @param fromDate The reservation start date.
+     * @param endDate The reservation end date.
+     * @param numberOfGuests The number of guests.
+     */
+    suspend fun confirmLotteryReservation(
+        entryId: String,
+        entrantId: String,
+        campsiteId: String,
+        fromDate: LocalDate,
+        endDate: LocalDate,
+        numberOfGuests: Int
+    ) {
+        require(entryId.isNotBlank()) {
+            "Invalid waitlist entry."
+        }
+
+        require(entrantId.isNotBlank()) {
+            "Invalid entrant."
+        }
+
+        require(campsiteId.isNotBlank()) {
+            "Invalid campsite."
+        }
+
+        require(!endDate.isBefore(fromDate)) {
+            "End date cannot be before start date."
+        }
+
+        require(numberOfGuests > 0) {
+            "Number of guests must be greater than zero."
+        }
+
+        reservationRepository.confirmLotteryReservation(
+            entryId = entryId,
+            entrantId = entrantId,
+            campsiteId = campsiteId,
+            fromDate = fromDate.toString(),
+            endDate = endDate.toString(),
+            numberOfGuests = numberOfGuests
+        )
+    }
+
+    /**
      * Gets the reservations of a campsite that match the filter. They are sorted by
      * earliest first.
      *
