@@ -1,5 +1,6 @@
 package com.example.lambda_bbb_events.view.ui.admin_screens
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
@@ -27,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,8 +63,12 @@ import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
 import kotlinx.coroutines.launch
 
 /**
- * Displays a user's profile to an admin, who can promote the user to admin or remove them.
- * Both actions ask for confirmation first, and show an error if they fail.
+ * Displays a user's profile to an admin, who can message the user, promote them to admin,
+ * or remove them. Promoting and removing ask for confirmation first, and every action shows
+ * an error if it fails.
+ *
+ * Messaging opens the admin's private conversation with the user, creating it if needed.
+ * It is not offered on the admin's own profile.
  *
  * Promoting is only offered for users who are not admins yet, and needs the admin password.
  * Afterwards the screen stays open and shows the new role.
@@ -91,6 +98,8 @@ fun AdminProfileDetailsScreen(
     var makeAdminError by remember { mutableStateOf(false) }
     var wrongPassword by remember { mutableStateOf(false) }
     var isMakingAdmin by remember { mutableStateOf(false) }
+    var isOpeningChat by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val goBack = rememberBackAction(navController)
 
@@ -206,6 +215,32 @@ fun AdminProfileDetailsScreen(
                     )
 
                     Spacer(modifier = Modifier.height(50.dp))
+
+                    if (shownUser.deviceId != controllers.users.currentUser?.deviceId) {
+                        MessageUserButton(
+                            onClick = {
+                                if (!isOpeningChat) {
+                                    isOpeningChat = true
+                                    messageError = false
+                                    scope.launch {
+                                        try {
+                                            val conversationId = controllers.messages
+                                                .startConversationWithUser(userId)
+                                            navController.navigate("chat/${Uri.encode(conversationId)}")
+                                        } catch (_: Exception) { // shown below the button
+                                            messageError = true
+                                        } finally {
+                                            isOpeningChat = false
+                                        }
+                                    }
+                                }
+                            },
+                            isOpening = isOpeningChat,
+                            showError = messageError
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
                     if (shownUser.role != UserRole.ADMIN) {
                         Button(
@@ -343,6 +378,58 @@ fun AdminProfileDetailsScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * Displays the button that opens the admin's conversation with the user, with an error
+ * beneath it if the conversation could not be opened.
+ *
+ * @param onClick Called when the button is tapped.
+ * @param isOpening Whether the conversation is being opened, which disables the button.
+ * @param showError Whether to show that opening the conversation failed.
+ */
+@Composable
+private fun MessageUserButton(
+    onClick: () -> Unit,
+    isOpening: Boolean,
+    showError: Boolean
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = !isOpening,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .testTag("adminMessageUserButton"),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.Chat,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = "Message",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+
+    if (showError) {
+        Text(
+            text = "Could not open a conversation. Please try again.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            textAlign = TextAlign.Center
+        )
     }
 }
 

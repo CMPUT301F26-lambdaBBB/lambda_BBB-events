@@ -9,6 +9,7 @@ import com.example.lambda_bbb_events.model.message.ConversationType
 import com.example.lambda_bbb_events.model.repository.MessageRepository
 import com.example.lambda_bbb_events.model.repository.ConversationRepository
 import com.example.lambda_bbb_events.model.user.UserRole
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Controls messaging operations between the user interface
@@ -55,20 +56,39 @@ class MessageController(
         get() = messageRepository?.messages ?: emptyList()
 
     /**
-     * Creates or retrieves a conversation for a campsite.
+     * Creates or retrieves the current user's conversation with a contact.
      *
-     * @param campsiteId Unique identifier of the campsite.
+     * @param contactId Device ID of the campsite owner or administrator.
      * @param type Type of conversation.
      * @return Unique identifier of the conversation.
      */
     suspend fun createConversation(
-        campsiteId: String,
+        contactId: String,
         type: ConversationType
     ): String {
         return conversationRepository.createConversation(
-            campsiteId = campsiteId,
+            contactId = contactId,
             type = type,
             userId = currentUserId
+        )
+    }
+
+    /**
+     * Creates or retrieves the current administrator's conversation with a user,
+     * so the administrator can message them from their profile.
+     *
+     * @param userId Device ID of the user to message.
+     * @return Unique identifier of the conversation.
+     * @throws IllegalStateException If the current user is not an administrator.
+     */
+    suspend fun startConversationWithUser(userId: String): String {
+        check(isAdmin) {
+            "Administrator access required"
+        }
+
+        return conversationRepository.startAdminConversation(
+            userId = userId,
+            adminId = currentUserId
         )
     }
 
@@ -115,9 +135,39 @@ class MessageController(
 
         repository.sendMessage(
             content = content,
-            senderId = currentUserId,
+            senderId = currentUserId
+        )
+    }
+
+    /**
+     * Deletes a message from the currently opened conversation for both people.
+     *
+     * Users can delete their own messages, and administrators can delete any
+     * message in their conversations.
+     *
+     * @param messageId Unique identifier of the message.
+     * @throws IllegalStateException If no conversation is open
+     * or the current user may not delete the message.
+     */
+    suspend fun deleteMessage(messageId: String) {
+        val repository = messageRepository
+            ?: error("No conversation is currently open")
+
+        repository.deleteMessage(
+            messageId = messageId,
+            requesterId = currentUserId,
             isAdmin = isAdmin
         )
+    }
+
+    /**
+     * Whether the current user may delete [message].
+     *
+     * @param message The message to check.
+     */
+    fun canDelete(message: Message): Boolean {
+        val user = userController.currentUser ?: return false
+        return message.canBeDeletedBy(user.deviceId, isAdmin)
     }
 
     /**
@@ -131,8 +181,7 @@ class MessageController(
     ): Conversation? {
         return conversationRepository.getConversation(
             conversationId = conversationId,
-            userId = currentUserId,
-            isAdmin = isAdmin
+            userId = currentUserId
         )
     }
 
@@ -159,13 +208,16 @@ class MessageController(
     }
 
     /**
-     * Retrieves shared administrator conversations.
+     * Retrieves conversations addressed to the current administrator.
      *
-     * @return List of administrator conversations.
+     * @return The administrator's own conversations, or none if
+     * the current user is not an administrator.
      */
     suspend fun getAdminConversations(): List<Conversation> {
+        if (!isAdmin) return emptyList()
+
         return conversationRepository.getAdminConversations(
-            isAdmin = isAdmin
+            adminId = currentUserId
         )
     }
 
@@ -190,12 +242,18 @@ class MessageController(
         )
 
     /**
-     * Observes shared administrator conversations in real time.
+     * Observes conversations addressed to the current administrator in real time.
      *
-     * @return Flow of administrator conversations.
+     * @return Flow of the administrator's own conversations.
+     * @throws IllegalStateException If the current user is not an administrator.
      */
-    fun observeAdminConversations() =
-        conversationRepository.observeAdminConversations(
-            isAdmin = isAdmin
+    fun observeAdminConversations(): Flow<List<Conversation>> {
+        check(isAdmin) {
+            "Administrator access required"
+        }
+
+        return conversationRepository.observeAdminConversations(
+            adminId = currentUserId
         )
+    }
 }

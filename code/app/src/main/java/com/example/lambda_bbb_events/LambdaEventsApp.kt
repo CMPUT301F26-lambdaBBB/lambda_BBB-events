@@ -291,10 +291,8 @@ private fun MainApp(
             composable("notifications") {
                 if (currentUserId != null) {
 
-                    val profileNames = controllers.users.userRepository.users
-                        .associate { user ->
-                            user.deviceId to user.name
-                        }
+                    val profiles = controllers.users.userRepository.users
+                        .associateBy { it.deviceId }
 
                     val campsiteNames = controllers.campsites.campsites
                         .mapValues { (_, campsite) ->
@@ -306,7 +304,7 @@ private fun MainApp(
                         currentUserId = currentUserId,
                         messageController = controllers.messages,
                         preferenceController = controllers.notificationPreferences,
-                        profileNames = profileNames,
+                        profiles = profiles,
                         campsiteNames = campsiteNames,
                         isAdmin = isAdmin
                     )

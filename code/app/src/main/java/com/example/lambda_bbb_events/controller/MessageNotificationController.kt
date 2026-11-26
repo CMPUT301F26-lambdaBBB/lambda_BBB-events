@@ -11,9 +11,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.lambda_bbb_events.model.Conversation
 import com.example.lambda_bbb_events.model.Message
-import com.example.lambda_bbb_events.model.message.ConversationType
 import com.example.lambda_bbb_events.model.repository.NotificationPreferenceRepository
-import com.example.lambda_bbb_events.model.user.UserRole
 
 /**
  * Manages Android notifications for incoming chat messages.
@@ -33,6 +31,9 @@ class MessageNotificationController(
      * Determines whether an incoming message should
      * generate a notification.
      *
+     * Only the message's recipient is notified, never its sender,
+     * and not while the sender is muted.
+     *
      * @param conversation Conversation containing the message.
      * @param message Incoming message.
      * @return True if notifications are permitted.
@@ -46,35 +47,14 @@ class MessageNotificationController(
 
         if (!user.notificationsEnabled) return false
 
-        // Do not notify users about their own messages.
         if (message.senderId == user.deviceId) return false
 
-        val isRecipient =
-            message.recipientId == user.deviceId ||
-                    (
-                            conversation.type == ConversationType.ADMIN.name &&
-                                    message.recipientId == "ADMIN_SUPPORT" &&
-                                    user.role == UserRole.ADMIN
-                            )
-
-        if (!isRecipient) return false
-
-        // All administrator messages share one preference
-        // when received by the camper.
-        val contactId =
-            if (
-                conversation.type == ConversationType.ADMIN.name &&
-                user.deviceId == conversation.userId
-            ) {
-                "ADMIN_SUPPORT"
-            } else {
-                message.senderId
-            }
+        if (message.recipientId != user.deviceId) return false
 
         val repository =
             NotificationPreferenceRepository(user.deviceId)
 
-        val preference = repository.get(contactId)
+        val preference = repository.get(message.senderId)
 
         return preference?.isMuted() != true
     }

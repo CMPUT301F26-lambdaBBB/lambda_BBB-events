@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -13,6 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.controller.MessageController
+import com.example.lambda_bbb_events.model.Message
+import com.example.lambda_bbb_events.view.ui.components.profile.ShowAlertDialog
+import androidx.navigation.NavController
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
+import com.example.lambda_bbb_events.view.ui.components.messaging.ChatContactCard
 import com.example.lambda_bbb_events.view.ui.components.messaging.MessageBubble
 import com.example.lambda_bbb_events.view.ui.components.messaging.MessageInputField
 import kotlinx.coroutines.CancellationException
@@ -26,16 +29,19 @@ import kotlinx.coroutines.launch
  * conversations. The message listener is started when the screen
  * opens and removed when the screen leaves composition.
  *
+ * Long-pressing a message the user may delete asks them to confirm,
+ * then deletes it for both people.
+ *
  * @param conversationId Unique identifier of the conversation.
- * @param title Display name of the conversation.
+ * @param title Display name of the contact, shown on the contact card.
  * @param subtitle Additional information about the conversation.
  * @param currentUserId Unique identifier of the current user.
  * @param messageController Controller responsible for messaging operations.
- * @param onBack Callback invoked when the back button is pressed.
+ * @param navController Controller used for back navigation.
  * @param canSend Whether the current user can send messages.
+ * @param contactImageId Profile picture ID of the contact, blank to show the default icon.
  * @param senderNames Map containing sender IDs and display names.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     conversationId: String,
@@ -43,8 +49,9 @@ fun ChatScreen(
     subtitle: String,
     currentUserId: String,
     messageController: MessageController,
-    onBack: () -> Unit,
+    navController: NavController,
     canSend: Boolean = true,
+    contactImageId: String = "",
     senderNames: Map<String, String> = emptyMap()
 ) {
 
@@ -58,6 +65,10 @@ fun ChatScreen(
 
     var errorMessage by remember(conversationId) {
         mutableStateOf<String?>(null)
+    }
+
+    var messageToDelete by remember(conversationId) {
+        mutableStateOf<Message?>(null)
     }
 
     val scope = rememberCoroutineScope()
@@ -84,39 +95,7 @@ fun ChatScreen(
     }
 
     Scaffold(
-        modifier = Modifier.imePadding(),
-
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        if (subtitle.isNotBlank()) {
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme
-                                    .onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-
+        modifier = Modifier.imePadding()
     ) { innerPadding ->
 
         Column(
@@ -124,6 +103,19 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+
+            ScreenTitle(
+                title = "Messages",
+                navController = navController,
+                showBack = true,
+                showNotifications = false
+            )
+
+            ChatContactCard(
+                name = title,
+                subtitle = subtitle,
+                contactImageId = contactImageId
+            )
 
             if (messages.isEmpty()) {
 
@@ -146,8 +138,7 @@ fun ChatScreen(
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
+                        .fillMaxWidth(),
                     state = listState,
                     reverseLayout = true,
                     contentPadding = PaddingValues(
@@ -163,7 +154,12 @@ fun ChatScreen(
                         MessageBubble(
                             message = message,
                             currentUserId = currentUserId,
-                            senderName = senderNames[message.senderId] ?: ""
+                            senderName = senderNames[message.senderId] ?: "",
+                            onLongClick = if (messageController.canDelete(message)) {
+                                { messageToDelete = message }
+                            } else {
+                                null
+                            }
                         )
                     }
                 }
@@ -177,8 +173,6 @@ fun ChatScreen(
                     modifier = Modifier.padding(12.dp)
                 )
             }
-
-            HorizontalDivider()
 
             if (canSend) {
 
@@ -235,5 +229,60 @@ fun ChatScreen(
                 )
             }
         }
+    }
+
+    messageToDelete?.let { message ->
+        DeleteMessageDialog(
+            onConfirm = {
+                messageToDelete = null
+                errorMessage = null
+
+                scope.launch {
+                    errorMessage = deleteMessage(messageController, message)
+                }
+            },
+            onDismiss = { messageToDelete = null }
+        )
+    }
+}
+
+/**
+ * Asks the user to confirm deleting a message.
+ *
+ * @param onConfirm Called when the user confirms.
+ * @param onDismiss Called when the user cancels.
+ */
+@Composable
+private fun DeleteMessageDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    ShowAlertDialog(
+        dialogLabel = "Delete message?",
+        dialogCaption = "This message will be deleted for everyone in the conversation. " +
+                "\"${Message.DELETED_TEXT}\" will be shown in its place.",
+        confirmButton = onConfirm,
+        confirmText = "Delete",
+        dismissState = onDismiss,
+        cancelText = "Cancel"
+    )
+}
+
+/**
+ * Deletes [message] from the open conversation.
+ *
+ * @return An error to show the user, or `null` if the message was deleted.
+ */
+private suspend fun deleteMessage(
+    messageController: MessageController,
+    message: Message
+): String? {
+    return try {
+        messageController.deleteMessage(message.messageId)
+        null
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        "Failed to delete message. Please try again."
     }
 }
