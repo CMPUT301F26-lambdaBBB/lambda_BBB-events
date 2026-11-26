@@ -3,18 +3,21 @@ package com.example.lambda_bbb_events.view.ui.admin_screens.logs
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.AdminLog
 import com.example.lambda_bbb_events.model.LogType
 import com.example.lambda_bbb_events.model.user.UserRole
-import com.example.lambda_bbb_events.view.ui.components.admin.AdminScreenTitleWithRoleSwitcher
+import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.logs.AdminLogCard
 import com.example.lambda_bbb_events.view.ui.components.logs.AdminLogDialog
@@ -57,11 +60,34 @@ fun AdminLogsScreen(
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
             ) {
-                AdminScreenTitleWithRoleSwitcher(
-                    navController = navController,
-                    title = "Logs",
-                    showNotifications = true
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (!navController.popBackStack("admin_home", false)) {
+                                navController.navigate("admin_home") {
+                                    launchSingleTop = true
+                                }
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back to Admin Home"
+                        )
+                    }
+
+                    Text(
+                        text = "Logs",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
 
                 AdminLogsContent(
                     controllers = controllers,
