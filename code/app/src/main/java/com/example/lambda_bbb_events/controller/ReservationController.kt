@@ -72,6 +72,40 @@ class ReservationController(
     }
 
     /**
+     * Finds the days a campsite is fully booked. A day is fully booked when the guests of all
+     * active (pending or confirmed) reservations that cover it add up to the campsite's
+     * max occupancy or more. A reservation covers every day from its start date to its end
+     * date, including both.
+     *
+     * @param reservations The reservations of the campsite.
+     * @param maxOccupancy The max occupancy of the campsite.
+     * @return The set of fully booked days.
+     *
+     * Reference: Claude created this function.
+     */
+    fun getFullyBookedDates(reservations: List<Reservation>, maxOccupancy: Int): Set<LocalDate> {
+        val guestsPerDay = mutableMapOf<LocalDate, Int>()
+
+        for (reservation in reservations) {
+            if (!reservation.isActive()) continue
+
+            val start = parseDateOrNull(reservation.startDate)
+            val end = parseDateOrNull(reservation.endDate)
+            if (start == null || end == null || end.isBefore(start)) continue
+
+            var day: LocalDate = start
+            while (!day.isAfter(end)) {
+                guestsPerDay[day] = (guestsPerDay[day] ?: 0) + reservation.guests
+                day = day.plusDays(1)
+            }
+        }
+
+        return guestsPerDay.filter { it.value >= maxOccupancy }.keys
+    }
+
+
+
+    /**
      * Checks if a reservation matches the filter.
      *
      * @param reservation The reservation to check.

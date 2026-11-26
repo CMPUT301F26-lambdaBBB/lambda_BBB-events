@@ -38,16 +38,18 @@ import java.util.Locale
  * @param onDateRangeChange Callback for updating the date range.
  * @param modifier Customizes the calendar layout.
  * @param initialMonth The initially displayed month.
+ * @param selectable `true` (for entrant) lets the user pick a date range. `false` (owner) shows
+ * the booked dates only.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CampsiteAvailabilityCalendar(
     unavailableDates: Set<LocalDate>,
-    startDate: LocalDate?,
-    endDate: LocalDate?,
-    onDateRangeChange: (LocalDate?, LocalDate?) -> Unit,
-    modifier: Modifier = Modifier,
-    initialMonth: YearMonth = YearMonth.now()
+    startDate: LocalDate? = null,
+    endDate: LocalDate? = null,
+    onDateRangeChange: (LocalDate?, LocalDate?) -> Unit = { _, _ -> },
+    initialMonth: YearMonth = YearMonth.now(),
+    selectable: Boolean = true
 ) {
     var displayedMonth by remember(initialMonth) {
         mutableStateOf(initialMonth)
@@ -67,7 +69,7 @@ fun CampsiteAvailabilityCalendar(
     }
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Surface(
@@ -286,7 +288,7 @@ fun CampsiteAvailabilityCalendar(
                                     .padding(2.dp)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(backgroundColor)
-                                    .clickable(enabled = canSelect) {
+                                    .clickable(enabled = canSelect && selectable) {
                                         if (
                                             startDate == null ||
                                             endDate != null ||
@@ -345,10 +347,12 @@ fun CampsiteAvailabilityCalendar(
                 color = statusColors.bookedBackground
             )
 
-            CalendarLegend(
-                label = "Selected",
-                color = statusColors.selectedBackground
-            )
+            if (selectable) {
+                CalendarLegend(
+                    label = "Selected",
+                    color = statusColors.selectedBackground
+                )
+            }
         }
     }
 }
