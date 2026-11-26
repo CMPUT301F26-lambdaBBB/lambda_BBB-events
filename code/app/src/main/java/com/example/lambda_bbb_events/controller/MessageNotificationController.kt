@@ -37,6 +37,11 @@ class MessageNotificationController(
      * @param conversation Conversation containing the message.
      * @param message Incoming message.
      * @return True if notifications are permitted.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Changed with the help of this AI tool.
      */
     suspend fun shouldNotify(
         conversation: Conversation,

@@ -3,6 +3,13 @@ package com.example.lambda_bbb_events.model
 import com.example.lambda_bbb_events.model.message.ConversationType
 import com.google.firebase.Timestamp
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 /**
  * Represents a private conversation between a camper and one other person: a campsite
  * owner or a specific administrator.

@@ -81,6 +81,11 @@ import kotlinx.coroutines.launch
  * @param navController Handles screen navigation.
  * @param controllers All the app controllers, for reading and changing the user.
  * @param userId The device ID of the user to show.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * The Message button was added with the help of this AI tool.
  */
 @Composable
 fun AdminProfileDetailsScreen(
@@ -388,6 +393,11 @@ fun AdminProfileDetailsScreen(
  * @param onClick Called when the button is tapped.
  * @param isOpening Whether the conversation is being opened, which disables the button.
  * @param showError Whether to show that opening the conversation failed.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun MessageUserButton(

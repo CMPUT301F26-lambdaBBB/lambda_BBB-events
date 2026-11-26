@@ -26,6 +26,11 @@ import kotlinx.coroutines.delay
  * @param navController Handles screen navigation.
  * @param controllers Shared application controllers.
  * @param conversationId Unique identifier of the conversation.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun ChatRoute(
@@ -118,6 +123,11 @@ fun ChatRoute(
  * @param currentUserId Device ID of the current user.
  * @param controllers Shared application controllers.
  * @param navController Handles screen navigation.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun OpenChat(
@@ -153,6 +163,11 @@ private fun OpenChat(
  * @param chat The open conversation.
  * @param currentUserId Device ID of the current user.
  * @return Whether sending is allowed right now.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun rememberCanSend(chat: Conversation, currentUserId: String): Boolean {
@@ -180,6 +195,11 @@ private fun rememberCanSend(chat: Conversation, currentUserId: String): Boolean 
  * Checks whether the camper in [chat] can still message its campsite owner.
  *
  * @return `false` if they cannot, or if the check failed.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 private suspend fun checkOwnerEligibility(
     messageRepository: MessageRepository,

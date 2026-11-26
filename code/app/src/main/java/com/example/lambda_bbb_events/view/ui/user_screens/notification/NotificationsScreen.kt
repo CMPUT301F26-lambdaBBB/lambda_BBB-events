@@ -34,6 +34,11 @@ import kotlinx.coroutines.flow.flowOf
  * @param profiles Every known user by device ID, for names and profile pictures.
  * @param campsiteNames Map of campsite IDs to campsite names.
  * @param isAdmin Whether the current user is an administrator.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun NotificationsScreen(

@@ -347,6 +347,12 @@ class AdminProfileDetailsScreenUITest {
             .assertIsDisplayed()
     }
 
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Test
     fun messageButtonOpensTheAdminsConversationWithTheUser() {
         coEvery { controllers.messages.startConversationWithUser("user-1") } returns "admin_user-1_admin-1"
@@ -359,6 +365,12 @@ class AdminProfileDetailsScreenUITest {
         composeTestRule.onNodeWithText("Chat admin_user-1_admin-1").assertIsDisplayed()
     }
 
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Test
     fun failedMessageShowsAnErrorAndStaysOnTheProfile() {
         coEvery { controllers.messages.startConversationWithUser("user-1") } throws IllegalStateException()
@@ -373,6 +385,12 @@ class AdminProfileDetailsScreenUITest {
         composeTestRule.onNodeWithTag("screen_admin_profile_details").assertIsDisplayed()
     }
 
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Test
     fun messageButtonIsHiddenOnTheAdminsOwnProfile() {
         showDetails(shown = admin, signedIn = admin)

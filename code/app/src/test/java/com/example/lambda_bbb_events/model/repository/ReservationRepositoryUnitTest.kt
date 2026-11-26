@@ -21,7 +21,14 @@ class ReservationRepositoryUnitTest {
     private val reservations = MockCollection(db, "reservations")
     private val repository = ReservationRepository(db)
 
-    /** Messaging access cannot be written to the mocked database, which is logged as an error. */
+    /**
+     * Messaging access cannot be written to the mocked database, which is logged as an error.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Before
     fun silenceLogging() {
         mockkStatic(Log::class)

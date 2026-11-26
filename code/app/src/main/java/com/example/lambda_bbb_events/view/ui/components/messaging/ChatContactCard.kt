@@ -21,6 +21,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 /**
  * Displays who a chat is with, as a card showing the contact's profile picture, name,
  * and the conversation subtitle. Matches the layout of the app's other user cards.

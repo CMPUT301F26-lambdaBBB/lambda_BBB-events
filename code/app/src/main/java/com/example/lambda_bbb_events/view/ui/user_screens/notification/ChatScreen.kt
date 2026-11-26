@@ -41,6 +41,11 @@ import kotlinx.coroutines.launch
  * @param canSend Whether the current user can send messages.
  * @param contactImageId Profile picture ID of the contact, blank to show the default icon.
  * @param senderNames Map containing sender IDs and display names.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Changed with the help of this AI tool.
  */
 @Composable
 fun ChatScreen(
@@ -251,6 +256,11 @@ fun ChatScreen(
  *
  * @param onConfirm Called when the user confirms.
  * @param onDismiss Called when the user cancels.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 @Composable
 private fun DeleteMessageDialog(
@@ -272,6 +282,11 @@ private fun DeleteMessageDialog(
  * Deletes [message] from the open conversation.
  *
  * @return An error to show the user, or `null` if the message was deleted.
+ *
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * Written with the help of this AI tool.
  */
 private suspend fun deleteMessage(
     messageController: MessageController,

@@ -28,6 +28,13 @@ import com.example.lambda_bbb_events.view.ui.components.notification.Notificatio
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
+/*
+ * Reference:
+ * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+ * https://claude.com/claude-code
+ * This whole file was written with the help of this AI tool.
+ */
+
 /**
  * Displays existing conversations and the people the user can start one with, each
  * person listed once.

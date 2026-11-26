@@ -47,6 +47,11 @@ class LotteryRepositoryUnitTest {
     /**
      * Makes the server read of the lottery being deleted find nothing, so no messaging
      * access needs revoking.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     private fun lotteryIsGoneOnServer() {
         every { lotteries.document("lottery-1").get(Source.SERVER) } returns
@@ -182,6 +187,11 @@ class LotteryRepositoryUnitTest {
     /**
      * Sets up deleting lottery-1 at site-1 with one waitlist entry from "ed", whose
      * reservations are [reservations], and returns ed's messaging access document for site-1.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
      */
     private fun deletingLotteryWithEntrant(reservations: List<Reservation>): DocumentReference {
         val entryDoc = documentOf("entry-1", WaitlistEntry::class.java, null)
@@ -234,13 +244,26 @@ class LotteryRepositoryUnitTest {
     /** The batch the deletion set up by [deletingLotteryWithEntrant] writes to. */
     private lateinit var batchInUse: WriteBatch
 
-    /** Creates a query snapshot that converts into [items] of [type]. */
+    /**
+     * Creates a query snapshot that converts into [items] of [type].
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     private fun <T : Any> objectsSnapshot(type: Class<T>, items: List<T>): QuerySnapshot {
         val snapshot = querySnapshotOf()
         every { snapshot.toObjects(type) } returns items
         return snapshot
     }
 
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Test
     fun deletingTheOnlyEligibleLotteryRevokesOwnerMessagingAccess() = runTest {
         val accessRef = deletingLotteryWithEntrant(reservations = emptyList())
@@ -254,6 +277,12 @@ class LotteryRepositoryUnitTest {
         }
     }
 
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     */
     @Test
     fun deletingALotteryKeepsAccessWhenAReservationIsStillActive() = runTest {
         val upcoming = Reservation(
