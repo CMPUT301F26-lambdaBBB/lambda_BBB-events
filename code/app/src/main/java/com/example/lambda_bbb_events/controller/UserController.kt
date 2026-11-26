@@ -161,6 +161,21 @@ class UserController(
     }
 
     /**
+     * Removes a user's profile picture.
+     *
+     * @param deviceId The device (user) ID of the uploaded picture.
+     * @return `true` if removed successfully, `false` otherwise.
+     */
+    suspend fun removeProfilePicture(deviceId: String): Boolean {
+        if (currentUser?.role != UserRole.ADMIN) return false
+
+        val user = userRepository.getUser(deviceId) ?: return false
+        user.profilePictureImageId = ""
+        userRepository.updateUser(user)
+        return true
+    }
+
+    /**
      * Turns notifications on or off for the signed-in user (US 01.10.01).
      *
      * @param allow `true` if user wants notifications on, `false` otherwise.

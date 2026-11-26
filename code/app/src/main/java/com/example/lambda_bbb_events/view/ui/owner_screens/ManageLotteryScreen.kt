@@ -269,6 +269,7 @@ private fun LotterySection(
             lotteryNumber = allLotteries.indexOf(lottery) + 1,
             lottery = lottery,
             phase = controllers.lotteries.getPhase(lottery),
+            controllers = controllers,
             onClick = { navController.navigate("lottery_details/${lottery.lotteryId}") }
         )
     }

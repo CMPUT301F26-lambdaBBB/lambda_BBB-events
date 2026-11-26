@@ -42,7 +42,7 @@ class MyReservationsScreenUITest {
                 }
 
                 composable("past_bookings") {
-                    PastBookingsScreen(navController)
+                    PastBookingsScreen(navController, controllers)
                 }
 
                 composable("lottery_bookings") {

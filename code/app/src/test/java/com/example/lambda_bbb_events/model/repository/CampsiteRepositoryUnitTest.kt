@@ -107,6 +107,19 @@ class CampsiteRepositoryUnitTest {
     }
 
     @Test
+    fun setPhotosSavesOnlyThePhotos() = runTest {
+        repository.addCampsite(campsite)
+        val photos = listOf(ImageMetaData(imageId = "img-2"), ImageMetaData(imageId = "img-1"))
+        io.mockk.every { campsites.document("site-1").update("imageIds", photos) } returns completedTask(null)
+
+        repository.setPhotos("site-1", photos)
+
+        verify(exactly = 1) { campsites.document("site-1").update("imageIds", photos) }
+        assertEquals(photos, repository.cached.single().imageIds)
+        assertEquals("Lakeside", repository.cached.single().campsiteName)
+    }
+
+    @Test
     fun deleteCampsiteDeletesDocument() = runTest {
         repository.deleteCampsite("site-1")
 
