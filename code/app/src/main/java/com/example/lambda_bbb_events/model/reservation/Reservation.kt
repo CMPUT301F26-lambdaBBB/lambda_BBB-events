@@ -1,20 +1,22 @@
 package com.example.lambda_bbb_events.model.reservation
 
 import com.google.firebase.firestore.Exclude
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 /*
- * Defines campsite reservations and its details
+ * Defines campsite reservations and its details.
  */
 
 /**
  * The current status of a campsite reservation.
  */
 enum class ReservationStatus {
-    PENDING,     // created, waiting on owner or confirmation
-    CONFIRMED,   // owner accepted the entrant
-    REJECTED,    // owner rejected the entrant
-    CANCELLED,   // entrant cancelled
-    COMPLETED    // after confirmed, stay has ended
+    PENDING,
+    CONFIRMED,
+    REJECTED,
+    CANCELLED,
+    COMPLETED
 }
 
 /**
@@ -22,34 +24,53 @@ enum class ReservationStatus {
  *
  * @property reservationId The unique ID of the reservation.
  * @property campsiteId The ID of the reserved campsite.
- * @property entrantId The device ID of the entrant who made the reservation.
+ * @property entrantId The device ID of the entrant.
  * @property ownerId The device ID of the campsite owner.
  * @property startDate The start date of the reservation.
  * @property endDate The end date of the reservation.
  * @property guests The number of guests in the reservation.
  * @property status The current status of the reservation.
- * @property ruleConfirmed `true` if the entrant has accepted the campsite rules,
- * `false` otherwise.
+ * @property ruleConfirmed Whether the entrant accepted the campsite rules.
  */
 data class Reservation(
     val reservationId: String = "",
     val campsiteId: String = "",
-    val entrantId: String = "", // entrant deviceId
+    val entrantId: String = "",
     val ownerId: String = "",
     val startDate: String = "",
     val endDate: String = "",
     val guests: Int = 1,
     val status: ReservationStatus = ReservationStatus.PENDING,
-    val ruleConfirmed: Boolean = false, // entrant accepted campsite rules and policies
+    val ruleConfirmed: Boolean = false
 ) {
+
     /**
      * Checks whether the reservation is pending or confirmed.
      *
-     * @return `true` if the reservation is pending or confirmed,
-     * `false` otherwise.
+     * @return True if the reservation is active.
      */
     @Exclude
     fun isActive(): Boolean {
-        return status == ReservationStatus.PENDING || status == ReservationStatus.CONFIRMED
+        return status == ReservationStatus.PENDING ||
+                status == ReservationStatus.CONFIRMED
+    }
+
+    /**
+     * Checks whether this reservation permits owner messaging.
+     *
+     * The reservation must be active and its stay must not
+     * have ended.
+     *
+     * @return True if the entrant is eligible to message the owner.
+     */
+    @Exclude
+    fun isMessagingEligible(): Boolean {
+        if (!isActive()) return false
+
+        return try {
+            !LocalDate.parse(endDate).isBefore(LocalDate.now())
+        } catch (e: DateTimeParseException) {
+            false
+        }
     }
 }

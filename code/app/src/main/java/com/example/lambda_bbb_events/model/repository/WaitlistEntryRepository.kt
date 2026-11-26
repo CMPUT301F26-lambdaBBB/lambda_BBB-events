@@ -9,6 +9,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -154,5 +155,25 @@ class WaitlistEntryRepository(
      */
     suspend fun updateEntryStatus(waitlistEntry: WaitlistEntry, newStatus: WaitlistStatus) {
         collectionRef.document(waitlistEntry.entryId).update("status", newStatus.name).await()
+    }
+
+    /**
+     * Retrieves the latest waitlist entries for an entrant
+     * directly from the Firestore server.
+     *
+     * Used to determine whether messaging access should
+     * remain active after leaving a lottery.
+     *
+     * @param entrantId The entrant device ID.
+     * @return List of waitlist entries belonging to the entrant.
+     */
+    suspend fun getFreshEntriesForEntrant(
+        entrantId: String
+    ): List<WaitlistEntry> {
+        return collectionRef
+            .whereEqualTo("entrantId", entrantId)
+            .get(Source.SERVER)
+            .await()
+            .toObjects(WaitlistEntry::class.java)
     }
 }
