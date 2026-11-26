@@ -84,6 +84,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
+    implementation("com.google.firebase:firebase-auth")
     implementation(libs.play.services.code.scanner)
     implementation(libs.core)
     implementation(libs.coil.compose)

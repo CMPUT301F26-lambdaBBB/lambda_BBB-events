@@ -1,19 +1,19 @@
-package com.example.lambda_bbb_events.model.message
+package com.example.lambda_bbb_events.model
 
 import com.google.firebase.Timestamp
 
-/*
- * Defines messages exchanged between users.
- */
-
 /**
- * Represents a message sent between users.
+ * Represents a message exchanged between users, campsite
+ * owners, and administrators.
  *
- * @property messageId The unique ID of the message.
- * @property content The message's text content.
- * @property senderId The device ID of the sender.
- * @property recipientId The device ID of the recipient.
- * @property timestamp The timestamp associated with the message.
+ * @property messageId Unique identifier of the message.
+ * @property content Text content of the message.
+ * @property senderId Unique identifier of the sender.
+ * @property recipientId Unique identifier of the recipient.
+ *                       Uses "ADMIN_SUPPORT" for messages
+ *                       addressed to the shared admin inbox.
+ * @property timestamp Timestamp indicating when the message
+ *                     was sent.
  */
 class Message(
     val messageId: String = "",

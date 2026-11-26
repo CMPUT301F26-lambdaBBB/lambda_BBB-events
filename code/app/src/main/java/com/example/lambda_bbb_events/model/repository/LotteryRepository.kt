@@ -1,17 +1,21 @@
 package com.example.lambda_bbb_events.model.repository
 
+import android.util.Log
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
 import com.example.lambda_bbb_events.model.lottery.WaitlistEntry
 import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
-import com.example.lambda_bbb_events.model.message.Message
+import com.example.lambda_bbb_events.model.Message
+import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
@@ -82,13 +86,14 @@ class LotteryRepository(
     private suspend fun queueLotteryDeletion(
         batch: WriteBatch,
         id: String,
-        makeNotice: ((WaitlistEntry) -> Message)?
+        makeNotice: ((WaitlistEntry) -> Message)?,
+        deletedLotteryIds: Set<String> = setOf(id)
     ): Int {
         var notified = 0
 
         val entriesSnapshot = db.collection("waitlistEntries")
             .whereEqualTo("lotteryId", id)
-            .get()
+            .get(Source.SERVER)
             .await()
 
         for (entryDocument in entriesSnapshot.documents) {
@@ -121,6 +126,35 @@ class LotteryRepository(
             batch.delete(entryDocument.reference)
         }
 
+        // Preserve chat history and admin access, but revoke owner access
+        // when no eligible lottery remains after this batch is committed.
+        val lottery = collectionRef.document(id)
+            .get(Source.SERVER)
+            .await()
+            .toObject(Lottery::class.java)
+
+        if (lottery != null) {
+            val entrantIds = entriesSnapshot.documents
+                .mapNotNull { it.getString("entrantId") }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+            for (entrantId in entrantIds) {
+                for (campsiteId in lottery.campsiteIds) {
+                    if (!hasEligibleEnrollment(entrantId, campsiteId, deletedLotteryIds)) {
+                        val accessRef = db.collection("messagingAccess")
+                            .document(entrantId)
+                            .collection("campsites")
+                            .document(campsiteId)
+
+                        if (accessRef.get(Source.SERVER).await().exists()) {
+                            batch.update(accessRef, "active", false)
+                        }
+                    }
+                }
+            }
+        }
+
         batch.delete(collectionRef.document(id))
         return notified
     }
@@ -131,11 +165,18 @@ class LotteryRepository(
     ) {
         val lotteries = collectionRef
             .whereArrayContains("campsiteIds", campsiteId)
-            .get()
+            .get(Source.SERVER)
             .await()
 
+        val deletedLotteryIds = lotteries.documents.map { it.id }.toSet()
+
         for (lottery in lotteries.documents) {
-            queueLotteryDeletion(batch, lottery.id, makeNotice = null)
+            queueLotteryDeletion(
+                batch,
+                lottery.id,
+                makeNotice = null,
+                deletedLotteryIds = deletedLotteryIds
+            )
         }
     }
 
@@ -179,7 +220,33 @@ class LotteryRepository(
      *
      * @param updatedLottery The lottery data to save.
      */
-    suspend fun updateLottery(updatedLottery: Lottery) = update(updatedLottery)
+    suspend fun updateLottery(updatedLottery: Lottery) {
+        update(updatedLottery)
+
+        if (updatedLottery.status != LotteryStatus.CANCELLED) return
+
+        // Recalculate access after the cancellation has been saved.
+        try {
+            val entrantIds = db.collection("waitlistEntries")
+                .whereEqualTo("lotteryId", updatedLottery.lotteryId)
+                .get(Source.SERVER)
+                .await()
+                .documents
+                .mapNotNull { it.getString("entrantId") }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+            for (entrantId in entrantIds) {
+                for (campsiteId in updatedLottery.campsiteIds) {
+                    revokeMessagingAccessIfIneligible(entrantId, campsiteId)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("LotteryRepository", "Failed to revoke access after cancellation", e)
+        }
+    }
 
     /**
      * Gets a [Lottery] object from the database given its lotteryId.
@@ -250,23 +317,26 @@ class LotteryRepository(
     }
 
     /**
-     * Registers an entrant for a lottery and adds their entry to the Firestore database.
+     * Registers an entrant for a lottery and adds their entry
+     * to the Firestore database.
      *
-     * Checks if registration is open, the entrant has already joined, and the waitlist
-     * has available space. Uses a Firestore transaction to prevent duplicate entries.
+     * Checks if registration is open, the entrant has already
+     * joined, and the waitlist has available space.
      *
-     * @param lotteryId The `lotteryId` of the lottery to join.
+     * Grants messaging access to the associated campsite owners
+     * within the same Firestore transaction.
+     *
+     * @param lotteryId The lottery ID to join.
      * @param entrantId The ID of the entrant joining the lottery.
-     * @param numberOfGuests The number of guests included in the registration.
-     * @param onResult Callback that returns `true` if registration was successful,
-     * `false` otherwise, along with a message describing the result.
+     * @param numberOfGuests The number of guests in the registration.
+     * @param onResult Callback returning the success status and message.
      */
     fun joinLottery(
         lotteryId: String,
         entrantId: String,
         numberOfGuests: Int,
         onResult: (Boolean, String) -> Unit
-    ){
+    ) {
         if (lotteryId.isBlank() || entrantId.isBlank() || numberOfGuests < 1) {
             onResult(false, "Invalid registration information")
             return
@@ -277,9 +347,13 @@ class LotteryRepository(
         val entryRef = db.collection("waitlistEntries").document(entryId)
 
         db.runTransaction { transaction ->
+
             val lotterySnapshot = transaction.get(lotteryRef)
             val entrySnapshot = transaction.get(entryRef)
-            val lottery = lotterySnapshot.toObject(Lottery::class.java) ?: throw IllegalStateException("Lottery not found")
+
+            val lottery = lotterySnapshot.toObject(Lottery::class.java)
+                ?: throw IllegalStateException("Lottery not found")
+
             if (!lottery.isRegistrationOpen()) {
                 throw IllegalStateException("Registration is closed")
             }
@@ -307,9 +381,30 @@ class LotteryRepository(
                 "entryIds",
                 FieldValue.arrayUnion(entryId)
             )
+
+            // Grant messaging access for each associated campsite.
+            lottery.campsiteIds.forEach { campsiteId ->
+
+                val accessRef = db
+                    .collection("messagingAccess")
+                    .document(entrantId)
+                    .collection("campsites")
+                    .document(campsiteId)
+
+                val access = mapOf(
+                    "campsiteId" to campsiteId,
+                    "ownerId" to lottery.ownerId,
+                    "active" to true
+                )
+
+                transaction.set(accessRef, access)
+            }
+
             true
+
         }.addOnSuccessListener {
             onResult(true, "Successfully joined lottery")
+
         }.addOnFailureListener { exception ->
             onResult(false, exception.message ?: "Registration failed")
         }
@@ -320,6 +415,9 @@ class LotteryRepository(
      * that gets drawn become WON, the non-winners become LOST, and the lottery status becomes
      * DRAWN. The amount drawn is specified by the owner (in lottery object data).
      *
+     * Revokes owner messaging access for losing entrants who have no other eligible
+     * lottery entries at the same campsite.
+     *
      * @param lotteryId The ID of the lottery to draw.
      * @return `null` if the winners were drawn successfully, an error message otherwise.
      */
@@ -328,7 +426,7 @@ class LotteryRepository(
         val entriesRef = db.collection("waitlistEntries")
         var errorMessage: String? = null
 
-        try {
+        val drawResult = try {
             db.runTransaction { transaction ->
                 errorMessage = null
 
@@ -341,7 +439,7 @@ class LotteryRepository(
                 } else if (Date().before(lottery.registrationEnd)) {
                     errorMessage = "Registration has not ended yet."
                 } else {
-                    val possibleWinners = mutableListOf<DocumentReference>()
+                    val possibleWinners = mutableListOf<Pair<DocumentReference, WaitlistEntry>>()
 
                     for (entryId in lottery.entryIds) {
                         val entryRef = entriesRef.document(entryId)
@@ -349,29 +447,225 @@ class LotteryRepository(
                             .toObject(WaitlistEntry::class.java)
 
                         if (entry != null && entry.status == WaitlistStatus.IN_WAITLIST) {
-                            possibleWinners.add(entryRef)
+                            possibleWinners.add(entryRef to entry)
                         }
                     }
 
                     possibleWinners.shuffle() // random
-                    val winnersCount = minOf(lottery.numberOfWinners, possibleWinners.size) // for cases when entries in waitlist < num of winners
-                    
+                    val winnersCount = minOf(lottery.numberOfWinners, possibleWinners.size)
+                    val losingEntrantIds = mutableSetOf<String>()
+
                     for (i in 0 until winnersCount) { // set winners status
-                        transaction.update(possibleWinners[i], "status", WaitlistStatus.WON.name)
+                        transaction.update(
+                            possibleWinners[i].first,
+                            "status",
+                            WaitlistStatus.WON.name
+                        )
                     }
                     for (i in winnersCount until possibleWinners.size) { // set losers status
-                        transaction.update(possibleWinners[i], "status", WaitlistStatus.LOST.name)
+                        val (entryRef, entry) = possibleWinners[i]
+                        transaction.update(entryRef, "status", WaitlistStatus.LOST.name)
+                        losingEntrantIds.add(entry.entrantId)
                     }
 
                     transaction.update(lotteryRef, "status", LotteryStatus.DRAWN.name)
+
+                    return@runTransaction Pair(
+                        lottery.campsiteIds.toList(),
+                        losingEntrantIds.toSet()
+                    )
                 }
 
-                null
+                Pair(emptyList<String>(), emptySet<String>())
             }.await()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             return "Could not draw the winners. Please try again."
         }
 
-        return errorMessage
+        if (errorMessage != null) {
+            return errorMessage
+        }
+
+        val (campsiteIds, losingEntrantIds) = drawResult
+
+        // Update messaging access only after a successful draw.
+        for (entrantId in losingEntrantIds) {
+            for (campsiteId in campsiteIds) {
+                try {
+                    revokeMessagingAccessIfIneligible(entrantId, campsiteId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("LotteryRepository", "Failed to revoke messaging access", e)
+                }
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * Revokes owner messaging access if the entrant has no other eligible lottery
+     * entries at the campsite. Existing conversations and admin access are preserved.
+     *
+     * @param entrantId Device ID of the entrant.
+     * @param campsiteId ID of the campsite.
+     */
+    private suspend fun revokeMessagingAccessIfIneligible(
+        entrantId: String,
+        campsiteId: String
+    ) {
+        if (!hasEligibleEnrollment(entrantId, campsiteId)) {
+            MessagingAccessRepository(entrantId, db).revokeAccess(campsiteId)
+        }
+    }
+
+    /**
+     * Checks whether an entrant has an eligible reservation
+     * or lottery entry at a campsite.
+     *
+     * @param entrantId Device ID of the entrant.
+     * @param campsiteId ID of the campsite.
+     * @param excludedLotteryIds Lotteries being deleted in the current batch.
+     * @return True if the entrant remains eligible for owner messaging.
+     */
+    private suspend fun hasEligibleEnrollment(
+        entrantId: String,
+        campsiteId: String,
+        excludedLotteryIds: Set<String> = emptySet()
+    ): Boolean {
+
+        // Check whether the entrant has an eligible reservation.
+        val reservations = db.collection("reservations")
+            .whereEqualTo("entrantId", entrantId)
+            .get(Source.SERVER)
+            .await()
+            .toObjects(Reservation::class.java)
+
+        val hasActiveReservation = reservations.any { reservation ->
+            reservation.campsiteId == campsiteId &&
+                    reservation.isMessagingEligible()
+        }
+
+        if (hasActiveReservation) return true
+
+        // Check whether the entrant has another eligible lottery entry.
+        val entries = db.collection("waitlistEntries")
+            .whereEqualTo("entrantId", entrantId)
+            .get(Source.SERVER)
+            .await()
+            .toObjects(WaitlistEntry::class.java)
+
+        return entries.any { entry ->
+
+            if (entry.lotteryId in excludedLotteryIds) {
+                return@any false
+            }
+
+            if (
+                entry.status != WaitlistStatus.IN_WAITLIST &&
+                entry.status != WaitlistStatus.WON
+            ) {
+                return@any false
+            }
+
+            val lottery = collectionRef
+                .document(entry.lotteryId)
+                .get(Source.SERVER)
+                .await()
+                .toObject(Lottery::class.java)
+                ?: return@any false
+
+            campsiteId in lottery.campsiteIds &&
+                    lottery.status != LotteryStatus.CANCELLED &&
+                    !Date().after(lottery.bookingEnd)
+        }
+    }
+
+    /**
+     * Restores missing messaging access for existing lottery entrants.
+     *
+     * Supports users who joined lotteries before messaging was
+     * introduced. Existing messaging access records are preserved.
+     *
+     * @param entrantId Device ID of the entrant.
+     */
+    suspend fun restoreMessagingAccess(entrantId: String) {
+        require(entrantId.isNotBlank())
+
+        val entries = db.collection("waitlistEntries")
+            .whereEqualTo("entrantId", entrantId)
+            .get(Source.SERVER)
+            .await()
+
+        for (entryDocument in entries.documents) {
+
+            db.runTransaction { transaction ->
+
+                val entry = transaction.get(entryDocument.reference)
+                    .toObject(WaitlistEntry::class.java)
+                    ?: return@runTransaction Unit
+
+                if (entry.entrantId != entrantId) {
+                    return@runTransaction Unit
+                }
+
+                // Only restore access for eligible entries.
+                if (
+                    entry.status != WaitlistStatus.IN_WAITLIST &&
+                    entry.status != WaitlistStatus.WON &&
+                    entry.status != WaitlistStatus.ACCEPTED
+                ) {
+                    return@runTransaction Unit
+                }
+
+                val lottery = transaction.get(
+                    collectionRef.document(entry.lotteryId)
+                ).toObject(Lottery::class.java)
+                    ?: return@runTransaction Unit
+
+                if (lottery.status == LotteryStatus.CANCELLED) {
+                    return@runTransaction Unit
+                }
+
+                if (
+                    entry.status != WaitlistStatus.ACCEPTED &&
+                    Date().after(lottery.bookingEnd)
+                ) {
+                    return@runTransaction Unit
+                }
+
+                // Find missing messaging access documents.
+                val missingAccessRefs = lottery.campsiteIds
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .map { campsiteId ->
+                        db.collection("messagingAccess")
+                            .document(entrantId)
+                            .collection("campsites")
+                            .document(campsiteId)
+                    }
+                    .filter { accessRef ->
+                        !transaction.get(accessRef).exists()
+                    }
+
+                // Create only missing records.
+                for (accessRef in missingAccessRefs) {
+                    transaction.set(
+                        accessRef,
+                        mapOf(
+                            "campsiteId" to accessRef.id,
+                            "ownerId" to lottery.ownerId,
+                            "active" to true
+                        )
+                    )
+                }
+
+                Unit
+
+            }.await()
+        }
     }
 }

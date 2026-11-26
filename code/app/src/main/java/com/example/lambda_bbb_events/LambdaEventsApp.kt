@@ -61,7 +61,19 @@ import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScre
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.WelcomeScreen
+import androidx.compose.runtime.remember
+import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatScreen
+import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.lambda_bbb_events.model.Conversation
+import com.example.lambda_bbb_events.model.user.UserRole
+import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatRoute
+import kotlinx.coroutines.CancellationException
+
 
 /*
  * Displays loading and signup states before opening the
@@ -149,6 +161,10 @@ private fun MainApp(
     onDarkThemeChange: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
+    val currentUser = controllers.users.currentUser
+    val currentUserId = currentUser?.deviceId
+    val isAdmin = currentUser?.role == UserRole.ADMIN
+
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
@@ -272,7 +288,42 @@ private fun MainApp(
                 )
             }
 
-            composable("notifications") { NotificationsScreen(navController) }
+            composable("notifications") {
+                if (currentUserId != null) {
+
+                    val profileNames = controllers.users.userRepository.users
+                        .associate { user ->
+                            user.deviceId to user.name
+                        }
+
+                    val campsiteNames = controllers.campsites.campsites
+                        .mapValues { (_, campsite) ->
+                            campsite.campsiteName
+                        }
+
+                    NotificationsScreen(
+                        navController = navController,
+                        currentUserId = currentUserId,
+                        messageController = controllers.messages,
+                        preferenceController = controllers.notificationPreferences,
+                        profileNames = profileNames,
+                        campsiteNames = campsiteNames,
+                        isAdmin = isAdmin
+                    )
+                }
+            }
+
+            composable("chat/{conversationId}") { backStackEntry ->
+                val conversationId =
+                    backStackEntry.arguments?.getString("conversationId") ?: ""
+
+                ChatRoute(
+                    navController = navController,
+                    controllers = controllers,
+                    conversationId = conversationId
+                )
+            }
+
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
             composable("create_campsite") { CreateScreen(navController, controllers) }
             composable("edit_campsite/{campsiteId}") { backStackEntry ->
