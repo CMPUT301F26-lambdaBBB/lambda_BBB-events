@@ -45,6 +45,57 @@ class ReservationController(
     }
 
     /**
+     * Confirms a reservation for an entrant who has won a lottery.
+     *
+     * Creates a confirmed reservation and updates the associated
+     * waitlist entry status to ACCEPTED.
+     *
+     * @param entryId The unique identifier of the waitlist entry.
+     * @param entrantId The device ID of the current entrant.
+     * @param campsiteId The selected campsite identifier.
+     * @param fromDate The reservation start date.
+     * @param endDate The reservation end date.
+     * @param numberOfGuests The number of guests.
+     */
+    suspend fun confirmLotteryReservation(
+        entryId: String,
+        entrantId: String,
+        campsiteId: String,
+        fromDate: LocalDate,
+        endDate: LocalDate,
+        numberOfGuests: Int
+    ) {
+        require(entryId.isNotBlank()) {
+            "Invalid waitlist entry."
+        }
+
+        require(entrantId.isNotBlank()) {
+            "Invalid entrant."
+        }
+
+        require(campsiteId.isNotBlank()) {
+            "Invalid campsite."
+        }
+
+        require(!endDate.isBefore(fromDate)) {
+            "End date cannot be before start date."
+        }
+
+        require(numberOfGuests > 0) {
+            "Number of guests must be greater than zero."
+        }
+
+        reservationRepository.confirmLotteryReservation(
+            entryId = entryId,
+            entrantId = entrantId,
+            campsiteId = campsiteId,
+            fromDate = fromDate.toString(),
+            endDate = endDate.toString(),
+            numberOfGuests = numberOfGuests
+        )
+    }
+
+    /**
      * Gets the reservations of a campsite that match the filter. They are sorted by
      * earliest first.
      *
@@ -70,6 +121,40 @@ class ReservationController(
 
         return result.sortedByDescending { parseDateOrNull(it.startDate) ?: LocalDate.MIN }
     }
+
+    /**
+     * Finds the days a campsite is fully booked. A day is fully booked when the guests of all
+     * active (pending or confirmed) reservations that cover it add up to the campsite's
+     * max occupancy or more. A reservation covers every day from its start date to its end
+     * date, including both.
+     *
+     * @param reservations The reservations of the campsite.
+     * @param maxOccupancy The max occupancy of the campsite.
+     * @return The set of fully booked days.
+     *
+     * Reference: Claude created this function.
+     */
+    fun getFullyBookedDates(reservations: List<Reservation>, maxOccupancy: Int): Set<LocalDate> {
+        val guestsPerDay = mutableMapOf<LocalDate, Int>()
+
+        for (reservation in reservations) {
+            if (!reservation.isActive()) continue
+
+            val start = parseDateOrNull(reservation.startDate)
+            val end = parseDateOrNull(reservation.endDate)
+            if (start == null || end == null || end.isBefore(start)) continue
+
+            var day: LocalDate = start
+            while (!day.isAfter(end)) {
+                guestsPerDay[day] = (guestsPerDay[day] ?: 0) + reservation.guests
+                day = day.plusDays(1)
+            }
+        }
+
+        return guestsPerDay.filter { it.value >= maxOccupancy }.keys
+    }
+
+
 
     /**
      * Checks if a reservation matches the filter.

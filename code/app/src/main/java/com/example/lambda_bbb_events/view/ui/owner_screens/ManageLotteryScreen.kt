@@ -197,7 +197,7 @@ fun OwnerManageLotteryScreen(
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            // TODO: Implement booked dates navigation.
+                            navController.navigate("view_booked_dates/${campsite.campsiteId}")
                         }
                     ) {
                         Text(

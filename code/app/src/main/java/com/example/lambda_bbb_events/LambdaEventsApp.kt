@@ -24,6 +24,7 @@ import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminCampsitesScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminHomeScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminImagesScreen
+import com.example.lambda_bbb_events.view.ui.admin_screens.logs.AdminLogsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfileDetailsScreen
 import com.example.lambda_bbb_events.view.ui.admin_screens.AdminProfilesScreen
 import com.example.lambda_bbb_events.view.ui.components.common.AppLogo
@@ -61,7 +62,19 @@ import com.example.lambda_bbb_events.view.ui.user_screens.signup.RuleConfirmScre
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.SignupScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.Test_screen
 import com.example.lambda_bbb_events.view.ui.user_screens.signup.WelcomeScreen
+import androidx.compose.runtime.remember
 import java.time.LocalDate
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
+import com.example.lambda_bbb_events.model.user.UserRole
+import com.example.lambda_bbb_events.view.ui.user_screens.bookings.BookingReceiptScreen
+import com.example.lambda_bbb_events.view.ui.owner_screens.ViewBookedDatesScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatRoute
+import kotlinx.coroutines.CancellationException
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 /*
  * Displays loading and signup states before opening the
@@ -149,6 +162,10 @@ private fun MainApp(
     onDarkThemeChange: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
+    val currentUser = controllers.users.currentUser
+    val currentUserId = currentUser?.deviceId
+    val isAdmin = currentUser?.role == UserRole.ADMIN
+
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
@@ -183,6 +200,10 @@ private fun MainApp(
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 OwnerCampsiteDetailsScreen(navController, controllers, campsiteId)
             }
+            composable("view_booked_dates/{campsiteId}") { backStackEntry ->
+                val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                ViewBookedDatesScreen(navController, controllers, campsiteId)
+            }
             composable("create_lottery/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
                 CreateLotteryScreen(navController, controllers, campsiteId)
@@ -198,6 +219,7 @@ private fun MainApp(
                 val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
                 OwnerLotteryDetailsScreen(navController, controllers, lotteryId)
             }
+
             composable("registrationStatus/{entryId}") { backStackEntry ->
                 val entryId =
                     backStackEntry.arguments?.getString("entryId") ?: ""
@@ -205,8 +227,95 @@ private fun MainApp(
                 RegistrationStatusScreen(
                     navController = navController,
                     controllers = controllers,
-                    entryId = entryId
+                    entryId = entryId,
+                    onConfirmReservation = {
+                            id, campsiteId, fromDate, endDate, guests ->
+
+                        controllers.reservations.confirmLotteryReservation(
+                            entryId = id,
+                            entrantId = controllers.users.user.deviceId,
+                            campsiteId = campsiteId,
+                            fromDate = fromDate,
+                            endDate = endDate,
+                            numberOfGuests = guests
+                        )
+                    }
                 )
+            }
+
+            composable("booking_receipt/{reservationId}") { backStackEntry ->
+
+                val reservationId =
+                    backStackEntry.arguments?.getString("reservationId") ?: ""
+
+                val reservation = controllers.reservations
+                    .reservationRepository
+                    .getReservation(reservationId)
+
+                val scope = rememberCoroutineScope()
+
+                var isCancelling by remember {
+                    mutableStateOf(false)
+                }
+
+                var errorMessage by remember {
+                    mutableStateOf<String?>(null)
+                }
+
+                if (
+                    reservation != null &&
+                    reservation.entrantId ==
+                    controllers.users.currentUser?.deviceId &&
+                    (reservation.status == ReservationStatus.CONFIRMED ||
+                            isCancelling)
+                ) {
+                    val campsiteName = controllers.campsites
+                        .campsites[reservation.campsiteId]
+                        ?.campsiteName ?: "Unknown campsite"
+
+                    BookingReceiptScreen(
+                        navController = navController,
+                        campsiteName = campsiteName,
+                        fromDate = reservation.startDate,
+                        endDate = reservation.endDate,
+                        numberOfGuests = reservation.guests,
+                        isCancelling = isCancelling,
+                        errorMessage = errorMessage,
+                        onCancelReservation = {
+                            if (!isCancelling) {
+                                isCancelling = true
+                                errorMessage = null
+
+                                scope.launch {
+                                    try {
+                                        controllers.reservations
+                                            .cancelReservation(reservation)
+
+                                        navController.navigate("active_bookings") {
+                                            popUpTo("booking_receipt/{reservationId}") {
+                                                inclusive = true
+                                            }
+
+                                            launchSingleTop = true
+                                        }
+
+                                    } catch (e: CancellationException) {
+                                        throw e
+
+                                    } catch (e: Exception) {
+                                        errorMessage = e.message
+                                            ?: "Failed to cancel reservation."
+
+                                    } finally {
+                                        isCancelling = false
+                                    }
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    Text("Confirmed reservation not available.")
+                }
             }
 
             composable(
@@ -272,7 +381,40 @@ private fun MainApp(
                 )
             }
 
-            composable("notifications") { NotificationsScreen(navController) }
+            composable("notifications") {
+                if (currentUserId != null) {
+
+                    val profiles = controllers.users.userRepository.users
+                        .associateBy { it.deviceId }
+
+                    val campsiteNames = controllers.campsites.campsites
+                        .mapValues { (_, campsite) ->
+                            campsite.campsiteName
+                        }
+
+                    NotificationsScreen(
+                        navController = navController,
+                        currentUserId = currentUserId,
+                        messageController = controllers.messages,
+                        preferenceController = controllers.notificationPreferences,
+                        profiles = profiles,
+                        campsiteNames = campsiteNames,
+                        isAdmin = isAdmin
+                    )
+                }
+            }
+
+            composable("chat/{conversationId}") { backStackEntry ->
+                val conversationId =
+                    backStackEntry.arguments?.getString("conversationId") ?: ""
+
+                ChatRoute(
+                    navController = navController,
+                    controllers = controllers,
+                    conversationId = conversationId
+                )
+            }
+
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
             composable("create_campsite") { CreateScreen(navController, controllers) }
             composable("edit_campsite/{campsiteId}") { backStackEntry ->
@@ -305,6 +447,16 @@ private fun MainApp(
                 AdminProfileDetailsScreen(navController, controllers, userId)
             }
             composable("admin_images") { AdminImagesScreen(navController, controllers) }
+            composable("admin_logs") {
+                if (isAdmin) {
+                    AdminLogsScreen(
+                        navController = navController,
+                        controllers = controllers
+                    )
+                } else {
+                    Text("Access denied.")
+                }
+            }
         }
     }
 }

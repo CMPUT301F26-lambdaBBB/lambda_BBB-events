@@ -2,7 +2,7 @@ package com.example.lambda_bbb_events.controller
 
 import com.example.lambda_bbb_events.model.lottery.Lottery
 import com.example.lambda_bbb_events.model.lottery.LotteryStatus
-import com.example.lambda_bbb_events.model.message.Message
+import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.repository.LotteryRepository
 import java.time.LocalDate
 import java.time.ZoneId
@@ -58,10 +58,10 @@ class LotteryController(
     }
 
     /**
-     * Creates a lottery for a campsite. Includes input validation.
+     * Creates a lottery for one or more campsites. Includes input validation.
      *
-     * @param ownerId The device ID of the owner of the lottery.
-     * @param campsiteId The ID of the campsite of the lottery.
+     * @param ownerIds The device IDs of the owners of the lottery.
+     * @param campsiteIds The IDs of the campsites of the lottery.
      * @param registrationStart The start date of the registration period.
      * @param registrationEnd The end date of the registration period.
      * @param bookingStart The start date of the booking period.
@@ -71,7 +71,7 @@ class LotteryController(
      * @return `null` if the lottery was created successfully. An error message otherwise.
      */
     suspend fun createLottery(
-        ownerId: String,
+        ownerIds: List<String>,
         campsiteIds: List<String>,
         registrationStart: LocalDate?,
         registrationEnd: LocalDate?,
@@ -84,6 +84,10 @@ class LotteryController(
 
         if (campsiteIds.isEmpty()) {
             return "Please pick at least one campsite."
+        }
+
+        if (ownerIds.isEmpty()) {
+            return "A lottery needs at least one owner."
         }
 
         // inpuut check the dates
@@ -156,7 +160,7 @@ class LotteryController(
             Lottery(
                 lotteryId = UUID.randomUUID().toString(),
                 campsiteIds = campsiteIds,
-                ownerId = ownerId,
+                ownerIds = ownerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -170,7 +174,7 @@ class LotteryController(
     }
 
     /**
-     * Creates a lottery for a campsite. Includes input validation.
+     * Updates a lottery for a campsite/campsites. Includes input validation.
      *
      * @param lotteryId The ID of the lottery to update.
      * @param ownerId The device ID of the owner of the lottery.
@@ -184,7 +188,6 @@ class LotteryController(
      */
     suspend fun updateLottery(
         lotteryId: String,
-        ownerId: String,
         registrationStart: LocalDate?,
         registrationEnd: LocalDate?,
         bookingStart: LocalDate?,
@@ -273,7 +276,7 @@ class LotteryController(
             Lottery(
                 lotteryId = lotteryId,
                 campsiteIds = existingLottery.campsiteIds,
-                ownerId = ownerId,
+                ownerIds = existingLottery.ownerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -296,7 +299,7 @@ class LotteryController(
     }
 
     /**
-     * Deletes every active lottery of an owner who is deleting their account, and sends
+     * Deletes every active lottery that includes an owner who is deleting their account, and sends
      * each winner a message that their booking is no longer valid. A lottery is active
      * until its booking period ends or it is cancelled, as in [LotteryFilter.ACTIVE].
      * Lotteries that have ended or were cancelled are left as they are.

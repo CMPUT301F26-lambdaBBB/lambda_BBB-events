@@ -191,7 +191,7 @@ fun CreateMultipleCampsiteLotteryScreen(
                             // parseDateOrNull gives null for an empty or half-typed date,
                             // and createLottery answers that with an error message
                             val error = controllers.lotteries.createLottery(
-                                ownerId = controllers.users.user.deviceId,
+                                ownerIds = listOf(controllers.users.user.deviceId),
                                 campsiteIds = selectedIds.toList(),
                                 registrationStart = parseDateOrNull(registrationStart),
                                 registrationEnd = parseDateOrNull(registrationEnd),
