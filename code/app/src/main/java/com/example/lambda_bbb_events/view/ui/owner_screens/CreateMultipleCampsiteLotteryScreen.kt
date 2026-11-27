@@ -79,10 +79,14 @@ fun CreateMultipleCampsiteLotteryScreen(
 ) {
     val goBack = rememberBackAction(navController)
 
-    val myCampsites = controllers.campsites
-        .getCampsitesByOwner(controllers.users.user.deviceId)
-        .filter { it.active } // filter only active ones
+    val currentDeviceId = controllers.users.user.deviceId
+
+    val allActiveCampsites = controllers.campsites.campsites.values
+        .filter { it.active }
         .sortedBy { it.campsiteName.lowercase() }
+
+    val userCampsites = allActiveCampsites.filter { it.ownerId == currentDeviceId } // campsites where current user made
+    val nonUserCampsites = allActiveCampsites.filter { it.ownerId != currentDeviceId } // campsites where current user did not make
     val selectedIds = remember { mutableStateListOf<String>() }
 
     val scope = rememberCoroutineScope()
@@ -105,11 +109,11 @@ fun CreateMultipleCampsiteLotteryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Select Campsites",
+                text = "Select Your Campsites",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            for (campsite in myCampsites) {
+            for (campsite in userCampsites) {
                 val campsiteId = campsite.campsiteId
                 val isSelected = campsiteId in selectedIds
                 VerticalCampsiteCardWithCheckbox(
@@ -120,6 +124,26 @@ fun CreateMultipleCampsiteLotteryScreen(
                         else selectedIds.add(campsiteId)
                     }
                 )
+            }
+
+            if (nonUserCampsites.isNotEmpty()) {
+                Text(
+                    text = "Select Other Peoples Campsites (optional)",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                for (campsite in nonUserCampsites) {
+                    val campsiteId = campsite.campsiteId
+                    val isSelected = campsiteId in selectedIds
+                    VerticalCampsiteCardWithCheckbox(
+                        campsite = campsite,
+                        isSelected = isSelected,
+                        onClick = {
+                            if (isSelected) selectedIds.remove(campsiteId)
+                            else selectedIds.add(campsiteId)
+                        }
+                    )
+                }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
@@ -188,10 +212,24 @@ fun CreateMultipleCampsiteLotteryScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            // parseDateOrNull gives null for an empty or half-typed date,
-                            // and createLottery answers that with an error message
+                            val selectedCampsites = (userCampsites + nonUserCampsites)
+                                .filter { it.campsiteId in selectedIds }
+
+                            // selected campsites must include at least one of your own campsites
+                            if (selectedCampsites.isNotEmpty() &&
+                                selectedCampsites.none { it.ownerId == currentDeviceId }
+                            ) {
+                                errorMessage = "Include at least one of your own campsites."
+                                return@launch
+                            }
+
+                            // get the owners for selected campsites
+                            val lotteryOwnerIds = selectedCampsites
+                                .map { it.ownerId }
+                                .distinct()
+
                             val error = controllers.lotteries.createLottery(
-                                ownerIds = listOf(controllers.users.user.deviceId),
+                                ownerIds = lotteryOwnerIds,
                                 campsiteIds = selectedIds.toList(),
                                 registrationStart = parseDateOrNull(registrationStart),
                                 registrationEnd = parseDateOrNull(registrationEnd),
