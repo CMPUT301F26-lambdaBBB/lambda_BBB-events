@@ -32,8 +32,7 @@ enum class LotteryFilter {
 enum class LotteryPhase(val label: String) {
     UPCOMING("Upcoming"),                   // registration has not started
     REGISTRATION_OPEN("Registration open"), // entrants can join the waitlist
-    AWAITING_DRAW("Awaiting draw"),         // registration ended, winners not drawn yet
-    WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
+    AWAITING_DRAW("Awaiting draw"),         // registration ended, booking has not started
     BOOKING_OPEN("Booking open"),           // winners can book
     ENDED("Ended"),                         // booking period ended
     CANCELLED("Cancelled")                  // cancelled by the owner
@@ -376,8 +375,9 @@ class LotteryController(
     }
 
     /**
-     * Gets where a lottery is in its timeline, using its current status and
-     * registration and booking dates.
+     * Gets where a lottery is in its timeline from its registration and booking dates.
+     * Winners are drawn by a Firebase Function, so only cancelling changes the phase
+     * through the lottery's status.
      *
      * @param lottery The lottery to check.
      * @return The [LotteryPhase] of the lottery right now.
@@ -397,15 +397,8 @@ class LotteryController(
             return LotteryPhase.REGISTRATION_OPEN
         }
 
-        if (lottery.status != LotteryStatus.DRAWN) {
-            if (!today.after(lottery.bookingEnd)) { // today <= book end
-                return LotteryPhase.AWAITING_DRAW
-            }
-            return LotteryPhase.ENDED // idk what we should do if booking period ends but owners havent drawn. ill just put ended for now
-        }
-
         if (today.before(lottery.bookingStart)) { // today < book start
-            return LotteryPhase.WINNERS_DRAWN
+            return LotteryPhase.AWAITING_DRAW
         }
 
         if (!today.after(lottery.bookingEnd)) { // today <= book end
@@ -438,26 +431,6 @@ class LotteryController(
         }
 
         return phase != LotteryPhase.ENDED && phase != LotteryPhase.CANCELLED
-    }
-
-    /**
-     * Checks if the owner can draw winners of the lottery at current time.
-     *
-     * @param lottery The lottery to check.
-     * @return `true` if the winners can be drawn, `false` otherwise.
-     */
-    fun canDrawWinners(lottery: Lottery): Boolean {
-        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW
-    }
-
-    /**
-     * Draws the winners of a lottery randomly from the waitlist.
-     *
-     * @param lotteryId The ID of the lottery to draw.
-     * @return `null` if the winners were drawn successfully, an error message otherwise.
-     */
-    suspend fun drawWinners(lotteryId: String): String? {
-        return lotteryRepository.drawWinners(lotteryId)
     }
 
     /**
