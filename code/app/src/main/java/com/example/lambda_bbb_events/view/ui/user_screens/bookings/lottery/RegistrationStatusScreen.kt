@@ -14,6 +14,7 @@ import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.lottery.RegistrationStatusBox
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
+import com.example.lambda_bbb_events.view.ui.owner_screens.VerticalCampsiteCardWithCheckbox
 import com.example.lambda_bbb_events.view.ui.theme.bookingStatusColors
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -56,6 +57,10 @@ fun RegistrationStatusScreen(
         mutableStateOf<String?>(null)
     }
 
+    var lotteryCampsiteIds by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+
     var fromDate by remember {
         mutableStateOf<LocalDate?>(null)
     }
@@ -91,6 +96,7 @@ fun RegistrationStatusScreen(
     // Retrieve the campsite and booking dates from the lottery.
     LaunchedEffect(entry?.lotteryId) {
 
+        lotteryCampsiteIds = emptyList()
         campsiteId = null
         fromDate = null
         endDate = null
@@ -102,6 +108,7 @@ fun RegistrationStatusScreen(
 
                 if (lottery != null) {
 
+                    lotteryCampsiteIds = lottery.campsiteIds
                     campsiteId = lottery.campsiteIds.singleOrNull()
 
                     fromDate = lottery.bookingStart
@@ -265,6 +272,28 @@ fun RegistrationStatusScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
+            }
+
+            // if multiple campsite lottery then user must choose one campsite only
+            if (entry.status == WaitlistStatus.WON && lotteryCampsiteIds.size > 1) {
+                Text(
+                    text = "Choose a Campsite",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                lotteryCampsiteIds
+                    .mapNotNull { controllers.campsites.campsites[it] }
+                    .forEach { campsite ->
+                        VerticalCampsiteCardWithCheckbox(
+                            campsite = campsite,
+                            isSelected = campsite.campsiteId == campsiteId,
+                            onClick = {
+                                campsiteId =
+                                    if (campsiteId == campsite.campsiteId) null
+                                    else campsite.campsiteId
+                            }
+                        )
+                    }
             }
 
             // Allow lottery winners to confirm or decline.

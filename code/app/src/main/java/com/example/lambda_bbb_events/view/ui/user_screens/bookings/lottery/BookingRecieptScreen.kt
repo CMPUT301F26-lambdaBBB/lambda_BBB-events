@@ -333,17 +333,17 @@ private fun BookingReceiptCard(
             )
 
             ReceiptRow(
-                label = "Check-in",
+                label = "Start Date",
                 value = fromDate
             )
 
             ReceiptRow(
-                label = "Check-out",
+                label = "End Date",
                 value = endDate
             )
 
             ReceiptRow(
-                label = "Party Size",
+                label = "Number of People",
                 value = "$numberOfGuests ${
                     if (numberOfGuests == 1) "person" else "people"
                 }"
