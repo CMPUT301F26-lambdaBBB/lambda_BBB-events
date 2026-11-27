@@ -78,7 +78,6 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.LotteryRequestsScreen
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteSection
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.SeeAllCampsitesScreen
-import androidx.compose.runtime.remember
 
 /*
  * Displays loading and signup states before opening the
@@ -187,10 +186,6 @@ private fun MainApp(
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
-            composable("explore_default") {
-                ExploreDefaultScreen(navController, controllers)
-            }
-
             composable(
                 "see_all_campsites/{source}/{section}"
             ) { backStackEntry ->
@@ -215,8 +210,10 @@ private fun MainApp(
                     .get<ArrayList<String>>("seeAllCampsiteIds")
                     .orEmpty()
 
+                val activeCampsites = controllers.campsites.activeCampsites
+
                 val campsites = campsiteIds.mapNotNull { campsiteId ->
-                    controllers.campsites.campsites[campsiteId]
+                    activeCampsites[campsiteId]
                 }
 
                 SeeAllCampsitesScreen(
