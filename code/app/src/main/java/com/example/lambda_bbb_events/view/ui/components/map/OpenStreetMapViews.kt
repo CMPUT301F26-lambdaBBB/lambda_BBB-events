@@ -1,15 +1,17 @@
 package com.example.lambda_bbb_events.view.ui.components.map
 
 import android.content.Context
-import android.graphics.Typeface
+import android.graphics.RectF
 import android.view.MotionEvent
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -26,18 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.services.MAP_USER_AGENT
 import okhttp3.OkHttpClient
 import org.maplibre.android.MapLibre
-import org.maplibre.android.annotations.Marker
-import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -47,41 +46,38 @@ import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.module.http.HttpRequestUtil
+import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.PropertyFactory.circleColor
+import org.maplibre.android.style.layers.PropertyFactory.circleRadius
+import org.maplibre.android.style.layers.PropertyFactory.circleStrokeColor
+import org.maplibre.android.style.layers.PropertyFactory.circleStrokeWidth
 import org.maplibre.android.style.layers.RasterLayer
+import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.android.style.sources.RasterSource
 import org.maplibre.android.style.sources.TileSet
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.Point
 import com.google.android.gms.maps.model.LatLng as GoogleLatLng
 
 /*
  * Shows OpenStreetMap maps natively with MapLibre, for when there is no Google API key. The
  * Google versions are in GoogleMapViews.kt.
  *
- * The tile policy is at https://operations.osmfoundation.org/policies/tiles/.
+ * Markers are drawn as a circle layer over the tiles, which is MapLibre's current way of
+ * marking points.
  *
- * Reference:
- * https://maplibre.org/maplibre-native/android/api/
+ * The tile policy is at https://operations.osmfoundation.org/policies/tiles/.
  */
-
-/** OpenStreetMap's tile server. */
-private const val OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-
-/** The closest zoom OpenStreetMap draws tiles for. */
-private const val OSM_MAX_ZOOM = 19f
-
-/** Size in pixels of OpenStreetMap's tiles. */
-private const val OSM_TILE_SIZE = 256
 
 /** Zoom used by the location picker, the same as the Google picker. */
 private const val OSM_PICKER_ZOOM = 13.0
 
-/** The page OpenStreetMap's credit links to. */
-private const val OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright"
+/** The ID of the source and layer that hold the markers. */
+private const val MARKERS = "markers"
 
-/** Colour of the "View campsite" link, the same as on the Google map. */
-private const val OSM_LINK_COLOR = 0xFF2C5C7C.toInt()
-
-/** Text size in sp in a campsite's bubble, the same as on the Google map. */
-private const val OSM_INFO_TEXT_SIZE = 14f
+/** How far in pixels from a marker a tap still selects it. */
+private const val TAP_SLOP_PX = 32f
 
 /**
  * Sends tile requests with the app's own User-Agent. OpenStreetMap blocks MapLibre's default
@@ -95,35 +91,36 @@ private val osmHttpClient: OkHttpClient by lazy {
         .build()
 }
 
-/** Starts MapLibre, which must happen before a map view is made. */
-private fun startMapLibre(context: Context) {
-    MapLibre.getInstance(context)
-    HttpRequestUtil.setOkHttpClient(osmHttpClient)
-}
-
-/** Converts to the LatLng MapLibre uses. */
-private fun GoogleLatLng.toMapLibre(): LatLng = LatLng(latitude, longitude)
-
-/** Converts to the LatLng the rest of the app uses. */
-private fun LatLng.toGoogle(): GoogleLatLng = GoogleLatLng(latitude, longitude)
+/** A point on the map, as the marker source needs it. */
+private fun markerPoint(latitude: Double, longitude: Double): Point = Point.fromLngLat(longitude, latitude)
 
 /** Where the campsite is on the map. */
 private fun Campsite.osmPosition(): LatLng = LatLng(latitude, longitude)
 
-/** A map style with only OpenStreetMap's tiles in it. */
+/** OpenStreetMap's tiles, with an empty marker layer drawn over them. */
 private fun osmStyle(): Style.Builder {
-    val tiles = TileSet("2.2.0", OSM_TILE_URL)
-    tiles.maxZoom = OSM_MAX_ZOOM
+    val tiles = TileSet("2.2.0", "https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+    tiles.maxZoom = 19f
+    val markers = CircleLayer(MARKERS, MARKERS).withProperties(
+        circleRadius(9f),
+        circleColor("#2C5C7C"),
+        circleStrokeColor("#FFFFFF"),
+        circleStrokeWidth(2f)
+    )
     return Style.Builder()
-        .withSource(RasterSource("osm", tiles, OSM_TILE_SIZE))
+        .withSource(RasterSource("osm", tiles, 256))
         .withLayer(RasterLayer("osm", "osm"))
+        .withSource(GeoJsonSource(MARKERS))
+        .withLayer(markers)
 }
 
 /**
- * The map's settings. MapLibre's own logo and credit button are hidden because [OsmMap] shows
- * OpenStreetMap's credit, and tilting and rotating only make a flat map harder to read.
+ * A [MapView] that keeps scrolling screens it is in from taking over drags meant for the map.
+ * MapLibre's logo and credit button are hidden because [OsmMap] shows OpenStreetMap's credit,
+ * and tilting and rotating only make a flat map harder to read.
  */
-private fun osmMapOptions(context: Context, start: CameraPosition): MapLibreMapOptions =
+private class OsmMapView(context: Context, start: CameraPosition) : MapView(
+    context,
     MapLibreMapOptions.createFromAttributes(context)
         .camera(start)
         .textureMode(true)
@@ -132,133 +129,64 @@ private fun osmMapOptions(context: Context, start: CameraPosition): MapLibreMapO
         .compassEnabled(false)
         .rotateGesturesEnabled(false)
         .tiltGesturesEnabled(false)
-
-/**
- * A [MapView] that keeps scrolling screens it is in from taking over drags meant for the map.
- */
-private class ScrollGuardOsmMapView(context: Context, options: MapLibreMapOptions) : MapView(context, options) {
+) {
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         parent?.requestDisallowInterceptTouchEvent(true)
         return super.dispatchTouchEvent(event)
     }
 }
 
-/** Passes a screen's lifecycle [event] on to [mapView], which needs it to draw and to clean up. */
-private fun forwardLifecycle(mapView: MapView, event: Lifecycle.Event) {
-    when (event) {
-        Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
-        Lifecycle.Event.ON_START -> mapView.onStart()
-        Lifecycle.Event.ON_RESUME -> mapView.onResume()
-        Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-        Lifecycle.Event.ON_STOP -> mapView.onStop()
-        else -> Unit
-    }
-}
-
-/** Takes [mapView] down from [state] and frees it, once the map has left the screen. */
-private fun closeMapView(mapView: MapView, state: Lifecycle.State) {
-    if (state.isAtLeast(Lifecycle.State.RESUMED)) {
-        mapView.onPause()
-    }
-    if (state.isAtLeast(Lifecycle.State.STARTED)) {
-        mapView.onStop()
-    }
-    mapView.onDestroy()
-}
-
 /**
- * Makes a MapLibre map view that follows the screen's lifecycle and is freed when it leaves
- * the screen.
- *
- * @param start Where the map looks first.
- */
-@Composable
-private fun rememberOsmMapView(start: CameraPosition): MapView {
-    val context = LocalContext.current
-    val mapView = remember {
-        startMapLibre(context)
-        ScrollGuardOsmMapView(context, osmMapOptions(context, start))
-    }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle, mapView) {
-        val observer = LifecycleEventObserver { _, event -> forwardLifecycle(mapView, event) }
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            closeMapView(mapView, lifecycle.currentState)
-        }
-    }
-    return mapView
-}
-
-/**
- * OpenStreetMap's credit, which its licence requires to stay visible. Tapping it opens
- * OpenStreetMap's copyright page.
- */
-@Composable
-private fun OsmCredit(modifier: Modifier) {
-    val uriHandler = LocalUriHandler.current
-    Text(
-        text = "© OpenStreetMap contributors",
-        fontSize = 11.sp,
-        color = Color.DarkGray,
-        modifier = modifier
-            .background(Color.White.copy(alpha = 0.8f))
-            .clickable { uriHandler.openUri(OSM_COPYRIGHT_URL) }
-            .padding(horizontal = 4.dp, vertical = 1.dp)
-    )
-}
-
-/**
- * An OpenStreetMap map with the app's settings. [onReady] is called once, when the tiles have
- * been added and markers can be placed.
+ * An OpenStreetMap map with the app's settings and OpenStreetMap's credit, which its licence
+ * requires to stay visible. [onReady] is called once the style has loaded, with the source that
+ * holds the markers.
  *
  * @param start Where the map looks first.
  * @param modifier Sets the size and shape of the map.
+ * @param overlay Drawn on top of the map.
  * @param onReady Sets up the map's markers and listeners.
  */
 @Composable
-private fun OsmMap(start: CameraPosition, modifier: Modifier, onReady: (MapLibreMap) -> Unit) {
-    val mapView = rememberOsmMapView(start)
+private fun OsmMap(
+    start: CameraPosition,
+    modifier: Modifier,
+    overlay: @Composable BoxScope.() -> Unit = {},
+    onReady: (MapLibreMap, GeoJsonSource) -> Unit
+) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val currentOnReady by rememberUpdatedState(onReady)
-    LaunchedEffect(mapView) {
-        mapView.getMapAsync { map -> map.setStyle(osmStyle()) { currentOnReady(map) } }
+    val mapView = remember {
+        MapLibre.getInstance(context)
+        HttpRequestUtil.setOkHttpClient(osmHttpClient)
+        OsmMapView(context, start)
+    }
+    DisposableEffect(mapView) {
+        mapView.onStart()
+        mapView.getMapAsync { map ->
+            map.setStyle(osmStyle()) { style ->
+                style.getSourceAs<GeoJsonSource>(MARKERS)?.let { currentOnReady(map, it) }
+            }
+        }
+        onDispose {
+            mapView.onStop()
+            mapView.onDestroy()
+        }
     }
     Box(modifier = modifier) {
         AndroidView(factory = { mapView }, modifier = Modifier.matchParentSize())
-        OsmCredit(Modifier.align(Alignment.BottomEnd))
+        Text(
+            text = "© OpenStreetMap contributors",
+            fontSize = 11.sp,
+            color = Color.DarkGray,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .background(Color.White.copy(alpha = 0.8f))
+                .clickable { uriHandler.openUri("https://www.openstreetmap.org/copyright") }
+                .padding(horizontal = 4.dp, vertical = 1.dp)
+        )
+        overlay()
     }
-}
-
-/** Makes a line of text for a campsite's bubble. */
-private fun infoLine(context: Context, text: String, color: Int, style: Int): TextView {
-    val line = TextView(context)
-    line.text = text
-    line.textSize = OSM_INFO_TEXT_SIZE
-    line.setTextColor(color)
-    line.setTypeface(null, style)
-    return line
-}
-
-/**
- * The bubble shown above a tapped campsite marker, laid out like the Google map's.
- *
- * @param showLink Whether to show "View campsite", for maps where tapping the bubble opens it.
- */
-private fun campsiteInfoView(context: Context, campsite: Campsite, showLink: Boolean): View {
-    val padding = (8 * context.resources.displayMetrics.density).toInt()
-    val bubble = LinearLayout(context)
-    bubble.orientation = LinearLayout.VERTICAL
-    bubble.setBackgroundColor(android.graphics.Color.WHITE)
-    bubble.setPadding(padding, padding, padding, padding)
-    bubble.addView(infoLine(context, campsite.campsiteName, android.graphics.Color.BLACK, Typeface.BOLD))
-    bubble.addView(infoLine(context, campsite.address, android.graphics.Color.DKGRAY, Typeface.NORMAL))
-    if (showLink) {
-        val link = infoLine(context, "View campsite", OSM_LINK_COLOR, Typeface.BOLD)
-        link.setPadding(0, padding, 0, 0)
-        bubble.addView(link)
-    }
-    return bubble
 }
 
 /**
@@ -279,37 +207,57 @@ private fun frameOsmCampsites(map: MapLibreMap, campsites: List<Campsite>, paddi
     }
 }
 
+/** The markers for [campsites], each tagged with its campsite's ID. */
+private fun campsiteFeatures(campsites: List<Campsite>): FeatureCollection =
+    FeatureCollection.fromFeatures(
+        campsites.map { campsite ->
+            val feature = Feature.fromGeometry(markerPoint(campsite.latitude, campsite.longitude))
+            feature.addStringProperty("id", campsite.campsiteId)
+            feature
+        }
+    )
+
+/** The campsite whose marker is at [location] on [map], or `null` if the tap missed them all. */
+private fun campsiteAt(map: MapLibreMap, location: LatLng, campsites: List<Campsite>): Campsite? {
+    val point = map.projection.toScreenLocation(location)
+    val area = RectF(point.x - TAP_SLOP_PX, point.y - TAP_SLOP_PX, point.x + TAP_SLOP_PX, point.y + TAP_SLOP_PX)
+    val id = map.queryRenderedFeatures(area, MARKERS).firstOrNull()?.getStringProperty("id")
+    return campsites.find { it.campsiteId == id }
+}
+
 /**
- * Adds a marker for each campsite to [map], with a bubble that calls [onCampsiteClick] when
- * tapped.
+ * The card shown over the map for a tapped campsite, with the same text as the Google map's
+ * bubble.
+ *
+ * @param onClick Called when "View campsite" is tapped, or `null` to leave the link out.
  */
-private fun addCampsiteMarkers(
-    context: Context,
-    map: MapLibreMap,
-    campsites: List<Campsite>,
-    onCampsiteClick: ((Campsite) -> Unit)?
-) {
-    val byMarker = mutableMapOf<Marker, Campsite>()
-    for (campsite in campsites) {
-        val marker = map.addMarker(MarkerOptions().position(campsite.osmPosition()).title(campsite.campsiteName))
-        byMarker[marker] = campsite
-    }
-    map.setInfoWindowAdapter { marker ->
-        byMarker[marker]?.let { campsiteInfoView(context, it, showLink = onCampsiteClick != null) }
-    }
-    map.setOnInfoWindowClickListener { marker ->
-        byMarker[marker]?.let { onCampsiteClick?.invoke(it) }
-        true
+@Composable
+private fun CampsiteCard(campsite: Campsite, onClick: ((Campsite) -> Unit)?, modifier: Modifier) {
+    Card(modifier = modifier.widthIn(max = 240.dp).testTag("osm_campsite_card")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = campsite.campsiteName, fontWeight = FontWeight.Bold)
+            Text(text = campsite.address, style = MaterialTheme.typography.bodyMedium)
+            if (onClick != null) {
+                Text(
+                    text = "View campsite",
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .clickable { onClick(campsite) }
+                )
+            }
+        }
     }
 }
 
 /**
  * The OpenStreetMap version of [GoogleCampsiteMap]: a marker for each campsite, framed to show
- * them all.
+ * them all. Tapping a marker shows the campsite's name and address over the map.
  *
  * @param campsites The campsites to mark, all with a location.
  * @param modifier Sets the size and shape of the map.
- * @param onCampsiteClick Called when a campsite's bubble is tapped, or `null` to do nothing.
+ * @param onCampsiteClick Called when "View campsite" is tapped, or `null` to leave it out.
  */
 @Composable
 internal fun OpenStreetCampsiteMap(
@@ -317,17 +265,23 @@ internal fun OpenStreetCampsiteMap(
     modifier: Modifier,
     onCampsiteClick: ((Campsite) -> Unit)?
 ) {
-    val context = LocalContext.current
     val paddingPx = with(LocalDensity.current) { BOUNDS_PADDING.dp.roundToPx() }
-    val currentOnCampsiteClick by rememberUpdatedState(onCampsiteClick)
-    val start = CameraPosition.Builder()
-        .target(campsites[0].osmPosition())
-        .zoom(SINGLE_CAMPSITE_ZOOM.toDouble())
-        .build()
+    var selected by remember(campsites) { mutableStateOf<Campsite?>(null) }
+    val start = CameraPosition.Builder().target(campsites[0].osmPosition()).zoom(SINGLE_CAMPSITE_ZOOM.toDouble()).build()
 
     key(campsites) {
-        OsmMap(start, modifier) { map ->
-            addCampsiteMarkers(context, map, campsites) { currentOnCampsiteClick?.invoke(it) }
+        OsmMap(
+            start = start,
+            modifier = modifier,
+            overlay = {
+                selected?.let { CampsiteCard(it, onCampsiteClick, Modifier.align(Alignment.TopCenter).padding(8.dp)) }
+            }
+        ) { map, markers ->
+            markers.setGeoJson(campsiteFeatures(campsites))
+            map.addOnMapClickListener { location ->
+                selected = campsiteAt(map, location, campsites)
+                true
+            }
             frameOsmCampsites(map, campsites, paddingPx)
         }
     }
@@ -349,22 +303,21 @@ internal fun OpenStreetClickableMap(
     onSelect: (GoogleLatLng) -> Unit
 ) {
     val currentOnSelect by rememberUpdatedState(onSelect)
-    var ready by remember { mutableStateOf<Pair<MapLibreMap, Marker>?>(null) }
-    val camera = CameraPosition.Builder().target(start.toMapLibre()).zoom(OSM_PICKER_ZOOM).build()
+    var ready by remember { mutableStateOf<Pair<MapLibreMap, GeoJsonSource>?>(null) }
 
     LaunchedEffect(ready, move) {
         val (map, marker) = ready ?: return@LaunchedEffect
-        if (move != null) {
-            marker.position = move.location.toMapLibre()
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(move.location.toMapLibre(), OSM_PICKER_ZOOM))
-        }
+        val location = move?.location ?: return@LaunchedEffect
+        marker.setGeoJson(markerPoint(location.latitude, location.longitude))
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), OSM_PICKER_ZOOM))
     }
 
-    OsmMap(camera, modifier) { map ->
-        val marker = map.addMarker(MarkerOptions().position(start.toMapLibre()))
+    val camera = CameraPosition.Builder().target(LatLng(start.latitude, start.longitude)).zoom(OSM_PICKER_ZOOM).build()
+    OsmMap(camera, modifier) { map, marker ->
+        marker.setGeoJson(markerPoint(start.latitude, start.longitude))
         map.addOnMapClickListener { location ->
-            marker.position = location
-            currentOnSelect(location.toGoogle())
+            marker.setGeoJson(markerPoint(location.latitude, location.longitude))
+            currentOnSelect(GoogleLatLng(location.latitude, location.longitude))
             true
         }
         ready = map to marker

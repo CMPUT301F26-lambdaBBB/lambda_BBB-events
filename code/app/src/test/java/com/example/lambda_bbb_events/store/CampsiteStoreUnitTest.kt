@@ -21,8 +21,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CampsiteStoreUnitTest {
     private val repo = mockk<CampsiteRepository>()
     private val lotteries = mockk<LotteryRepository>()

@@ -5,7 +5,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performTouchInput
@@ -59,6 +61,27 @@ class OpenStreetMapUITest {
         }
 
         composeTestRule.onNodeWithText("© OpenStreetMap contributors").assertIsDisplayed()
+    }
+
+    @Test
+    fun tappingACampsiteShowsItsNameAndAddress() {
+        var opened: Campsite? = null
+        composeTestRule.setContent {
+            OpenStreetCampsiteMap(campsites.take(1), Modifier.size(300.dp).testTag("osm_campsites")) { opened = it }
+        }
+
+        repeat(20) {
+            composeTestRule.onNodeWithTag("osm_campsites").performTouchInput { click(center) }
+            composeTestRule.waitForIdle()
+            if (composeTestRule.onAllNodesWithTag("osm_campsite_card").fetchSemanticsNodes().isNotEmpty()) {
+                return@repeat
+            }
+            Thread.sleep(500)
+        }
+        composeTestRule.onNodeWithText("1 Lake Rd").assertIsDisplayed()
+        composeTestRule.onNodeWithText("View campsite").performClick()
+
+        assertEquals("a", opened?.campsiteId)
     }
 
     @Test

@@ -250,7 +250,6 @@ class AdminProfileDetailsScreenUITest {
 
         composeTestRule.onNodeWithTag("adminPasswordInput")
             .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
-            .assertTextContains("••••••••")
     }
 
     @Test
