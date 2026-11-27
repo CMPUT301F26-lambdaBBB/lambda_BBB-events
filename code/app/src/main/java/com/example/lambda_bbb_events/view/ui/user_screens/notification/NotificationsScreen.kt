@@ -34,6 +34,8 @@ import kotlinx.coroutines.flow.flowOf
  * @param profiles Every known user by device ID, for names and profile pictures.
  * @param campsiteNames Map of campsite IDs to campsite names.
  * @param isAdmin Whether the current user is an administrator.
+ * @param campers The current user's campers they can message as an owner, with their campsite
+ * IDs, from [lotteryCampersOf].
  *
  * Reference:
  * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
@@ -54,7 +56,8 @@ fun NotificationsScreen(
     preferenceController: NotificationPreferenceController,
     profiles: Map<String, User> = emptyMap(),
     campsiteNames: Map<String, String> = emptyMap(),
-    isAdmin: Boolean = false
+    isAdmin: Boolean = false,
+    campers: Map<String, Set<String>> = emptyMap()
 ) {
 
     var selectedTab by rememberSaveable(currentUserId) {
@@ -165,7 +168,7 @@ fun NotificationsScreen(
     )
 
     val availableContacts = availableContacts(
-        conversations, messagingAccess, currentUserId, profiles, campsiteNames
+        conversations, messagingAccess, currentUserId, profiles, campsiteNames, campers
     )
 
     Scaffold(

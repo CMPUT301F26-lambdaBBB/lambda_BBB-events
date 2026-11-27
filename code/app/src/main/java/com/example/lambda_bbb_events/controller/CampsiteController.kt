@@ -1,5 +1,7 @@
 package com.example.lambda_bbb_events.controller
 
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.campsite.isAvailableThroughLottery
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,11 +24,14 @@ import java.time.LocalDate
  * @param campsiteStore Holds the campsites.
  * @param recentlyViewedStore Saves recently viewed campsites between app launches.
  * @param scope Runs reads and writes of [recentlyViewedStore] off the main thread.
+ * @param lotteriesForCampsite Gets a campsite's lotteries by its ID, which decide the dates it
+ * is available on.
  */
 class CampsiteController(
     private val campsiteStore: CampsiteStore,
     private val recentlyViewedStore: RecentlyViewedStore = InMemoryRecentlyViewedStore(),
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    private val lotteriesForCampsite: (String) -> List<Lottery> = { emptyList() }
 ) {
     companion object {
         const val MAX_RECENTLY_VIEWED = 10
@@ -365,7 +370,7 @@ class CampsiteController(
 
         val start = filters.startDate ?: return true
         val end = filters.endDate ?: start
-        return campsite.availability.isAvailable(start, end)
+        return isAvailableThroughLottery(lotteriesForCampsite(campsite.campsiteId), start, end)
     }
 
     private fun meetsStarRating(

@@ -282,26 +282,8 @@ class LotteryControllerUnitTest {
         assertEquals(LotteryPhase.UPCOMING, controller.getPhase(lottery(registration = 1L..2L)))
         assertEquals(LotteryPhase.REGISTRATION_OPEN, controller.getPhase(lottery(registration = -1L..1L)))
         assertEquals(LotteryPhase.AWAITING_DRAW, controller.getPhase(lottery(registration = -3L..-1L, booking = 1L..3L)))
-        assertEquals(
-            LotteryPhase.WINNERS_DRAWN,
-            controller.getPhase(lottery(registration = -3L..-1L, booking = 1L..3L, status = LotteryStatus.DRAWN))
-        )
-        assertEquals(
-            LotteryPhase.BOOKING_OPEN,
-            controller.getPhase(lottery(registration = -5L..-3L, booking = -1L..1L, status = LotteryStatus.DRAWN))
-        )
-        assertEquals(
-            LotteryPhase.ENDED,
-            controller.getPhase(lottery(registration = -9L..-7L, booking = -5L..-1L, status = LotteryStatus.DRAWN))
-        )
-    }
-
-    @Test
-    fun undrawnLotteryEndsWhenBookingPeriodEnds() {
-        assertEquals(
-            LotteryPhase.ENDED,
-            controller.getPhase(lottery(registration = -9L..-7L, booking = -5L..-1L))
-        )
+        assertEquals(LotteryPhase.BOOKING_OPEN, controller.getPhase(lottery(registration = -5L..-3L, booking = -1L..1L)))
+        assertEquals(LotteryPhase.ENDED, controller.getPhase(lottery(registration = -9L..-7L, booking = -5L..-1L)))
     }
 
     @Test
@@ -318,13 +300,6 @@ class LotteryControllerUnitTest {
         assertEquals(listOf("ended"), ids(LotteryFilter.PAST))
         assertEquals(listOf("cancelled"), ids(LotteryFilter.CANCELLED))
         assertEquals(listOf("open"), controller.getLotteriesForCampsite("site-1").map { it.lotteryId })
-    }
-
-    @Test
-    fun winnersCanOnlyBeDrawnWhileAwaitingDraw() {
-        assertTrue(controller.canDrawWinners(lottery(registration = -3L..-1L, booking = 1L..3L)))
-        assertFalse(controller.canDrawWinners(lottery()))
-        assertFalse(controller.canDrawWinners(lottery(registration = -3L..-1L, booking = 1L..3L, status = LotteryStatus.DRAWN)))
     }
 
     @Test
@@ -345,13 +320,11 @@ class LotteryControllerUnitTest {
         val existing = lottery()
         coEvery { repository.getLottery("lottery-1") } returns existing
         coEvery { repository.deleteLottery(existing) } just runs
-        coEvery { repository.drawWinners("lottery-1") } returns "Registration has not ended yet."
         every { repository.joinLottery(any(), any(), any(), any()) } just runs
         val onResult: (Boolean, String) -> Unit = { _, _ -> }
 
         assertSame(existing, controller.getLottery("lottery-1"))
         controller.deleteLottery(existing)
-        assertEquals("Registration has not ended yet.", controller.drawWinners("lottery-1"))
         controller.joinLotteryEntry("lottery-1", "ed", 3, onResult)
 
         coVerify(exactly = 1) { repository.deleteLottery(existing) }

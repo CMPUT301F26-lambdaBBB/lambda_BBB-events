@@ -81,7 +81,7 @@ fun MessagesTab(
 
         scope.launch {
             try {
-                openChat(messageController.createConversation(contact.contactId, contact.type))
+                openChat(conversationWith(contact, messageController))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -205,4 +205,17 @@ private fun EmptyMessages() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+/**
+ * Creates or retrieves the conversation with [contact], started from whichever side the
+ * current user is on.
+ *
+ * @return Unique identifier of the conversation.
+ */
+private suspend fun conversationWith(contact: MessageContact, messageController: MessageController): String {
+    if (contact.isCamperSide) {
+        return messageController.createConversation(contact.contactId, contact.type)
+    }
+    return messageController.startConversationAsOwner(contact.contactId)
 }

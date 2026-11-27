@@ -13,7 +13,6 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lambda_bbb_events.model.campsite.Campsite
-import com.example.lambda_bbb_events.model.services.MapProvider
 import com.example.lambda_bbb_events.view.ui.components.map.MapCommand
 import com.example.lambda_bbb_events.view.ui.components.map.MapsJavaScriptView
 import com.example.lambda_bbb_events.view.ui.components.map.osmCampsiteMapScript
@@ -49,7 +48,6 @@ class OpenStreetMapUITest {
             MapsJavaScriptView(
                 html = page,
                 modifier = Modifier.size(300.dp).testTag("map"),
-                provider = MapProvider.OPEN_STREET_MAP,
                 command = command,
                 onEvent = { name, data -> events.add(name to data) }
             )

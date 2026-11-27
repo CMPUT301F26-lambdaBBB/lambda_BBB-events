@@ -85,6 +85,23 @@ class MessageController(
     }
 
     /**
+     * Creates or retrieves the current owner's conversation with a camper, so owners can
+     * message campers instead of only replying to them (US 02.12.01). It is the same
+     * conversation the camper would start with the owner.
+     *
+     * @param camperId Device ID of the camper.
+     * @return Unique identifier of the conversation.
+     * @throws IllegalStateException If the camper can no longer message the current owner.
+     */
+    suspend fun startConversationAsOwner(camperId: String): String {
+        return conversationRepository.createConversation(
+            contactId = currentUserId,
+            type = ConversationType.OWNER,
+            userId = camperId
+        )
+    }
+
+    /**
      * Creates or retrieves the current administrator's conversation with a user,
      * so the administrator can message them from their profile.
      *
