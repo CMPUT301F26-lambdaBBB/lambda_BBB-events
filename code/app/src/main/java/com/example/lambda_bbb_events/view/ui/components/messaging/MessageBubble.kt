@@ -34,12 +34,15 @@ import java.text.SimpleDateFormat
  * Messages sent by the current user are aligned to the right,
  * while messages received from other users are aligned to the left.
  * Deleted messages keep their place and show [Message.DELETED_TEXT].
+ * The time is only shown under the last message of a group sent by the
+ * same person in the same minute, see [Message.isGroupedWith].
  *
  * @param message The message to display.
  * @param currentUserId Unique identifier of the current user.
  * @param senderName Display name of the message sender.
  * @param onLongClick Called when the message is long-pressed, or `null` if
  * it cannot be acted on, such as when it cannot be deleted.
+ * @param showTime Whether to show the time under the message.
  * @param modifier Modifier applied to the message container.
  *
  * Reference:
@@ -50,6 +53,8 @@ import java.text.SimpleDateFormat
  * - "Also please clean up a database and offer a way for users to delete messages with a message
  *   deleted plus. Show also that messages are active."
  * - "So to clarify I want to allow users and admins to remove messages."
+ * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+ *   places for the same time."
  */
 @Composable
 fun MessageBubble(
@@ -57,6 +62,7 @@ fun MessageBubble(
     currentUserId: String,
     senderName: String = "",
     onLongClick: (() -> Unit)? = null,
+    showTime: Boolean = true,
     modifier: Modifier = Modifier
 ) {
 
@@ -75,7 +81,7 @@ fun MessageBubble(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(top = 2.dp, bottom = if (showTime) 4.dp else 0.dp),
         horizontalAlignment = if (isOwnMessage) {
             Alignment.End
         } else {
@@ -105,15 +111,16 @@ fun MessageBubble(
             )
         }
 
-        Text(
-            text = formattedTime,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 4.dp
+        if (showTime) {
+            Text(
+                text = formattedTime,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .testTag("messageTime")
             )
-        )
+        }
     }
 }
 

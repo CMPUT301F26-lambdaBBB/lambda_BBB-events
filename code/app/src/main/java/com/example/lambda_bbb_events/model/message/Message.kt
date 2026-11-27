@@ -45,7 +45,28 @@ class Message(
         return !deleted && personId.isNotBlank() && (senderId == personId || isAdmin)
     }
 
+    /**
+     * Whether this message is part of the same group as [other], so only one of them needs
+     * to show the time: they have the same sender and were sent in the same minute.
+     *
+     * @param other A message next to this one in the conversation.
+     *
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+     *   places for the same time."
+     */
+    fun isGroupedWith(other: Message): Boolean {
+        return senderId == other.senderId &&
+                timestamp.seconds / SECONDS_PER_MINUTE == other.timestamp.seconds / SECONDS_PER_MINUTE
+    }
+
     companion object {
+
+        private const val SECONDS_PER_MINUTE = 60L
 
         /** Shown in place of a deleted message, in the chat and the conversation preview. */
         const val DELETED_TEXT = "Message deleted"
