@@ -20,6 +20,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -89,6 +91,8 @@ fun CreateMultipleCampsiteLotteryScreen(
     val nonUserCampsites = allActiveCampsites.filter { it.ownerId != currentDeviceId } // campsites where current user did not make
     val selectedIds = remember { mutableStateListOf<String>() }
 
+    var showOtherCampsites by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
 
     var registrationStart by remember { mutableStateOf("") }
@@ -127,22 +131,39 @@ fun CreateMultipleCampsiteLotteryScreen(
             }
 
             if (nonUserCampsites.isNotEmpty()) {
-                Text(
-                    text = "Select Other Peoples Campsites (optional)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                for (campsite in nonUserCampsites) {
-                    val campsiteId = campsite.campsiteId
-                    val isSelected = campsiteId in selectedIds
-                    VerticalCampsiteCardWithCheckbox(
-                        campsite = campsite,
-                        isSelected = isSelected,
-                        onClick = {
-                            if (isSelected) selectedIds.remove(campsiteId)
-                            else selectedIds.add(campsiteId)
-                        }
+                // make visibility toggleable to show/hide list
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showOtherCampsites = !showOtherCampsites },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Select Other Peoples Campsites (optional)",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f)
                     )
+                    Icon(
+                        imageVector = if (showOtherCampsites) Icons.Filled.KeyboardArrowUp
+                        else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = if (showOtherCampsites) "Hide" else "Show"
+                    )
+                }
+
+                if (showOtherCampsites) {
+                    for (campsite in nonUserCampsites) {
+                        val campsiteId = campsite.campsiteId
+                        val isSelected = campsiteId in selectedIds
+                        VerticalCampsiteCardWithCheckbox(
+                            campsite = campsite,
+                            isSelected = isSelected,
+                            onClick = {
+                                if (isSelected) selectedIds.remove(campsiteId)
+                                else selectedIds.add(campsiteId)
+                            }
+                        )
+                    }
                 }
             }
 
