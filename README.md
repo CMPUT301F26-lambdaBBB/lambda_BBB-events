@@ -19,6 +19,7 @@
 - [CRC Cards](https://github.com/CMPUT301F26-lambdaBBB/lambda_BBB-events/wiki/CRC-Cards)
 - [UML Diagram](https://github.com/CMPUT301F26-lambdaBBB/lambda_BBB-events/wiki/UML-Diagram)
 - [Kotlin Documentation Page](https://cmput301f26-lambdabbb.github.io/lambda_BBB-events/)
+- [Weekly Sprint (Part 3 - Part 4)](https://docs.google.com/document/d/1xqHRHSGlGgzoE_3bG8Rib3W0cqLQNPUBnQgJMRKFCCs/edit?usp=sharing)
 
 ## References
 
