@@ -74,6 +74,7 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.ViewBookedDatesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.notification.ChatRoute
 import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.rememberCoroutineScope
+import com.example.lambda_bbb_events.view.ui.owner_screens.LotteryRequestsScreen
 import kotlinx.coroutines.launch
 
 /*
@@ -416,6 +417,7 @@ private fun MainApp(
             }
 
             composable("my_campsites") { MyCampsitesScreen(navController, controllers) }
+            composable("lottery_requests") { LotteryRequestsScreen(navController, controllers) }
             composable("create_campsite") { CreateScreen(navController, controllers) }
             composable("edit_campsite/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""

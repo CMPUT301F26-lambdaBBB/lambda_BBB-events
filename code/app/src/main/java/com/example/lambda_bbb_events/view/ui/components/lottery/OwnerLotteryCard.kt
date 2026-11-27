@@ -187,6 +187,10 @@ fun PhasePill(phase: LotteryPhase) {
             backgroundColor = Color(0xFFC8F7C5)
             textColor = Color(0xFF3B9A35)
         }
+        LotteryPhase.WAITING_FOR_OWNERS -> {
+            backgroundColor = Color(0xFFFFF0C2)
+            textColor = Color(0xFF8A6100)
+        }
         LotteryPhase.CANCELLED -> {
             backgroundColor = Color(0xFFFADADD)
             textColor = Color(0xFFB3261E)

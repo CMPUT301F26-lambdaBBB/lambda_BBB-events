@@ -31,6 +31,7 @@ enum class LotteryFilter {
  */
 enum class LotteryPhase(val label: String) {
     UPCOMING("Upcoming"),                   // registration has not started
+    WAITING_FOR_OWNERS("Waiting for owners"), // owners still need to accept lottery request
     REGISTRATION_OPEN("Registration open"), // entrants can join the waitlist
     AWAITING_DRAW("Awaiting draw"),         // registration ended, winners not drawn yet
     WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
@@ -391,6 +392,10 @@ class LotteryController(
 
         if (lottery.status == LotteryStatus.CANCELLED) {
             return LotteryPhase.CANCELLED
+        }
+
+        if (lottery.pendingOwnerIds.isNotEmpty() && !today.after(lottery.bookingEnd)) { // today <= book end
+            return LotteryPhase.WAITING_FOR_OWNERS
         }
 
         if (today.before(lottery.registrationStart)) { // today < reg start
