@@ -20,6 +20,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import com.example.lambda_bbb_events.controller.NotificationController
 
 /**
  * Displays the user's conversations and notification settings.
@@ -54,14 +55,19 @@ fun NotificationsScreen(
     preferenceController: NotificationPreferenceController,
     profiles: Map<String, User> = emptyMap(),
     campsiteNames: Map<String, String> = emptyMap(),
-    isAdmin: Boolean = false
+    isAdmin: Boolean = false,
+    notificationController: NotificationController
 ) {
 
     var selectedTab by rememberSaveable(currentUserId) {
         mutableIntStateOf(0)
     }
 
-    val tabs = listOf("Messages", "Settings")
+    val tabs = listOf(
+        "Messages",
+        "Settings",
+        "Updates"
+    )
 
     var conversations by remember(currentUserId, isAdmin) {
         mutableStateOf<List<Conversation>>(emptyList())
@@ -265,11 +271,21 @@ fun NotificationsScreen(
 
                 // Notification settings tab.
                 1 -> {
-
                     NotificationSettingsTab(
                         contacts = (conversationContacts + availableContacts)
                             .distinctBy { it.contactId },
                         preferenceController = preferenceController,
+                        currentUserId = currentUserId,
+                        notificationController = notificationController,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // System notification history tab.
+                2 -> {
+                    NotificationUpdatesTab(
+                        currentUserId = currentUserId,
+                        notificationController = notificationController,
                         modifier = Modifier.weight(1f)
                     )
                 }

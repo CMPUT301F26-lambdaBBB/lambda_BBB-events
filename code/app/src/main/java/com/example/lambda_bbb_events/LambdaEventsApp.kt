@@ -400,7 +400,8 @@ private fun MainApp(
                         preferenceController = controllers.notificationPreferences,
                         profiles = profiles,
                         campsiteNames = campsiteNames,
-                        isAdmin = isAdmin
+                        isAdmin = isAdmin,
+                        notificationController = controllers.notifications
                     )
                 }
             }

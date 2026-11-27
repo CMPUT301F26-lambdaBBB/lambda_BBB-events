@@ -25,22 +25,30 @@ class NotificationRepository(
      * Creates notification channel at startup.
      */
     fun createNotificationChannel() {
-        // notification class is not in support library for api <26
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "APP_NOTIFICATIONS",
-                "Lambda Campsite Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notification for lambda_BBB campsite"
-            }
 
-            val manager = context.getSystemService(
-                Context.NOTIFICATION_SERVICE
-            ) as NotificationManager
-
-            manager.createNotificationChannel(channel)
+        val defaultChannel = NotificationChannel(
+            "APP_NOTIFICATIONS",
+            "Lambda Campsite Notifications",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "General campsite notifications"
         }
+
+        val highPriorityChannel = NotificationChannel(
+            "HIGH_PRIORITY_NOTIFICATIONS",
+            "High Priority Notifications",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Important campsite notifications"
+        }
+
+        val manager = context.getSystemService(
+            Context.NOTIFICATION_SERVICE
+        ) as NotificationManager
+
+        manager.createNotificationChannels(
+            listOf(defaultChannel, highPriorityChannel)
+        )
     }
 
     /**

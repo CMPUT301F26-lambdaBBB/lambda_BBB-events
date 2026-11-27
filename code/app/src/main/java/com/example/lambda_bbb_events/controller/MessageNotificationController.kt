@@ -3,12 +3,16 @@ package com.example.lambda_bbb_events.controller
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.lambda_bbb_events.MainActivity
+import com.example.lambda_bbb_events.R
 import com.example.lambda_bbb_events.model.Conversation
 import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.repository.NotificationPreferenceRepository
@@ -56,12 +60,19 @@ class MessageNotificationController(
 
         val user = userController.currentUser ?: return false
 
+        // Check global notification preference.
         if (!user.notificationsEnabled) return false
 
+        // Ignore deleted messages.
+        if (message.deleted) return false
+
+        // Prevent notifications for messages sent by the user.
         if (message.senderId == user.deviceId) return false
 
+        // Only notify the intended recipient.
         if (message.recipientId != user.deviceId) return false
 
+        // Check individual contact notification preference.
         val repository =
             NotificationPreferenceRepository(user.deviceId)
 
@@ -110,8 +121,10 @@ class MessageNotificationController(
         message: Message
     ) {
 
+        // Check user notification preferences.
         if (!shouldNotify(conversation, message)) return
 
+        // Check Android notification permission.
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
@@ -122,20 +135,48 @@ class MessageNotificationController(
             return
         }
 
+        // Check Android system notification settings.
+        if (!NotificationManagerCompat.from(context)
+                .areNotificationsEnabled()
+        ) {
+            return
+        }
+
         createNotificationChannel(context)
 
+        // Open the application when the notification is tapped.
+        val intent = Intent(
+            context,
+            MainActivity::class.java
+        ).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                    PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build the notification.
         val notification = NotificationCompat.Builder(
             context,
             channelId
         )
-            .setSmallIcon(android.R.drawable.ic_dialog_email)
+            .setSmallIcon(R.drawable.lb_small)
             .setContentTitle("New message")
             .setContentText("You have received a new message.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 
+        // Display the notification using a unique message tag.
         NotificationManagerCompat.from(context).notify(
             "${conversation.conversationId}/${message.messageId}",
             0,
