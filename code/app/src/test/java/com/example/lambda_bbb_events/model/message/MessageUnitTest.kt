@@ -1,6 +1,7 @@
 package com.example.lambda_bbb_events.model.message
 
 import com.example.lambda_bbb_events.model.Message
+import com.google.firebase.Timestamp
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,5 +41,50 @@ class MessageUnitTest {
 
         assertFalse(deleted.canBeDeletedBy("ed", isAdmin = false))
         assertFalse(deleted.canBeDeletedBy("ada", isAdmin = true))
+    }
+
+    private fun sentAt(senderId: String, seconds: Long) =
+        Message(messageId = "m$seconds", senderId = senderId, timestamp = Timestamp(seconds, 0))
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+     *   places for the same time."
+     */
+    @Test
+    fun messagesFromTheSamePersonInTheSameMinuteAreGrouped() {
+        assertTrue(sentAt("ed", 600).isGroupedWith(sentAt("ed", 659)))
+    }
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+     *   places for the same time."
+     */
+    @Test
+    fun messagesInDifferentMinutesAreNotGrouped() {
+        assertFalse(sentAt("ed", 659).isGroupedWith(sentAt("ed", 660)))
+    }
+
+    /**
+     * Reference:
+     * Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+     * https://claude.com/claude-code
+     * Written with the help of this AI tool.
+     * Prompts:
+     * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+     *   places for the same time."
+     */
+    @Test
+    fun messagesFromDifferentPeopleAreNotGrouped() {
+        assertFalse(sentAt("ed", 600).isGroupedWith(sentAt("ada", 600)))
     }
 }

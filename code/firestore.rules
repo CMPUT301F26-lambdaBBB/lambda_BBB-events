@@ -1,87 +1,201 @@
 rules_version = '2';
 
-// Firestore security rules. Publish them in the Firebase console, under Firestore > Rules.
+// Firestore security rules.
 //
-// Users do not sign in to Firebase, so these rules cannot tell who is making a request. They
-// only protect the admin role: nobody can become an admin without the admin password. Other
-// data can still be read and changed by anyone.
+// Users do not sign in to Firebase, so these rules cannot
+// verify who is making a request.
 //
-// Do not add a rule matching every document (/{document=**}). A write is allowed if any rule
-// allows it, so that would undo the rules below.
+// Admin promotion requires the admin password.
+// Other data remains accessible without authentication.
+//
+// Do not add a global wildcard permission rule
+// (/{document=**}), as it would override these restrictions.
+//
+// Development and classroom testing only.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // The admin password is the "code" field of secrets/admin, set in the Firebase console.
-    // The app can never read it; only these rules can.
+    // The admin password is stored in secrets/admin.
+    // Only Firestore security rules can access it.
     match /secrets/{id} {
       allow read, write: if false;
     }
 
     function adminPassword() {
-      return get(/databases/$(database)/documents/secrets/admin).data.code;
+      return get(
+        /databases/$(database)/documents/secrets/admin
+      ).data.code;
     }
 
-    // Written together with a promotion, to prove that the password is known. It holds the
-    // password, so it can never be read back.
+    // Written together with an admin promotion
+    // to prove that the password is known.
     match /adminGrants/{userId} {
       allow read, delete: if false;
-      allow create, update: if request.resource.data.keys().hasOnly(['code', 'grantedAt'])
-                            && request.resource.data.code is string
-                            && request.resource.data.code != ''
-                            && request.resource.data.code == adminPassword()
-                            && request.resource.data.grantedAt == request.time;
+
+      allow create, update:
+        if request.resource.data.keys()
+             .hasOnly(['code', 'grantedAt'])
+        && request.resource.data.code is string
+        && request.resource.data.code != ''
+        && request.resource.data.code == adminPassword()
+        && request.resource.data.grantedAt == request.time;
     }
 
+    // User accounts and role management.
     match /users/{userId} {
-      // The grant must be from this same request, so an old one cannot be used again
+
+      // The grant must originate from the same request.
       function isGrantedAdminNow() {
-        return getAfter(/databases/$(database)/documents/adminGrants/$(userId))
-                 .data.grantedAt == request.time;
+        return getAfter(
+          /databases/$(database)/documents/adminGrants/$(userId)
+        ).data.grantedAt == request.time;
       }
 
-      // Only the role changes, so a promotion cannot also change the user's details
+      // An admin promotion can only modify the role.
       function isPromotionToAdmin() {
         return request.resource.data.role == 'ADMIN'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-            && isGrantedAdminNow();
+          && request.resource.data.diff(resource.data)
+               .affectedKeys().hasOnly(['role'])
+          && isGrantedAdminNow();
       }
 
+      // Users can retain their current role or
+      // transition from ENTRANT to OWNER.
       function keepsRoleOrBecomesOwner() {
         return request.resource.data.role == resource.data.role
-            || (resource.data.role == 'ENTRANT' && request.resource.data.role == 'OWNER');
+          || (
+            resource.data.role == 'ENTRANT'
+            && request.resource.data.role == 'OWNER'
+          );
       }
 
-      // The app finds accounts by their deviceId field, so it must always match the document.
-      // Otherwise an admin's document could be pointed at someone else's device.
+      // The device ID must match the document ID.
       function hasOwnDeviceId() {
         return request.resource.data.deviceId == userId;
       }
 
       allow read, delete: if true;
-      allow create: if hasOwnDeviceId()
-                    && request.resource.data.role in ['ENTRANT', 'OWNER'];
-      allow update: if hasOwnDeviceId()
-                    && (keepsRoleOrBecomesOwner() || isPromotionToAdmin());
+
+      allow create:
+        if hasOwnDeviceId()
+        && request.resource.data.role in ['ENTRANT', 'OWNER'];
+
+      allow update:
+        if hasOwnDeviceId()
+        && (
+          keepsRoleOrBecomesOwner()
+          || isPromotionToAdmin()
+        );
     }
 
-    // The app allows one review for each user and campsite, named after both of them
+    // One review per user and campsite.
     match /reviews/{id} {
+
       allow read, delete: if true;
-      allow create, update: if id == request.resource.data.campsiteId + '_' + request.resource.data.reviewerId
-                            && request.resource.data.reviewId == id
-                            && request.resource.data.rating is int
-                            && request.resource.data.rating >= 1
-                            && request.resource.data.rating <= 5
-                            && request.resource.data.comment is string
-                            && request.resource.data.comment.size() <= 500
-                            && exists(/databases/$(database)/documents/campsites/$(request.resource.data.campsiteId));
+
+      allow create, update:
+        if id == request.resource.data.campsiteId
+                 + '_'
+                 + request.resource.data.reviewerId
+        && request.resource.data.reviewId == id
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 500
+        && exists(
+          /databases/$(database)/documents/campsites/$(request.resource.data.campsiteId)
+        );
     }
 
-    match /campsites/{id}       { allow read, write: if true; }
-    match /lotteries/{id}       { allow read, write: if true; }
-    match /waitlistEntries/{id} { allow read, write: if true; }
-    match /reservations/{id}    { allow read, write: if true; }
-    match /messages/{id}        { allow read, write: if true; }
-    match /images/{path=**}     { allow read, write: if true; }
+    // Campsite management.
+    match /campsites/{id} {
+      allow read, write: if true;
+    }
+
+    // Lottery management.
+    match /lotteries/{id} {
+      allow read, write: if true;
+    }
+
+    // Lottery waitlist entries.
+    match /waitlistEntries/{id} {
+      allow read, write: if true;
+    }
+
+    // Reservation management.
+    match /reservations/{id} {
+      allow read, write: if true;
+    }
+
+    // Existing system-generated messages.
+    match /messages/{id} {
+      allow read, write: if true;
+    }
+
+    // Image management.
+    match /images/{path=**} {
+      allow read, write: if true;
+    }
+
+    // Owner and administrator conversations.
+    match /conversations/{conversationId} {
+
+      // Allows loading conversations, creating conversations,
+      // and updating the latest message information.
+      allow read, create, update: if true;
+
+      allow delete: if false;
+
+      // Individual messages within a conversation.
+      match /messages/{messageId} {
+
+        allow read, create: if true;
+
+        // A message can only be changed by deleting it for everyone:
+        // its text is cleared and it is marked as deleted, so it shows
+        // as "Message deleted" in its place. It cannot be restored or edited.
+        //
+        // Reference:
+        // Anthropic. (2026). Claude Code (Claude Opus 5.5) [Large language model].
+        // https://claude.com/claude-code
+        // Written with the help of this AI tool.
+        // Prompts:
+        // - "Failed to delete the  message every time"
+        // - "Add it here"
+        allow update:
+          if resource.data.get('deleted', false) == false
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['content', 'deleted', 'deletedAt'])
+          && request.resource.data.deleted == true
+          && request.resource.data.content == '';
+
+        // Messages are never removed, so the conversation keeps its order.
+        allow delete: if false;
+      }
+    }
+
+    // Messaging access associated with lottery enrollments
+    // and reservations.
+    match /messagingAccess/{userId}/campsites/{campsiteId} {
+
+      // Allows granting, revoking, restoring, and
+      // observing messaging access.
+      allow read, create, update: if true;
+
+      // Preserve historical messaging access records.
+      allow delete: if false;
+    }
+
+    // Notification preferences for individual contacts.
+    match /notificationPreferences/{userId}/contacts/{contactId} {
+
+      // Allows reading and updating notification preferences,
+      // including temporary and indefinite muting.
+      allow read, create, update: if true;
+
+      allow delete: if false;
+    }
   }
 }

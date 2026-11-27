@@ -1,8 +1,9 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.notification
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,7 +31,8 @@ import kotlinx.coroutines.launch
  * opens and removed when the screen leaves composition.
  *
  * Long-pressing a message the user may delete asks them to confirm,
- * then deletes it for both people.
+ * then deletes it for both people. Messages sent by the same person in
+ * the same minute show the time once, under the last of them.
  *
  * @param conversationId Unique identifier of the conversation.
  * @param title Display name of the contact, shown on the contact card.
@@ -54,6 +56,8 @@ import kotlinx.coroutines.launch
  * - "Also please clean up a database and offer a way for users to delete messages with a message
  *   deleted plus. Show also that messages are active."
  * - "So to clarify I want to allow users and admins to remove messages."
+ * - "Can you combine the message timestamps because it's a bit weird to put it in multiple
+ *   places for the same time."
  */
 @Composable
 fun ChatScreen(
@@ -159,10 +163,10 @@ fun ChatScreen(
                     )
                 ) {
 
-                    items(
+                    itemsIndexed(
                         items = messages,
-                        key = { it.messageId }
-                    ) { message ->
+                        key = { _, message -> message.messageId }
+                    ) { index, message ->
 
                         MessageBubble(
                             message = message,
@@ -172,7 +176,8 @@ fun ChatScreen(
                                 { messageToDelete = message }
                             } else {
                                 null
-                            }
+                            },
+                            showTime = index == 0 || !message.isGroupedWith(messages[index - 1])
                         )
                     }
                 }
@@ -291,7 +296,7 @@ private fun DeleteMessageDialog(
 }
 
 /**
- * Deletes [message] from the open conversation.
+ * Deletes [message] from the open conversation, logging why if it fails.
  *
  * @return An error to show the user, or `null` if the message was deleted.
  *
@@ -303,6 +308,7 @@ private fun DeleteMessageDialog(
  * - "Also please clean up a database and offer a way for users to delete messages with a message
  *   deleted plus. Show also that messages are active."
  * - "So to clarify I want to allow users and admins to remove messages."
+ * - "Failed to delete the  message every time"
  */
 private suspend fun deleteMessage(
     messageController: MessageController,
@@ -314,6 +320,7 @@ private suspend fun deleteMessage(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        Log.e("ChatScreen", "Failed to delete message ${message.messageId}", e)
         "Failed to delete message. Please try again."
     }
 }
