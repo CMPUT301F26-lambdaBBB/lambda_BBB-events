@@ -23,6 +23,8 @@ enum class LotteryStatus {
  * @property lotteryId The unique ID of the lottery.
  * @property campsiteIds IDs of the campsites included in this lottery. Must not be empty.
  * @property ownerIds The IDs of the campsite owners listed in the lottery.
+ * @property pendingOwnerIds Owners who were invited to the multiple campsite lottery but
+ * haven't accepted yet. The lottery registration is can open when this is empty.
  * @property registrationStart The date when entrants can start joining the waitlist.
  * @property registrationEnd The date when the waitlist stops accepting entrants.
  * @property bookingStart The date when winners can start booking.
@@ -36,6 +38,7 @@ data class Lottery (
     val lotteryId: String = "",
     val campsiteIds: List<String> = emptyList(),
     val ownerIds: List<String> = emptyList(),
+    val pendingOwnerIds: List<String> = emptyList(), // owners who haven't accepted yet
     val registrationStart: Date = Date(),
     val registrationEnd: Date = Date(),
     val bookingStart: Date = Date(),
@@ -63,8 +66,8 @@ data class Lottery (
      * @return `true` if registration is open, `false` otherwise.
      */
     fun isRegistrationOpen(date: Date = Date()): Boolean {
-        return status == LotteryStatus.OPEN && date >= registrationStart &&
-                date <= registrationEnd
+        return status == LotteryStatus.OPEN && pendingOwnerIds.isEmpty() &&
+                date >= registrationStart && date <= registrationEnd
     }
 
 }

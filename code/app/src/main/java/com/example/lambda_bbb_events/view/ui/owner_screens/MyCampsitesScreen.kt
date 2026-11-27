@@ -123,6 +123,18 @@ fun MyCampsitesScreen(
                 )
             }
 
+            OutlinedButton(
+                onClick = { navController.navigate("lottery_requests") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Lottery requests",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+
             if (user?.role == UserRole.ADMIN) {
                 RunLotteriesButton(
                     controller = controllers.adminLotteries,

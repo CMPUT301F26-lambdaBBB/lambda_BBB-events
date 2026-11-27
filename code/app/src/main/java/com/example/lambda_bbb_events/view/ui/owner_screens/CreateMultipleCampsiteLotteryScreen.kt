@@ -257,7 +257,8 @@ fun CreateMultipleCampsiteLotteryScreen(
                                 bookingStart = parseDateOrNull(bookingStart),
                                 bookingEnd = parseDateOrNull(bookingEnd),
                                 numberOfWinnersString = numberOfWinners,
-                                waitlistCapacityString = waitlistCapacity
+                                waitlistCapacityString = waitlistCapacity,
+                                pendingOwnerIds = lotteryOwnerIds.filter { it != currentDeviceId }
                             )
 
                             if (error == null) {

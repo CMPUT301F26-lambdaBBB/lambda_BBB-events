@@ -441,6 +441,8 @@ class LotteryRepository(
                     errorMessage = "This lottery no longer exists."
                 } else if (lottery.status != LotteryStatus.OPEN) {
                     errorMessage = "The lottery is not open."
+                } else if (lottery.pendingOwnerIds.isNotEmpty()) {
+                    errorMessage = "Waiting for the other owners to accept this lottery."
                 } else if (Date().before(lottery.registrationEnd)) {
                     errorMessage = "Registration has not ended yet."
                 } else {

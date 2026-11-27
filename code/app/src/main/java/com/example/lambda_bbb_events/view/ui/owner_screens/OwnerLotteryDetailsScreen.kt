@@ -188,25 +188,33 @@ fun OwnerLotteryDetailsScreen(
                             Text(if (isDrawing) "Drawing..." else "Draw Winners")
                         }
 
-                        if (lotteryPhase == LotteryPhase.UPCOMING || lotteryPhase == LotteryPhase.REGISTRATION_OPEN) {
+                        if (lotteryPhase == LotteryPhase.WAITING_FOR_OWNERS) {
                             Text(
-                                text = "Winners can be drawn after registration ends on " +
-                                        "${formatSingleDate(currentLottery.registrationEnd)}.",
+                                text = "Waiting for the other owners to accept this lottery.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        } else if (canDraw && entries.isEmpty()) {
-                            Text(
-                                text = "Unable to draw winners. Nobody has joined the lottery.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else if (lotteryPhase == LotteryPhase.WINNERS_DRAWN || lotteryPhase == LotteryPhase.BOOKING_OPEN) {
-                            Text(
-                                text = "The winners have been drawn.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        } else {
+                            if (lotteryPhase == LotteryPhase.UPCOMING || lotteryPhase == LotteryPhase.REGISTRATION_OPEN) {
+                                Text(
+                                    text = "Winners can be drawn after registration ends on " +
+                                            "${formatSingleDate(currentLottery.registrationEnd)}.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else if (canDraw && entries.isEmpty()) {
+                                Text(
+                                    text = "Unable to draw winners. Nobody has joined the lottery.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else if (lotteryPhase == LotteryPhase.WINNERS_DRAWN || lotteryPhase == LotteryPhase.BOOKING_OPEN) {
+                                Text(
+                                    text = "The winners have been drawn.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         if (drawErrorMessage != null) {

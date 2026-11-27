@@ -31,6 +31,7 @@ enum class LotteryFilter {
  */
 enum class LotteryPhase(val label: String) {
     UPCOMING("Upcoming"),                   // registration has not started
+    WAITING_FOR_OWNERS("Waiting for owners"), // owners still need to accept lottery request
     REGISTRATION_OPEN("Registration open"), // entrants can join the waitlist
     AWAITING_DRAW("Awaiting draw"),         // registration ended, winners not drawn yet
     WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
@@ -68,6 +69,7 @@ class LotteryController(
      * @param bookingEnd The end date of the booking period.
      * @param numberOfWinnersString The number of winners of the lottery (as a string).
      * @param waitlistCapacityString The maximum number of entries (as a string).
+     * @param pendingOwnerIds The owners IDs who still have to accept the lottery.
      * @return `null` if the lottery was created successfully. An error message otherwise.
      */
     suspend fun createLottery(
@@ -78,7 +80,8 @@ class LotteryController(
         bookingStart: LocalDate?,
         bookingEnd: LocalDate?,
         numberOfWinnersString: String,
-        waitlistCapacityString: String
+        waitlistCapacityString: String,
+        pendingOwnerIds: List<String> = emptyList()
     ): String? {
         val today = LocalDate.now()
 
@@ -161,6 +164,7 @@ class LotteryController(
                 lotteryId = UUID.randomUUID().toString(),
                 campsiteIds = campsiteIds,
                 ownerIds = ownerIds,
+                pendingOwnerIds = pendingOwnerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -276,6 +280,7 @@ class LotteryController(
                 lotteryId = lotteryId,
                 campsiteIds = existingLottery.campsiteIds,
                 ownerIds = existingLottery.ownerIds,
+                pendingOwnerIds = existingLottery.pendingOwnerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -388,6 +393,10 @@ class LotteryController(
             return LotteryPhase.CANCELLED
         }
 
+        if (lottery.pendingOwnerIds.isNotEmpty() && !today.after(lottery.bookingEnd)) { // today <= book end
+            return LotteryPhase.WAITING_FOR_OWNERS
+        }
+
         if (today.before(lottery.registrationStart)) { // today < reg start
             return LotteryPhase.UPCOMING
         }
@@ -446,7 +455,41 @@ class LotteryController(
      * @return `true` if the winners can be drawn, `false` otherwise.
      */
     fun canDrawWinners(lottery: Lottery): Boolean {
-        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW
+        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW &&
+                lottery.pendingOwnerIds.isEmpty()
+    }
+
+    /**
+     * Gets all the lottery that has requests waiting for an owner to accept or decline.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The lotteries the owner was requested to and hasn't answered yet.
+     */
+    suspend fun getLotteryRequests(ownerId: String): List<Lottery> {
+        return lotteryRepository.getLotteriesByOwner(ownerId).filter {
+            ownerId in it.pendingOwnerIds && it.status != LotteryStatus.CANCELLED
+        }
+    }
+
+    /**
+     * Accepts an owner to a lottery request.
+     *
+     * @param lottery The lottery being accepted.
+     * @param ownerId The device ID of the owner accepting.
+     */
+    suspend fun acceptLotteryRequest(lottery: Lottery, ownerId: String) {
+        lotteryRepository.updateLottery(
+            lottery.copy(pendingOwnerIds = lottery.pendingOwnerIds - ownerId)
+        )
+    }
+
+    /**
+     * Declines a lottery request. This cancels the whole lottery.
+     *
+     * @param lottery The lottery being declined.
+     */
+    suspend fun declineLotteryRequest(lottery: Lottery) {
+        lotteryRepository.updateLottery(lottery.copy(status = LotteryStatus.CANCELLED))
     }
 
     /**
