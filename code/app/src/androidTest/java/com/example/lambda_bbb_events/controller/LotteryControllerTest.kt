@@ -43,7 +43,7 @@ class LotteryControllerTest {
         val today = java.time.LocalDate.now()
 
         val error = lotteryController.createLottery(
-            ownerId = "testOwner",
+            ownerIds = listOf("testOwner"),
             campsiteIds = listOf(campsiteId),
             registrationStart = today,
             registrationEnd = today.plusDays(2),
@@ -55,7 +55,7 @@ class LotteryControllerTest {
 
         assertNull(error)
         coVerify(exactly = 1) {
-            lotteryRepository.addLottery(match { it.campsiteIds == listOf(campsiteId) && it.ownerId == "testOwner" })
+            lotteryRepository.addLottery(match { it.campsiteIds == listOf(campsiteId) && it.ownerIds == listOf("testOwner") })
         }
     }
 

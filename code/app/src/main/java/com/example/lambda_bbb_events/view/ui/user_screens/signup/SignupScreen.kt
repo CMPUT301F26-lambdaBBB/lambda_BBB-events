@@ -20,8 +20,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.formatting.DEFAULT_COUNTRY_CODE
@@ -72,6 +74,7 @@ fun SignupScreen(
     var phone by remember { mutableStateOf("") }
     var showCreationError by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
@@ -140,6 +143,12 @@ fun SignupScreen(
 
                     if (!successful) {
                         showCreationError = true
+                    } else {
+                        // if account creation is successful,
+                        // then update setAllowNotification with user decision
+                        controllers?.users?.setAllowNotifications(
+                            NotificationManagerCompat.from(context).areNotificationsEnabled()
+                        )
                     }
                 }
             }
