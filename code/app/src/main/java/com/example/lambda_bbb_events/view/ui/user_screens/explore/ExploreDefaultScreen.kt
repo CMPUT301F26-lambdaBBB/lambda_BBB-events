@@ -1,4 +1,3 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
 import androidx.compose.foundation.background
@@ -39,13 +38,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCampsiteCard
 
-/*
- * Provides campsite exploration, allowing users
- * to search, filter, and browse campsite listings.
- *
- * Selecting a campsite navigates to its details screen.
- */
-
 /**
  * Displays the campsite exploration screen.
  *
@@ -64,11 +56,11 @@ fun ExploreDefaultScreen(
         mutableStateOf(controllers.campsites.searchQuery)
     }
 
-    val results = controllers.campsites.getSearchResults()
-
     var openFilter by remember {
         mutableStateOf(false)
     }
+
+    val results = controllers.campsites.getSearchResults()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -76,6 +68,7 @@ fun ExploreDefaultScreen(
             BottomNavigationBar(navController)
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,6 +80,7 @@ fun ExploreDefaultScreen(
                 navController = navController
             )
 
+            // Search bar and QR scanner.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -119,6 +113,7 @@ fun ExploreDefaultScreen(
                 }
             }
 
+            // Filter button.
             AssistChip(
                 onClick = {
                     openFilter = true
@@ -137,23 +132,31 @@ fun ExploreDefaultScreen(
                 },
                 shape = RoundedCornerShape(100.dp),
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor =
+                        MaterialTheme.colorScheme.primaryContainer,
+                    labelColor =
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                    leadingIconContentColor =
+                        MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 border = AssistChipDefaults.assistChipBorder(
                     enabled = true,
-                    borderColor = MaterialTheme.colorScheme.outlineVariant
+                    borderColor =
+                        MaterialTheme.colorScheme.outlineVariant
                 )
             )
 
             Spacer(modifier = Modifier.height(2.dp))
 
+            // Campsite search results.
             LazyColumn(
-                modifier = Modifier.weight(1f).padding(bottom = 12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(results) { campsite ->
+
                     VerticalCampsiteCard(
                         campsite = campsite,
                         onClick = {
@@ -167,6 +170,7 @@ fun ExploreDefaultScreen(
         }
     }
 
+    // Campsite filter dialog.
     if (openFilter) {
         HomeCampsiteFilter(
             campsiteController = controllers.campsites,

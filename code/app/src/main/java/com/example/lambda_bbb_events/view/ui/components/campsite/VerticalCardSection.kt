@@ -1,4 +1,3 @@
-
 package com.example.lambda_bbb_events.view.ui.components.campsite
 
 import androidx.compose.foundation.clickable
@@ -23,10 +22,11 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
  * The parent screen handles vertical scrolling.
  *
  * @param title The heading displayed above the campsite list.
- * @param campsites The list of [Campsite] objects to display.
+ * @param campsites The list of Campsite objects to display.
  * @param onCampsiteClick Callback invoked with the selected campsite.
  * @param onSeeAll Callback invoked when "See All" is clicked.
  * @param modifier Modifier used to customize the section layout.
+ * @param maxItems Maximum number of campsite cards displayed.
  */
 @Composable
 fun VerticalCardSection(
@@ -34,7 +34,8 @@ fun VerticalCardSection(
     campsites: List<Campsite>,
     onCampsiteClick: (Campsite) -> Unit,
     onSeeAll: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    maxItems: Int = 5
 ) {
     Column(
         modifier = modifier
@@ -76,7 +77,7 @@ fun VerticalCardSection(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                campsites.forEach { campsite ->
+                campsites.take(maxItems).forEach { campsite ->
                     VerticalCampsiteCard(
                         campsite = campsite,
                         onClick = {

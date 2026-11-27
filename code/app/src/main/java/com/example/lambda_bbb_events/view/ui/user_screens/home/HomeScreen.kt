@@ -36,12 +36,13 @@ import com.example.lambda_bbb_events.view.ui.components.filter.FilterIconButton
 import com.example.lambda_bbb_events.view.ui.components.filter.HomeCampsiteFilter
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
+import com.example.lambda_bbb_events.view.ui.components.navigation.navigateToSeeAll
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteSection
 
 /*
  * Defines the home screen with campsite searching,
  * filtering, and featured listing sections.
  *
- * TODO: Implement the See All actions for both sections.
  */
 
 /**
@@ -147,7 +148,11 @@ fun HomeScreen(
                         },
                         emptyMessage = "Campsites you view will appear here.",
                         onSeeAll = {
-                            // TODO: Implement See All navigation.
+                            navigateToSeeAll(
+                                navController = navController,
+                                section = CampsiteSection.RECENTLY_VIEWED,
+                                campsites = controllers.campsites.recentlyViewed
+                            )
                         }
                     )
                 }
@@ -164,7 +169,11 @@ fun HomeScreen(
                             )
                         },
                         onSeeAll = {
-                            // TODO: Implement See All navigation.
+                            navigateToSeeAll(
+                                navController = navController,
+                                section = CampsiteSection.FEATURED,
+                                campsites = controllers.campsites.featuredCampsites
+                            )
                         }
                     )
                 }
@@ -182,7 +191,11 @@ fun HomeScreen(
                         },
                         emptyMessage = "New campsites will appear here.",
                         onSeeAll = {
-                            // TODO: Implement See All navigation.
+                            navigateToSeeAll(
+                                navController = navController,
+                                section = CampsiteSection.RECENTLY_ADDED,
+                                campsites = controllers.campsites.recentlyAddedCampsites
+                            )
                         }
                     )
                 }

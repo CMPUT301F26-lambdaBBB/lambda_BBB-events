@@ -115,7 +115,7 @@ class CampsiteController(
      *
      * @see Campsite.totalPoints
      */
-    val featuredCampsites: List<Campsite>
+    val allFeaturedCampsites: List<Campsite>
         get() = activeCampsites.values
             .sortedWith(
                 compareByDescending<Campsite> { hasPositiveReviews(it) }
@@ -123,16 +123,22 @@ class CampsiteController(
                     .thenByDescending { it.rating }
                     .thenByDescending { it.createdAt }
             )
-            .take(MAX_FEATURED)
+
+    /** Featured campsite preview, limited to [MAX_FEATURED] entries. */
+    val featuredCampsites: List<Campsite>
+        get() = allFeaturedCampsites.take(MAX_FEATURED)
 
     /**
      * Active campsites, newest first. Campsites created before creation times were
      * recorded come last.
      */
-    val recentlyAddedCampsites: List<Campsite>
+    val allRecentlyAddedCampsites: List<Campsite>
         get() = activeCampsites.values
             .sortedByDescending { it.createdAt }
-            .take(MAX_RECENTLY_ADDED)
+
+    /** Recently added campsite preview, limited to [MAX_RECENTLY_ADDED] entries. */
+    val recentlyAddedCampsites: List<Campsite>
+        get() = allRecentlyAddedCampsites.take(MAX_RECENTLY_ADDED)
 
     /**
      * Records that a campsite was viewed, moving it to the front of [recentlyViewed]
