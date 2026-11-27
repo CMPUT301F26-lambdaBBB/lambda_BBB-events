@@ -52,7 +52,6 @@ fun ClickableMap(
 ) {
     val context = LocalContext.current
 
-    // Where the marker is, so that it stays there if the map is switched to another provider
     var markerLocation by remember(initialLocation) { mutableStateOf(initialLocation) }
     // A move the user has since replaced by tapping the map, which must not be made again
     var replacedMove by remember { mutableStateOf<MapMove?>(null) }
@@ -77,54 +76,13 @@ fun ClickableMap(
             .height(height.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
-        when (MapFallback.shared.provider) {
+        when (MapFallback.shared.mapProvider) {
             MapProvider.GOOGLE ->
                 GoogleClickableMap(markerLocation, pendingMove, Modifier.fillMaxSize(), select)
             MapProvider.OPEN_STREET_MAP ->
-                OpenStreetClickableMap(initialLocation, markerLocation, pendingMove, select)
+                OpenStreetClickableMap(markerLocation, pendingMove, Modifier.fillMaxSize(), select)
         }
     }
-}
-
-/**
- * The OpenStreetMap version of [GoogleClickableMap], drawn by a web page.
- *
- * @param initialLocation The page is only rebuilt when this changes, so choosing a location
- * does not reload it.
- * @param markerLocation Where the marker starts when the page is built.
- * @param move Moves the marker and map when it changes, without calling [onSelect]. A move made
- * before the page has loaded waits until it is ready.
- * @param onSelect Called with the marker's location when the user taps the map or drops the marker.
- */
-@Composable
-private fun OpenStreetClickableMap(
-    initialLocation: LatLng,
-    markerLocation: LatLng,
-    move: MapMove?,
-    onSelect: (LatLng) -> Unit
-) {
-    val html = remember(initialLocation) { osmPageHtml(osmClickableMapScript(markerLocation)) }
-    var isReady by remember(html) { mutableStateOf(false) }
-    val command = remember(move, isReady) {
-        if (move != null && isReady) {
-            MapCommand("showLocation(${move.location.latitude}, ${move.location.longitude});")
-        } else {
-            null
-        }
-    }
-
-    MapsJavaScriptView(
-        html = html,
-        modifier = Modifier.fillMaxSize(),
-        command = command,
-        onEvent = { name, data ->
-            if (name == "mapReady") {
-                isReady = true
-            } else if (name == "locationSelected") {
-                onSelect(LatLng(data.optDouble("lat"), data.optDouble("lng")))
-            }
-        }
-    )
 }
 
 /**

@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.filter
 
 /*
  * Shows Google Maps with the native Maps SDK for Android. The OpenStreetMap versions are in
- * OpenStreetMapPage.kt.
+ * OpenStreetMapViews.kt.
  *
  * No map ID is set and no advanced markers are used, so loading a map stays on Google's free
  * "Maps SDK" SKU instead of being billed as Dynamic Maps.
@@ -57,10 +57,10 @@ import kotlinx.coroutines.flow.filter
 /** Zoom used by the location picker, the same as the OpenStreetMap picker. */
 private const val PICKER_ZOOM = 13f
 
-/** Colour of the "View campsite" link, the same as on the OpenStreetMap pages. */
+/** Colour of the "View campsite" link, the same as on the OpenStreetMap map. */
 private val LINK_COLOR = Color(0xFF2C5C7C)
 
-/** Text size in a campsite's bubble, the same as on the OpenStreetMap pages. */
+/** Text size in a campsite's bubble, the same as on the OpenStreetMap map. */
 private val INFO_TEXT_SIZE = 14.sp
 
 /**

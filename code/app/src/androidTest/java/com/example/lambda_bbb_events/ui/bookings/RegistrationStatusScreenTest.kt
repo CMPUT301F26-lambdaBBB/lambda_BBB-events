@@ -107,8 +107,8 @@ class RegistrationStatusScreenTest {
     @Test
     fun showsMessageForEachStatus() {
         val expected = mapOf(
-            WaitlistStatus.WON to "Lottery Won",
-            WaitlistStatus.LOST to "Lottery Lost",
+            WaitlistStatus.WON to "Won the Lottery",
+            WaitlistStatus.LOST to "Lost the Lottery",
             WaitlistStatus.ACCEPTED to "Reservation Accepted",
             WaitlistStatus.DECLINED to "Reservation Declined"
         )
