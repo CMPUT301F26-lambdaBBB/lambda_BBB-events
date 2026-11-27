@@ -61,7 +61,8 @@ class LotteryControllerUnitTest {
         winners: String = "2",
         capacity: String = "10"
     ) = controller.createLottery(
-        ownerId = "owner-1",
+        ownerIds = listOf("owner-1"),
+//        ownerId = "owner-1",
         campsiteIds = listOf("site-1"),
         registrationStart = registrationStart,
         registrationEnd = registrationEnd,
@@ -77,7 +78,6 @@ class LotteryControllerUnitTest {
         capacity: String = "10"
     ) = controller.updateLottery(
         lotteryId = lotteryId,
-        ownerId = "owner-1",
         registrationStart = today,
         registrationEnd = registrationEnd,
         bookingStart = today.plusDays(3),
@@ -104,7 +104,7 @@ class LotteryControllerUnitTest {
         assertNull(create(winners = " 2 ", capacity = " 10 "))
 
         assertEquals(listOf("site-1"), saved.captured.campsiteIds)
-        assertEquals("owner-1", saved.captured.ownerId)
+        assertEquals("owner-1", saved.captured.ownerIds)
         assertEquals(2, saved.captured.numberOfWinners)
         assertEquals(10, saved.captured.waitlistCapacity)
         assertTrue(saved.captured.lotteryId.isNotBlank())
