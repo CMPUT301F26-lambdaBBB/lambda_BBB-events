@@ -35,6 +35,9 @@ import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.ReviewRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
+import com.example.lambda_bbb_events.model.services.AndroidAppIdentity
+import com.example.lambda_bbb_events.model.services.FallbackPlaceSearch
+import com.example.lambda_bbb_events.model.services.GooglePlaceSearch
 import com.example.lambda_bbb_events.model.services.ImageProcessor
 import com.example.lambda_bbb_events.model.services.IncomingMessageListener
 import com.example.lambda_bbb_events.model.user.UserRole
@@ -127,7 +130,10 @@ class MainActivity : ComponentActivity() {
                 reservationRepository
             ),
             images = imageProcessor,
-            reviews = ReviewController(reviewRepository)
+            reviews = ReviewController(reviewRepository),
+            places = FallbackPlaceSearch(
+                google = GooglePlaceSearch(app = AndroidAppIdentity.of(applicationContext))
+            )
         )
 
         // Initialize the incoming message listener.
