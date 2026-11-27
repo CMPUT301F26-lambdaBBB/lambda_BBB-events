@@ -146,4 +146,30 @@ class MessageContactsUnitTest {
         assertTrue(adminChat("ada").hasCurrentId())
         assertTrue(ownerChat().hasCurrentId())
     }
+
+    private fun ownerAvailable(
+        conversations: List<Conversation> = emptyList(),
+        campers: Map<String, Set<String>> = mapOf("ed" to setOf("lake", "hill"))
+    ) = availableContacts(conversations, emptyList(), "olive", profiles, campsiteNames, campers)
+
+    @Test
+    fun ownerCanStartAConversationWithTheirCamper() {
+        val contact = ownerAvailable().single()
+
+        assertEquals("ed", contact.contactId)
+        assertEquals("Ed", contact.name)
+        assertEquals(ConversationType.OWNER, contact.type)
+        assertFalse(contact.isCamperSide)
+        assertEquals("Hill Site, Lake Site", contact.subtitle)
+    }
+
+    @Test
+    fun camperWhoAlreadyHasAConversationWithTheOwnerIsNotOfferedAgain() {
+        assertTrue(ownerAvailable(conversations = listOf(ownerChat())).isEmpty())
+    }
+
+    @Test
+    fun ownerIsNeverOfferedThemselfAsACamper() {
+        assertTrue(ownerAvailable(campers = mapOf("olive" to setOf("lake"))).isEmpty())
+    }
 }

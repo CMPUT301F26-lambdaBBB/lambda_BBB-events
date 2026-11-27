@@ -22,7 +22,7 @@ import org.json.JSONObject
 /** Zoom level used when showing a single campsite. */
 internal const val SINGLE_CAMPSITE_ZOOM = 13
 
-/** Space in pixels kept between the outermost markers and the edge of the map. */
+/** Space in dp kept between the outermost markers and the edge of the map. */
 internal const val BOUNDS_PADDING = 48
 
 /**
@@ -32,8 +32,8 @@ internal const val BOUNDS_PADDING = 48
 internal const val MAX_FRAMING_ZOOM = 14
 
 /**
- * Lists the campsites for a map page. They are passed as JSON, which keeps quotes in names from
- * breaking the page's script.
+ * Lists the campsites for an OpenStreetMap page. They are passed as JSON, which keeps quotes in
+ * names from breaking the page's script.
  */
 internal fun campsiteMarkers(campsites: List<Campsite>): JSONArray {
     val markers = JSONArray()
@@ -50,78 +50,11 @@ internal fun campsiteMarkers(campsites: List<Campsite>): JSONArray {
 }
 
 /**
- * Builds the JavaScript that draws a marker for each campsite on a Google Map and frames them.
- *
- * Tapping a marker opens an info window with the campsite's name and address, and tapping
- * "View campsite" sends a `campsiteClick` event with the campsite's ID.
- *
- * @param campsites The campsites to mark, all with a location.
- */
-internal fun campsiteMapScript(campsites: List<Campsite>): String {
-    return """
-        const campsites = ${campsiteMarkers(campsites)};
-
-        async function initMap() {
-          const { Map, InfoWindow } = await google.maps.importLibrary('maps');
-          const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
-          const { LatLngBounds } = await google.maps.importLibrary('core');
-
-          const map = new Map(document.getElementById('map'), {
-            center: { lat: campsites[0].lat, lng: campsites[0].lng },
-            zoom: $SINGLE_CAMPSITE_ZOOM,
-            mapId: 'DEMO_MAP_ID',
-            gestureHandling: 'greedy',
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            keyboardShortcuts: false,
-            clickableIcons: false
-          });
-          const info = new InfoWindow();
-          const bounds = new LatLngBounds();
-
-          campsites.forEach(function (campsite) {
-            const position = { lat: campsite.lat, lng: campsite.lng };
-            const marker = new AdvancedMarkerElement({ map: map, position: position, title: campsite.name, gmpClickable: true });
-            bounds.extend(position);
-
-            marker.addEventListener('gmp-click', function () {
-              const content = document.createElement('div');
-              content.className = 'info';
-              const name = document.createElement('b');
-              name.textContent = campsite.name;
-              const address = document.createElement('div');
-              address.textContent = campsite.address;
-              const link = document.createElement('a');
-              link.href = '#';
-              link.textContent = 'View campsite';
-              link.onclick = function (event) {
-                event.preventDefault();
-                send('campsiteClick', { id: campsite.id });
-              };
-              content.append(name, address, link);
-              info.setContent(content);
-              info.open({ anchor: marker, map: map });
-            });
-          });
-
-          if (campsites.length > 1) {
-            map.fitBounds(bounds, $BOUNDS_PADDING);
-            google.maps.event.addListenerOnce(map, 'idle', function () {
-              if (map.getZoom() > $MAX_FRAMING_ZOOM) {
-                map.setZoom($MAX_FRAMING_ZOOM);
-              }
-            });
-          }
-        }
-    """.trimIndent()
-}
-
-/**
  * Displays a map with a marker for each campsite that has a location.
  *
  * The map frames every marker, or zooms in on the campsite when there is only one.
- * Tapping a marker shows the campsite's name and address, with a link that opens it.
+ * Tapping a marker shows the campsite's name and address, with a link that opens it. The map is
+ * Google's, or OpenStreetMap's once Google has stopped working.
  *
  * @param campsites The campsites to mark on the map.
  * @param modifier Sets the size and shape of the map.
@@ -151,22 +84,35 @@ fun CampsiteMap(
         return
     }
 
-    val provider = MapFallback.shared.provider
-    val html = remember(located, provider) {
-        when (provider) {
-            MapProvider.GOOGLE -> mapPageHtml(campsiteMapScript(located))
-            MapProvider.OPEN_STREET_MAP -> osmPageHtml(osmCampsiteMapScript(located))
-        }
+    val mapModifier = modifier.testTag("campsite_map")
+    when (MapFallback.shared.provider) {
+        MapProvider.GOOGLE -> GoogleCampsiteMap(located, mapModifier, onCampsiteClick)
+        MapProvider.OPEN_STREET_MAP -> OpenStreetCampsiteMap(located, mapModifier, onCampsiteClick)
     }
+}
+
+/**
+ * The OpenStreetMap version of [GoogleCampsiteMap], drawn by a web page.
+ *
+ * @param campsites The campsites to mark, all with a location.
+ * @param modifier Sets the size and shape of the map.
+ * @param onCampsiteClick Called when a campsite's link is tapped, or `null` to do nothing.
+ */
+@Composable
+private fun OpenStreetCampsiteMap(
+    campsites: List<Campsite>,
+    modifier: Modifier,
+    onCampsiteClick: ((Campsite) -> Unit)?
+) {
+    val html = remember(campsites) { osmPageHtml(osmCampsiteMapScript(campsites)) }
 
     MapsJavaScriptView(
         html = html,
-        provider = provider,
-        modifier = modifier.testTag("campsite_map"),
+        modifier = modifier,
         onEvent = { name, data ->
             if (name == "campsiteClick" && onCampsiteClick != null) {
                 val id = data.optString("id")
-                val campsite = located.find { it.campsiteId == id }
+                val campsite = campsites.find { it.campsiteId == id }
                 if (campsite != null) {
                     onCampsiteClick(campsite)
                 }

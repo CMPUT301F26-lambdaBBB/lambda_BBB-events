@@ -94,8 +94,9 @@ internal fun osmPageHtml(script: String): String = """
 """.trimIndent()
 
 /**
- * Builds the JavaScript for the OpenStreetMap version of [campsiteMapScript]. It sends the
- * same events.
+ * Builds the JavaScript for the OpenStreetMap version of [GoogleCampsiteMap]. Tapping a marker
+ * shows the campsite's name and address, and tapping "View campsite" sends a `campsiteClick`
+ * event with the campsite's ID.
  *
  * @param campsites The campsites to mark, all with a location.
  */
@@ -135,8 +136,11 @@ internal fun osmCampsiteMapScript(campsites: List<Campsite>): String = """
 """.trimIndent()
 
 /**
- * Builds the JavaScript for the OpenStreetMap version of [clickableMapScript]. It sends the
- * same events and has the same `showLocation(lat, lng)`.
+ * Builds the JavaScript for the OpenStreetMap version of [GoogleClickableMap]. Tapping the map or
+ * dragging the marker moves it and sends a `locationSelected` event with its coordinates.
+ *
+ * Sends a `mapReady` event once the app can call `showLocation(lat, lng)`, which moves the marker
+ * and map there without sending a `locationSelected` event.
  *
  * @param initialLocation Where the marker and map start.
  */

@@ -26,8 +26,10 @@ enum class MapProvider {
 
 /**
  * The service the app uses: Google until its API key fails or reaches its limit, then
- * OpenStreetMap until the app is restarted. The map and the search always use the same one, so
- * either failing switches both.
+ * OpenStreetMap until the app is restarted. The map and the search always use the same one.
+ *
+ * Only the search can notice a failure: the native Maps SDK draws a blank map instead of telling
+ * the app that it refused the key. A failed search switches the map over too.
  *
  * @param apiKey The Maps API key. If it is blank, Google is never tried.
  */
@@ -39,7 +41,7 @@ class MapFallback(apiKey: String = BuildConfig.MAPS_API_KEY) {
     )
         private set
 
-    /** Switches to OpenStreetMap, because Google's map or search did not accept the API key. */
+    /** Switches to OpenStreetMap, because Google did not accept the API key or its limit was reached. */
     fun reportGoogleFailure() {
         provider = MapProvider.OPEN_STREET_MAP
     }
