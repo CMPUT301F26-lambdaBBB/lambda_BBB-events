@@ -68,6 +68,7 @@ class LotteryController(
      * @param bookingEnd The end date of the booking period.
      * @param numberOfWinnersString The number of winners of the lottery (as a string).
      * @param waitlistCapacityString The maximum number of entries (as a string).
+     * @param pendingOwnerIds The owners IDs who still have to accept the lottery.
      * @return `null` if the lottery was created successfully. An error message otherwise.
      */
     suspend fun createLottery(
@@ -78,7 +79,8 @@ class LotteryController(
         bookingStart: LocalDate?,
         bookingEnd: LocalDate?,
         numberOfWinnersString: String,
-        waitlistCapacityString: String
+        waitlistCapacityString: String,
+        pendingOwnerIds: List<String> = emptyList()
     ): String? {
         val today = LocalDate.now()
 
@@ -161,6 +163,7 @@ class LotteryController(
                 lotteryId = UUID.randomUUID().toString(),
                 campsiteIds = campsiteIds,
                 ownerIds = ownerIds,
+                pendingOwnerIds = pendingOwnerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -277,6 +280,7 @@ class LotteryController(
                 lotteryId = lotteryId,
                 campsiteIds = existingLottery.campsiteIds,
                 ownerIds = existingLottery.ownerIds,
+                pendingOwnerIds = existingLottery.pendingOwnerIds,
                 registrationStart = newRegistrationStart,
                 registrationEnd = newRegistrationEnd,
                 bookingStart = newBookingStart,
@@ -447,7 +451,8 @@ class LotteryController(
      * @return `true` if the winners can be drawn, `false` otherwise.
      */
     fun canDrawWinners(lottery: Lottery): Boolean {
-        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW
+        return getPhase(lottery) == LotteryPhase.AWAITING_DRAW &&
+                lottery.pendingOwnerIds.isEmpty()
     }
 
     /**
