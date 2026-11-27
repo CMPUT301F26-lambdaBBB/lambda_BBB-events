@@ -130,7 +130,7 @@ fun Notification_Toggle(
                 onClick = {
                     scope.launch {
                         controllers.notifications.showNotification(
-                            Notification(title = "Lottery Information", message = "I got nothing")
+                            Notification(title = "Lottery Information", message = "This is a test")
                         )
                     }
                 },

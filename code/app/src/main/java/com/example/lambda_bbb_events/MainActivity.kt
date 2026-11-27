@@ -75,9 +75,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        requestNotificationPermission()
-
         // Reference:
         // Selcuk, B. (2022, October 8).
         // Android device ID in Kotlin language [Video]. YouTube.
@@ -250,29 +247,9 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Requests notification permission on Android 13 and newer
-     * if the permission has not already been granted.
-     */
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-
-            val permissionGranted = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!permissionGranted) {
-                notificationPermissionLauncher.launch(
-                    Manifest.permission.POST_NOTIFICATIONS
-                )
-            }
-        }
-    }
-// both do similar thing so change later
-    /**
      * Permission prompt for notification permission on app launch.
      *
-     * On Android 13+, asks for notification app permission if it is not granted already.
+     * asks for notification app permission if it is not granted already.
      * User can choose to not allow and re-enable from settings at settings -> Notification
      * Note: After two declined permission prompts, the startup prompt will no longer be shown
      */
