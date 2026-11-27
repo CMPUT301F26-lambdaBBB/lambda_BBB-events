@@ -112,9 +112,12 @@ interface PlaceSearch {
  * Finds places by name with Google.
  *
  * @param apiKey The Maps API key, which must allow the Places API (New).
+ * @param app Sent with each request, which a key restricted to Android apps requires. Leave it
+ * `null` for a key without that restriction.
  */
 class GooglePlaceSearch(
-    private val apiKey: String = BuildConfig.MAPS_API_KEY
+    private val apiKey: String = BuildConfig.MAPS_API_KEY,
+    private val app: AndroidAppIdentity? = null
 ) : PlaceSearch {
 
     override suspend fun suggest(
@@ -171,6 +174,10 @@ class GooglePlaceSearch(
             // Sent as headers, which keeps the key out of the URL
             connection.setRequestProperty("X-Goog-Api-Key", apiKey)
             connection.setRequestProperty("X-Goog-FieldMask", fields)
+            if (app != null) {
+                connection.setRequestProperty("X-Android-Package", app.packageName)
+                connection.setRequestProperty("X-Android-Cert", app.certificateSha1)
+            }
 
             if (body != null) {
                 connection.requestMethod = "POST"
