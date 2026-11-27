@@ -98,6 +98,7 @@ class MainActivity : ComponentActivity() {
         val userController = UserController(userRepository, deviceId,SharedPreferencesSessionStore(applicationContext))
         val notifications = NotificationController(applicationContext,userController)
         notifications.createNotificationChannel()
+        FcmTokenRegistrar.register(deviceId)
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
