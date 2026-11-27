@@ -14,6 +14,7 @@ fragment = "1.5.4"
 kotlin = "2.4.21"
 libphonenumber = "9.0.43"
 composeBom = "2026.11.01"
+mapLibre = "13.7.1"
 mapsCompose = "9.0.1"
 mockk = "1.14.12"
 mockkAndroid = "1.14.12"
@@ -50,6 +51,7 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
+maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "mapLibre" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }

@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     implementation(libs.libphonenumber)
     implementation(libs.maps.compose)
+    implementation(libs.maplibre.android)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

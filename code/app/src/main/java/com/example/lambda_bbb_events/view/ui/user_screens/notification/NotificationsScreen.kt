@@ -190,7 +190,7 @@ fun NotificationsScreen(
                 showBack = true
             )
 
-            TabRow(
+            PrimaryTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor =
                     MaterialTheme.colorScheme.background,

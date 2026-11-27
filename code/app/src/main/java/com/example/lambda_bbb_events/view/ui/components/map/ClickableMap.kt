@@ -1,8 +1,10 @@
 package com.example.lambda_bbb_events.view.ui.components.map
 
 import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -20,7 +23,14 @@ import androidx.compose.ui.unit.dp
 import com.example.lambda_bbb_events.model.services.MapFallback
 import com.example.lambda_bbb_events.model.services.MapProvider
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.Locale
+import kotlin.coroutines.resume
 
 
 /*
@@ -52,7 +62,6 @@ fun ClickableMap(
 ) {
     val context = LocalContext.current
 
-    // Where the marker is, so that it stays there if the map is switched to another provider
     var markerLocation by remember(initialLocation) { mutableStateOf(initialLocation) }
     // A move the user has since replaced by tapping the map, which must not be made again
     var replacedMove by remember { mutableStateOf<MapMove?>(null) }
@@ -63,10 +72,15 @@ fun ClickableMap(
     }
     val pendingMove = move?.takeIf { it !== replacedMove }
 
+    val scope = rememberCoroutineScope()
+    var lookup by remember { mutableStateOf<Job?>(null) }
+
     val select = { latLng: LatLng ->
         markerLocation = latLng
         replacedMove = move
-        fetchAddressAndPostalCodeFromLatLng(context, latLng) { fetchedAddress, fetchedPostalCode ->
+        lookup?.cancel()
+        lookup = scope.launch {
+            val (fetchedAddress, fetchedPostalCode) = fetchAddressAndPostalCodeFromLatLng(context, latLng)
             onLocationSelected(latLng, fetchedAddress, fetchedPostalCode)
         }
     }
@@ -77,87 +91,54 @@ fun ClickableMap(
             .height(height.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
-        when (MapFallback.shared.provider) {
+        when (MapFallback.shared.mapProvider) {
             MapProvider.GOOGLE ->
                 GoogleClickableMap(markerLocation, pendingMove, Modifier.fillMaxSize(), select)
             MapProvider.OPEN_STREET_MAP ->
-                OpenStreetClickableMap(initialLocation, markerLocation, pendingMove, select)
+                OpenStreetClickableMap(markerLocation, pendingMove, Modifier.fillMaxSize(), select)
         }
     }
 }
 
+/** The first address Android's geocoder finds at [location], or `null` if it finds none. */
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+private suspend fun geocodeWithListener(geocoder: Geocoder, location: LatLng): Address? =
+    suspendCancellableCoroutine { continuation ->
+        geocoder.getFromLocation(location.latitude, location.longitude, 1, object : Geocoder.GeocodeListener {
+            override fun onGeocode(addresses: MutableList<Address>) = continuation.resume(addresses.firstOrNull())
+            override fun onError(errorMessage: String?) = continuation.resume(null)
+        })
+    }
+
 /**
- * The OpenStreetMap version of [GoogleClickableMap], drawn by a web page.
- *
- * @param initialLocation The page is only rebuilt when this changes, so choosing a location
- * does not reload it.
- * @param markerLocation Where the marker starts when the page is built.
- * @param move Moves the marker and map when it changes, without calling [onSelect]. A move made
- * before the page has loaded waits until it is ready.
- * @param onSelect Called with the marker's location when the user taps the map or drops the marker.
+ * The first address Android's geocoder finds at [location], or `null` if it finds none. Before
+ * Android 13 the geocoder can only wait for its answer, so it is asked on a background thread.
  */
-@Composable
-private fun OpenStreetClickableMap(
-    initialLocation: LatLng,
-    markerLocation: LatLng,
-    move: MapMove?,
-    onSelect: (LatLng) -> Unit
-) {
-    val html = remember(initialLocation) { osmPageHtml(osmClickableMapScript(markerLocation)) }
-    var isReady by remember(html) { mutableStateOf(false) }
-    val command = remember(move, isReady) {
-        if (move != null && isReady) {
-            MapCommand("showLocation(${move.location.latitude}, ${move.location.longitude});")
-        } else {
-            null
-        }
+private suspend fun geocodeOnBackgroundThread(geocoder: Geocoder, location: LatLng): Address? =
+    withContext(Dispatchers.IO) {
+        @Suppress("DEPRECATION")
+        geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull()
     }
 
-    MapsJavaScriptView(
-        html = html,
-        modifier = Modifier.fillMaxSize(),
-        command = command,
-        onEvent = { name, data ->
-            if (name == "mapReady") {
-                isReady = true
-            } else if (name == "locationSelected") {
-                onSelect(LatLng(data.optDouble("lat"), data.optDouble("lng")))
-            }
-        }
-    )
-}
-
 /**
- * Performs reverse geocoding to retrieve the address and postal code for the given [LatLng] coordinates.
+ * Looks up the address and postal code at [location] without blocking the main thread.
  *
  * @param context The current Android [Context].
  * @param location The [LatLng] coordinates to reverse-geocode.
- * @param callback Callback returning the retrieved full address and postal code.
+ * @return The full address and postal code, or empty strings if none is found or the lookup fails.
  */
-fun fetchAddressAndPostalCodeFromLatLng(
-    context: Context,
-    location: LatLng,
-    callback: (address: String, postalCode: String) -> Unit
-) {
+suspend fun fetchAddressAndPostalCodeFromLatLng(context: Context, location: LatLng): Pair<String, String> {
     val geocoder = Geocoder(context, Locale.getDefault())
-    try {
+    val address = try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            geocoder.getFromLocation(location.latitude, location.longitude, 1) { addresses ->
-                val addrObj = addresses.firstOrNull()
-                val fullAddress = addrObj?.getAddressLine(0) ?: ""
-                val postalCode = addrObj?.postalCode ?: ""
-                callback(fullAddress, postalCode)
-            }
+            geocodeWithListener(geocoder, location)
         } else {
-            @Suppress("DEPRECATION")
-            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            val addrObj = addresses?.firstOrNull()
-            val fullAddress = addrObj?.getAddressLine(0) ?: ""
-            val postalCode = addrObj?.postalCode ?: ""
-            callback(fullAddress, postalCode)
+            geocodeOnBackgroundThread(geocoder, location)
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        callback("", "")
+    } catch (e: IOException) {
+        null
+    } catch (e: IllegalArgumentException) {
+        null
     }
+    return Pair(address?.getAddressLine(0) ?: "", address?.postalCode ?: "")
 }

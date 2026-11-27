@@ -117,6 +117,18 @@ class FallbackPlaceSearchUnitTest {
     }
 
     @Test
+    fun searchFailureKeepsTheGoogleMap() {
+        fallback.reportGoogleFailure()
+
+        assertEquals(MapProvider.GOOGLE, fallback.mapProvider)
+    }
+
+    @Test
+    fun missingKeyUsesTheOpenStreetMap() {
+        assertEquals(MapProvider.OPEN_STREET_MAP, MapFallback(apiKey = "").mapProvider)
+    }
+
+    @Test
     fun missingKeyNeverTriesGoogle() {
         assertEquals(MapProvider.OPEN_STREET_MAP, MapFallback(apiKey = "").provider)
     }

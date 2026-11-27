@@ -25,23 +25,23 @@ enum class MapProvider {
 }
 
 /**
- * The service the app uses: Google until its API key fails or reaches its limit, then
- * OpenStreetMap until the app is restarted. The map and the search always use the same one.
- *
- * Only the search can notice a failure: the native Maps SDK draws a blank map instead of telling
- * the app that it refused the key. A failed search switches the map over too.
+ * The services the app uses. Maps are Google's whenever there is an API key, since loading them
+ * is free and unlimited. Search is Google's until the key fails or reaches its limit, then
+ * Photon's until the app is restarted.
  *
  * @param apiKey The Maps API key. If it is blank, Google is never tried.
  */
 class MapFallback(apiKey: String = BuildConfig.MAPS_API_KEY) {
 
-    /** The service to use now. Kept as Compose state so open maps switch over. */
-    var provider by mutableStateOf(
+    /** The service that draws maps. */
+    val mapProvider: MapProvider =
         if (apiKey.isBlank()) MapProvider.OPEN_STREET_MAP else MapProvider.GOOGLE
-    )
+
+    /** The service to search with now. Kept as Compose state so open search bars switch over. */
+    var provider by mutableStateOf(mapProvider)
         private set
 
-    /** Switches to OpenStreetMap, because Google did not accept the API key or its limit was reached. */
+    /** Switches search to Photon, because Google did not accept the API key or its limit was reached. */
     fun reportGoogleFailure() {
         provider = MapProvider.OPEN_STREET_MAP
     }
