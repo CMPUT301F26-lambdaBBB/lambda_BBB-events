@@ -21,7 +21,7 @@ enum class LotteryFilter {
     ALL,        // all lotteries
     ACTIVE,     // the registration and/or booking period still active
     PAST,       // the booking period has ended
-    CANCELLED   // cancelled by the owner
+    CANCELLED   // canceled by the owner
 }
 
 /**
@@ -36,7 +36,7 @@ enum class LotteryPhase(val label: String) {
     WINNERS_DRAWN("Winners drawn"),         // winners drawn, booking has not started
     BOOKING_OPEN("Booking open"),           // winners can book
     ENDED("Ended"),                         // booking period ended
-    CANCELLED("Cancelled")                  // cancelled by the owner
+    CANCELLED("Cancelled")                  // canceled by the owner
 }
 
 /**
@@ -60,7 +60,7 @@ class LotteryController(
     /**
      * Creates a lottery for one or more campsites. Includes input validation.
      *
-     * @param ownerIds The device IDs of the owners of the lottery.
+     * @param ownerIds List of device IDs of the owners of the lottery.
      * @param campsiteIds The IDs of the campsites of the lottery.
      * @param registrationStart The start date of the registration period.
      * @param registrationEnd The end date of the registration period.
@@ -90,7 +90,7 @@ class LotteryController(
             return "A lottery needs at least one owner."
         }
 
-        // inpuut check the dates
+        // input check the dates
         if (registrationStart == null || registrationEnd == null ||
             bookingStart == null || bookingEnd == null) {
             return "Please pick all four dates."
@@ -177,7 +177,6 @@ class LotteryController(
      * Updates a lottery for a campsite/campsites. Includes input validation.
      *
      * @param lotteryId The ID of the lottery to update.
-     * @param ownerId The device ID of the owner of the lottery.
      * @param registrationStart The start date of the registration period.
      * @param registrationEnd The end date of the registration period.
      * @param bookingStart The start date of the booking period.
@@ -200,7 +199,7 @@ class LotteryController(
 
         val today = LocalDate.now()
 
-        // inpuut check the dates
+        // input check the dates
         if (registrationStart == null || registrationEnd == null ||
             bookingStart == null || bookingEnd == null) {
             return "Please pick all four dates."
@@ -301,8 +300,8 @@ class LotteryController(
     /**
      * Deletes every active lottery that includes an owner who is deleting their account, and sends
      * each winner a message that their booking is no longer valid. A lottery is active
-     * until its booking period ends or it is cancelled, as in [LotteryFilter.ACTIVE].
-     * Lotteries that have ended or were cancelled are left as they are.
+     * until its booking period ends, or it is canceled, as in [LotteryFilter.ACTIVE].
+     * Lotteries that have ended or were canceled are left as they are.
      *
      * @param ownerId The device ID of the owner.
      * @param campsiteName Gets a campsite's name from its ID, for the message, or `null` if unknown.
@@ -401,7 +400,7 @@ class LotteryController(
             if (!today.after(lottery.bookingEnd)) { // today <= book end
                 return LotteryPhase.AWAITING_DRAW
             }
-            return LotteryPhase.ENDED // idk what we should do if booking period ends but owners havent drawn. ill just put ended for now
+            return LotteryPhase.ENDED // IDK what we should do if booking period ends but owners haven't drawn. ill just put ended for now
         }
 
         if (today.before(lottery.bookingStart)) { // today < book start
