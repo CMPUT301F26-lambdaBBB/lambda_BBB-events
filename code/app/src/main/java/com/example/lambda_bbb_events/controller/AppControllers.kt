@@ -32,6 +32,7 @@ class AppControllers(
     val images: ImageProcessor,
     val reviews: ReviewController,
     val places: PlaceSearch = FallbackPlaceSearch(),
+    val notifications: NotificationController,
     val messages: MessageController = MessageController(users),
     val notificationPreferences: NotificationPreferenceController =
         NotificationPreferenceController(users),

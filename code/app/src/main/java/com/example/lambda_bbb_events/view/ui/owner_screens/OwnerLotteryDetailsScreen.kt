@@ -172,7 +172,13 @@ fun OwnerLotteryDetailsScreen(
 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (lotteryPhase == LotteryPhase.UPCOMING || lotteryPhase == LotteryPhase.REGISTRATION_OPEN) {
+                        if (lotteryPhase == LotteryPhase.WAITING_FOR_OWNERS) {
+                            Text(
+                                text = "Waiting for the other owners to accept this lottery.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else if (lotteryPhase == LotteryPhase.UPCOMING || lotteryPhase == LotteryPhase.REGISTRATION_OPEN) {
                             Text(
                                 text = "Winners are drawn after registration ends on " +
                                         "${formatSingleDate(currentLottery.registrationEnd)}.",

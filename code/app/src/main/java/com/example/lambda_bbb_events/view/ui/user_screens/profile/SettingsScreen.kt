@@ -38,8 +38,6 @@ import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
 /*
  * Displays more detailed account and app settings.
  *
- * TODO: Implement Notification page functionality
- * TODO: Log-Out to allow logging back in
  * TODO: no test tags for log out or delete dialogs yet
  */
 /**

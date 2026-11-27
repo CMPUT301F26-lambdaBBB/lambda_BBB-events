@@ -426,7 +426,7 @@ class CreateCampsiteScreenUITest {
 
         coVerify(exactly = 1) {
             controllers.lotteries.createLottery(
-                ownerId = any(),
+                ownerIds = any<List<String>>(),
                 campsiteIds = any(),
                 registrationStart = any(),
                 registrationEnd = any(),

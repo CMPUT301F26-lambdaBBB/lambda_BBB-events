@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.controller.CampsiteController
 import com.example.lambda_bbb_events.controller.LotteryController
@@ -27,6 +28,7 @@ import com.example.lambda_bbb_events.controller.ReservationController
 import com.example.lambda_bbb_events.controller.ReviewController
 import com.example.lambda_bbb_events.controller.UserController
 import com.example.lambda_bbb_events.controller.WaitlistEntryController
+import com.example.lambda_bbb_events.controller.NotificationController
 import com.example.lambda_bbb_events.model.local.LocalDatabase
 import com.example.lambda_bbb_events.model.local.SharedPreferencesSessionStore
 import com.example.lambda_bbb_events.model.local.SqliteRecentlyViewedStore
@@ -53,8 +55,6 @@ import kotlinx.coroutines.launch
  * Defines the application's main Android activity.
  * Initializes repositories and controllers, retrieves
  * the device identifier, and launches the Compose UI.
- *
- * TODO: Handle user data loading failures.
  */
 
 /**
@@ -63,24 +63,21 @@ import kotlinx.coroutines.launch
  * using the configured theme.
  */
 class MainActivity : ComponentActivity() {
+    private lateinit var syncController: AppControllers
 
-    /**
-     * Handles the result of the notification permission request.
-     */
-    private val notificationPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { _ ->
-            // The application remains usable if permission is denied.
+    // Launches notification permission prompt upon start up if notification is not yet enabled
+    // and syncs user preference in user controller with app granted permission
+    private val startupNotifPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            lifecycleScope.launch {
+                syncController.users.syncNotificationPermissionFromSystem(granted)
+            }
         }
 
     @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        requestNotificationPermission()
-
         // Reference:
         // Selcuk, B. (2022, October 8).
         // Android device ID in Kotlin language [Video]. YouTube.
@@ -101,6 +98,9 @@ class MainActivity : ComponentActivity() {
         val waitlistEntryRepository = WaitlistEntryRepository()
         val reviewRepository = ReviewRepository()
         val imageProcessor = ImageProcessor()
+        val userController = UserController(userRepository, deviceId,SharedPreferencesSessionStore(applicationContext))
+        val notifications = NotificationController(applicationContext,userController)
+        notifications.createNotificationChannel()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -133,9 +133,12 @@ class MainActivity : ComponentActivity() {
             reviews = ReviewController(reviewRepository),
             places = FallbackPlaceSearch(
                 google = GooglePlaceSearch(app = AndroidAppIdentity.of(applicationContext))
-            )
+            ),
+            notifications = notifications
         )
 
+        syncController = controllers
+        requestNotifPermission()
         // Initialize the incoming message listener.
         val incomingMessageListener = IncomingMessageListener(
             messageController = controllers.messages,
@@ -250,22 +253,24 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Requests notification permission on Android 13 and newer
-     * if the permission has not already been granted.
+     * Permission prompt for notification permission on app launch.
+     *
+     * asks for notification app permission if it is not granted already.
+     * User can choose to not allow and re-enable from settings at settings -> Notification
+     * Note: After two declined permission prompts, the startup prompt will no longer be shown
      */
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    private fun requestNotifPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
 
-            val permissionGranted = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!permissionGranted) {
-                notificationPermissionLauncher.launch(
-                    Manifest.permission.POST_NOTIFICATIONS
-                )
+        when {
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+            }
+            else -> {
+                startupNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
     }
 }
