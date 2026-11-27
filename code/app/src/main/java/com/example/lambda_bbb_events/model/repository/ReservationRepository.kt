@@ -160,7 +160,7 @@ class ReservationRepository(
             }
 
             // Verify that the selected campsite matches the lottery.
-            check(lottery.campsiteIds.singleOrNull() == campsiteId) {
+            check(campsiteId in lottery.campsiteIds) {
                 "Invalid campsite or campsite selection required."
             }
 
@@ -183,12 +183,19 @@ class ReservationRepository(
                 "Invalid reservation dates."
             }
 
+            val campsiteOwnerId = transaction
+                .get(db.collection("campsites").document(campsiteId))
+                .getString("ownerId")
+                ?.takeIf { it.isNotBlank() }
+                ?: lottery.ownerIds.firstOrNull()
+                ?: throw IllegalStateException("Campsite owner not found.")
+
             // Create the confirmed reservation.
             val newReservation = Reservation(
                 reservationId = reservationId,
                 campsiteId = campsiteId,
                 entrantId = entrantId,
-                ownerId = lottery.ownerId,
+                ownerId = campsiteOwnerId,
                 startDate = fromDate,
                 endDate = endDate,
                 guests = numberOfGuests,

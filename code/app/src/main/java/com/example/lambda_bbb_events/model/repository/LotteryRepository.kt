@@ -13,6 +13,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.Transaction
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
@@ -181,7 +182,7 @@ class LotteryRepository(
     }
 
     /**
-     * Reads every lottery a campsite owner created from Firestore, including ones not
+     * Reads every lottery a campsite owner is part of from Firestore, including ones not
      * in the cache yet.
      *
      * @param ownerId The device ID of the owner.
@@ -191,7 +192,7 @@ class LotteryRepository(
         if (ownerId.isBlank()) {
             return emptyList()
         }
-        val snapshot = collectionRef.whereEqualTo("ownerId", ownerId).get().await()
+        val snapshot = collectionRef.whereArrayContains("ownerIds", ownerId).get().await()
         return snapshot.documents.mapNotNull { document ->
             try {
                 fromDocument(document)
@@ -366,6 +367,10 @@ class LotteryRepository(
                 throw IllegalStateException("Waitlist is full")
             }
 
+            val campsiteOwners = lottery.campsiteIds.associateWith { campsiteId ->
+                ownerOfCampsite(transaction, campsiteId, lottery)
+            }
+
             val waitlistEntry = WaitlistEntry(
                 entryId = entryId,
                 entrantId = entrantId,
@@ -393,7 +398,7 @@ class LotteryRepository(
 
                 val access = mapOf(
                     "campsiteId" to campsiteId,
-                    "ownerId" to lottery.ownerId,
+                    "ownerId" to (campsiteOwners[campsiteId] ?: ""),
                     "active" to true
                 )
 
@@ -651,13 +656,17 @@ class LotteryRepository(
                         !transaction.get(accessRef).exists()
                     }
 
+                val campsiteOwners = missingAccessRefs.associate { accessRef ->
+                    accessRef.id to ownerOfCampsite(transaction, accessRef.id, lottery)
+                }
+
                 // Create only missing records.
                 for (accessRef in missingAccessRefs) {
                     transaction.set(
                         accessRef,
                         mapOf(
                             "campsiteId" to accessRef.id,
-                            "ownerId" to lottery.ownerId,
+                            "ownerId" to (campsiteOwners[accessRef.id] ?: ""),
                             "active" to true
                         )
                     )
@@ -668,4 +677,24 @@ class LotteryRepository(
             }.await()
         }
     }
+
+
+    /**
+     * Gets the owner of a campsite inside a transaction for a messaging access record.
+     *
+     * @param transaction The running transaction.
+     * @param campsiteId The ID of the campsite.
+     * @param lottery The lottery that includes the campsite.
+     * @return The device ID of the campsite's owner.
+     */
+    private fun ownerOfCampsite(
+        transaction: Transaction,
+        campsiteId: String,
+        lottery: Lottery
+    ): String {
+        val campsiteRef = db.collection("campsites").document(campsiteId)
+        val owner = transaction.get(campsiteRef).getString("ownerId")
+        return if (!owner.isNullOrBlank()) owner else lottery.ownerIds.firstOrNull() ?: ""
+    }
+
 }

@@ -189,7 +189,6 @@ fun EditLotteryScreen(
                         scope.launch {
                             val error = controllers.lotteries.updateLottery(
                                 lotteryId = currentLottery.lotteryId,
-                                ownerId = controllers.users.user.deviceId,
                                 registrationStart = parseDateOrNull(registrationStart),
                                 registrationEnd = parseDateOrNull(registrationEnd),
                                 bookingStart = parseDateOrNull(bookingStart),
