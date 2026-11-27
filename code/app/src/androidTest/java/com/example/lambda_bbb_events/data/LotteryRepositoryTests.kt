@@ -61,13 +61,13 @@ class LotteryRepositoryTests {
 
     @Test
     fun updatingLottery() = runTest {
-        val lottery = Lottery(lotteryId = newLotteryId(), ownerId = "oldOwner")
-        val updatedLottery = lottery.copy(ownerId = "newOwner")
+        val lottery = Lottery(lotteryId = newLotteryId(),ownerIds = listOf("oldOwner"))
+        val updatedLottery = lottery.copy(ownerIds = listOf("newOwner"))
 
         repository.addLottery(lottery)
         repository.updateLottery(updatedLottery)
 
-        assertEquals("newOwner", repository.getLottery(lottery.lotteryId)?.ownerId)
+        assertEquals(listOf("newOwner"), repository.getLottery(lottery.lotteryId)?.ownerIds)
     }
 
     @Test
