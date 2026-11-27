@@ -22,7 +22,7 @@ enum class LotteryStatus {
  *
  * @property lotteryId The unique ID of the lottery.
  * @property campsiteIds IDs of the campsites included in this lottery. Must not be empty.
- * @property ownerId The ID of the campsite owner who created the lottery.
+ * @property ownerIds The IDs of the campsite owners listed in the lottery.
  * @property registrationStart The date when entrants can start joining the waitlist.
  * @property registrationEnd The date when the waitlist stops accepting entrants.
  * @property bookingStart The date when winners can start booking.
@@ -35,7 +35,7 @@ enum class LotteryStatus {
 data class Lottery (
     val lotteryId: String = "",
     val campsiteIds: List<String> = emptyList(),
-    val ownerId: String = "",
+    val ownerIds: List<String> = emptyList(),
     val registrationStart: Date = Date(),
     val registrationEnd: Date = Date(),
     val bookingStart: Date = Date(),

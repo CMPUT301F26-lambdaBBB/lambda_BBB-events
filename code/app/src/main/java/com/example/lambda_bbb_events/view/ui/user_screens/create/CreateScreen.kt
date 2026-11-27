@@ -175,7 +175,7 @@ fun CreateScreen(
                                                 imageIds = imageMetaData
                                             )
                                             controllers.lotteries.createLottery(
-                                                ownerId = ownerId,
+                                                ownerIds = listOf(ownerId),
                                                 campsiteIds = listOf(campsiteId),
                                                 registrationStart = registrationStart,
                                                 registrationEnd = registrationEnd,

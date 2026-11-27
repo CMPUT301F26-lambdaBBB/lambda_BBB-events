@@ -320,7 +320,7 @@ class MessageRepository(
                 ?: return@any false
 
             campsiteId in lottery.campsiteIds &&
-                    lottery.ownerId == ownerId &&
+                    ownerId in lottery.ownerIds &&
                     lottery.status != LotteryStatus.CANCELLED &&
                     !Date().after(lottery.bookingEnd)
         }
