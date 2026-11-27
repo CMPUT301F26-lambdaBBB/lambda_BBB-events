@@ -186,6 +186,21 @@ class UserController(
     }
 
     /**
+     * Syncs the result of Android's notification permission prompt shown at app launch.
+     * Uses the account on this device even if the user is logged out, because the
+     * prompt appears before login.
+     *
+     * Updates for cases where notification setting is desynced with app permission when user
+     * changes permission from android settings before relaunch
+     *
+     * @param allow`true` if the user allowed notifications in app settings, `false` if they denied.
+     */
+    suspend fun syncNotificationPermissionFromSystem(allow: Boolean) {
+        val account = userRepository.getCachedUser(deviceId) ?: return
+        userRepository.setAllowNotifications(account, allow)
+    }
+
+    /**
      * Checks if a provided string matches a phone number.
      *
      * Utilizes [Patterns] to check if it matches a phone number.
