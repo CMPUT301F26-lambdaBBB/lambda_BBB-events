@@ -2,10 +2,11 @@ package com.example.lambda_bbb_events.controller
 
 
 import androidx.compose.runtime.MutableState
-import com.example.lambda_bbb_events.model.campsite.AvailabilitySchedule
 import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.campsite.CampsiteFilters
 import com.example.lambda_bbb_events.model.image.ImageMetaData
+import com.example.lambda_bbb_events.model.lottery.Lottery
+import com.example.lambda_bbb_events.model.lottery.LotteryStatus
 import com.example.lambda_bbb_events.store.CampsiteStore
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -22,6 +23,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 
 
 /**
@@ -32,13 +35,29 @@ class CampsiteControllerSearchUnitTest {
     private val campsites = mutableMapOf<String, Campsite>()
     private lateinit var controller: CampsiteController
 
-    private val july1: LocalDate = LocalDate.of(2026, 7, 1)
+    private val july1: LocalDate = LocalDate.now().plusDays(30)
+    private val lotteries = mutableMapOf<String, List<Lottery>>()
 
-    private fun availableFrom(start: LocalDate, days: Long): AvailabilitySchedule {
-        val schedule = AvailabilitySchedule()
-        schedule.addAvailableDates(start, start.plusDays(days - 1))
-        return schedule
-    }
+    private fun dateOf(day: LocalDate): Date = Date.from(day.atStartOfDay(ZoneId.systemDefault()).toInstant())
+
+    /**
+     * A lottery whose registration ends the day before [start] and whose booking period
+     * lasts [days] days from [start].
+     */
+    private fun bookingFrom(
+        start: LocalDate,
+        days: Long,
+        status: LotteryStatus = LotteryStatus.OPEN,
+        registrationEnd: LocalDate = start.minusDays(1),
+        pendingOwnerIds: List<String> = emptyList()
+    ) = Lottery(
+        registrationStart = dateOf(registrationEnd.minusDays(10)),
+        registrationEnd = dateOf(registrationEnd),
+        bookingStart = dateOf(start),
+        bookingEnd = dateOf(start.plusDays(days - 1)),
+        status = status,
+        pendingOwnerIds = pendingOwnerIds
+    )
 
     private val lakeside = Campsite(
         campsiteId = "lakeside",
@@ -48,7 +67,6 @@ class CampsiteControllerSearchUnitTest {
         maxOccupancy = 4,
         rating = 4.5f,
         tags = listOf("Fishing", "Quiet"),
-        availability = availableFrom(july1, 7)
     )
     private val forest = Campsite(
         campsiteId = "forest",
@@ -58,7 +76,6 @@ class CampsiteControllerSearchUnitTest {
         maxOccupancy = 8,
         rating = 3f,
         tags = listOf("Hiking"),
-        availability = availableFrom(july1.plusDays(3), 7)
     )
     private val meadow = Campsite(
         campsiteId = "meadow",
@@ -78,7 +95,9 @@ class CampsiteControllerSearchUnitTest {
             campsites[firstArg()] = secondArg()
             true
         }
-        controller = CampsiteController(store, scope = TestScope())
+        lotteries["lakeside"] = listOf(bookingFrom(july1, 7))
+        lotteries["forest"] = listOf(bookingFrom(july1.plusDays(3), 7))
+        controller = CampsiteController(store, scope = TestScope()) { lotteries[it].orEmpty() }
     }
 
     private fun Map<String, Campsite>.ids() = keys.sorted()
@@ -103,6 +122,25 @@ class CampsiteControllerSearchUnitTest {
     @Test
     fun startDateAloneFiltersOnThatDay() {
         assertEquals(listOf("lakeside"), controller.applyFilters(startDate = july1).ids())
+    }
+
+    @Test
+    fun dateFilterLeavesOutLotteriesNobodyCanSignUpFor() {
+        val stay = july1.plusDays(4)
+        lotteries["meadow"] = listOf(
+            bookingFrom(july1, 7, registrationEnd = LocalDate.now().minusDays(1)),
+            bookingFrom(july1, 7, status = LotteryStatus.CANCELLED),
+            bookingFrom(july1, 7, pendingOwnerIds = listOf("max"))
+        )
+
+        assertEquals(listOf("forest", "lakeside"), controller.applyFilters(startDate = stay).ids())
+    }
+
+    @Test
+    fun dateFilterKeepsCampsitesWhoseRegistrationHasNotStarted() {
+        lotteries["meadow"] = listOf(bookingFrom(july1.plusDays(20), 3))
+
+        assertEquals(listOf("meadow"), controller.applyFilters(startDate = july1.plusDays(21)).ids())
     }
 
     @Test

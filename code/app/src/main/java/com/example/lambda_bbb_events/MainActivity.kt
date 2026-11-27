@@ -120,7 +120,8 @@ class MainActivity : ComponentActivity() {
                 campsiteStore,
                 SqliteRecentlyViewedStore(
                     LocalDatabase(applicationContext)
-                )
+                ),
+                lotteriesForCampsite = lotteryRepository::getLotteriesForCampsite
             ),
             lotteries = LotteryController(lotteryRepository),
             reservations = ReservationController(reservationRepository),

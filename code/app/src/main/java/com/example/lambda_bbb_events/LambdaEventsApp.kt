@@ -50,6 +50,7 @@ import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScre
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRCodeScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.QRScannerScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.home.HomeScreen
+import com.example.lambda_bbb_events.view.ui.user_screens.notification.lotteryCampersOf
 import com.example.lambda_bbb_events.view.ui.user_screens.notification.NotificationsScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.AppPoliciesScreen
 import com.example.lambda_bbb_events.view.ui.user_screens.profile.EditProfileScreen
@@ -400,7 +401,8 @@ private fun MainApp(
                         preferenceController = controllers.notificationPreferences,
                         profiles = profiles,
                         campsiteNames = campsiteNames,
-                        isAdmin = isAdmin
+                        isAdmin = isAdmin,
+                        campers = lotteryCampersOf(currentUserId, controllers)
                     )
                 }
             }

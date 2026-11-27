@@ -31,6 +31,8 @@ import com.example.lambda_bbb_events.model.user.UserRole
  * @property imageId The person's profile picture ID, blank if they have none.
  * @property subtitle What connects the person to the current user, such as their campsites.
  * @property conversation The existing conversation with the person, or `null` if there is none yet.
+ * @property isCamperSide Whether the current user is the camper, so the person is an owner or
+ * administrator. `false` when the current user is an owner and the person is their camper.
  */
 data class MessageContact(
     val contactId: String,
@@ -38,7 +40,8 @@ data class MessageContact(
     val name: String,
     val imageId: String,
     val subtitle: String,
-    val conversation: Conversation? = null
+    val conversation: Conversation? = null,
+    val isCamperSide: Boolean = true
 )
 
 /**
@@ -78,16 +81,34 @@ fun conversationContacts(
 
 /**
  * Gets the people the current user can start a conversation with: each owner of a campsite
- * they are enrolled in, and every administrator once they have enrolled anywhere. People who
- * already have a conversation with the current user are left out.
+ * they are enrolled in, every administrator once they have enrolled anywhere, and, for an
+ * owner, each of their campers. People who already have a conversation with the current user
+ * are left out.
  *
  * @param conversations The current user's conversations.
  * @param messagingAccess The current user's campsite messaging access records.
  * @param currentUserId Device ID of the current user.
  * @param profiles Every known user, by device ID.
  * @param campsiteNames Campsite names, by campsite ID.
+ * @param campers The current user's campers, with their campsite IDs, from [lotteryCampersOf].
  */
 fun availableContacts(
+    conversations: List<Conversation>,
+    messagingAccess: List<MessagingAccess>,
+    currentUserId: String,
+    profiles: Map<String, User>,
+    campsiteNames: Map<String, String>,
+    campers: Map<String, Set<String>> = emptyMap()
+): List<MessageContact> {
+    return camperSideContacts(conversations, messagingAccess, currentUserId, profiles, campsiteNames) +
+            ownerSideContacts(conversations, currentUserId, profiles, campsiteNames, campers)
+}
+
+/**
+ * Gets the owners and administrators the current user can start a conversation with as a
+ * camper. Parameters are the same as [availableContacts].
+ */
+private fun camperSideContacts(
     conversations: List<Conversation>,
     messagingAccess: List<MessagingAccess>,
     currentUserId: String,
@@ -128,6 +149,37 @@ fun availableContacts(
 }
 
 /**
+ * Gets the campers the current user can start a conversation with as their owner, ordered by
+ * name. Parameters are the same as [availableContacts].
+ */
+private fun ownerSideContacts(
+    conversations: List<Conversation>,
+    currentUserId: String,
+    profiles: Map<String, User>,
+    campsiteNames: Map<String, String>,
+    campers: Map<String, Set<String>>
+): List<MessageContact> {
+    val existingCamperIds = conversations
+        .filter { it.ownerId == currentUserId && it.type == ConversationType.OWNER.name }
+        .map { it.userId }
+        .toSet()
+
+    return campers
+        .filterKeys { it.isNotBlank() && it != currentUserId && it !in existingCamperIds }
+        .map { (camperId, campsiteIds) ->
+            buildContact(
+                contactId = camperId,
+                type = ConversationType.OWNER,
+                isCamperSide = false,
+                profiles = profiles,
+                subtitle = campsiteIds.mapNotNull { campsiteNames[it] }.sorted()
+                    .joinToString(", ").ifBlank { contactRoleLabel(ConversationType.OWNER, false) }
+            )
+        }
+        .sortedBy { it.name.lowercase() }
+}
+
+/**
  * Gets the IDs of every administrator, ordered by name.
  */
 private fun adminIdsByName(profiles: Map<String, User>): List<String> {
@@ -160,7 +212,8 @@ private fun buildContact(
         name = profile?.name?.takeIf { it.isNotBlank() } ?: fallbackName,
         imageId = profile?.profilePictureImageId.orEmpty(),
         subtitle = subtitle,
-        conversation = conversation
+        conversation = conversation,
+        isCamperSide = isCamperSide
     )
 }
 
