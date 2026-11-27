@@ -451,6 +451,39 @@ class LotteryController(
     }
 
     /**
+     * Gets all the lottery that has requests waiting for an owner to accept or decline.
+     *
+     * @param ownerId The device ID of the owner.
+     * @return The lotteries the owner was requested to and hasn't answered yet.
+     */
+    suspend fun getLotteryRequests(ownerId: String): List<Lottery> {
+        return lotteryRepository.getLotteriesByOwner(ownerId).filter {
+            ownerId in it.pendingOwnerIds && it.status != LotteryStatus.CANCELLED
+        }
+    }
+
+    /**
+     * Accepts an owner to a lottery request.
+     *
+     * @param lottery The lottery being accepted.
+     * @param ownerId The device ID of the owner accepting.
+     */
+    suspend fun acceptLotteryRequest(lottery: Lottery, ownerId: String) {
+        lotteryRepository.updateLottery(
+            lottery.copy(pendingOwnerIds = lottery.pendingOwnerIds - ownerId)
+        )
+    }
+
+    /**
+     * Declines a lottery request. This cancels the whole lottery.
+     *
+     * @param lottery The lottery being declined.
+     */
+    suspend fun declineLotteryRequest(lottery: Lottery) {
+        lotteryRepository.updateLottery(lottery.copy(status = LotteryStatus.CANCELLED))
+    }
+
+    /**
      * Draws the winners of a lottery randomly from the waitlist.
      *
      * @param lotteryId The ID of the lottery to draw.
