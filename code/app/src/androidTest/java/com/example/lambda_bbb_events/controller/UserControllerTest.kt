@@ -22,6 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies user controller workflows against their Android dependencies. */
 class UserControllerTest {
 
     private lateinit var repository: UserRepository

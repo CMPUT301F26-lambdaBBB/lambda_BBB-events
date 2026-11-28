@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Verifies the review model's values and behavior. */
 class ReviewUnitTest {
     private val review = Review(
         reviewId = "site-1_user-1",

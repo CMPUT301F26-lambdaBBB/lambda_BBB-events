@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
+/** Verifies lottery repository behavior with mocked persistence. */
 class LotteryRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private lateinit var lotteries: MockCollection

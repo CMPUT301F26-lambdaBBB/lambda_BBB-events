@@ -1,7 +1,5 @@
 package com.example.lambda_bbb_events.view.ui.owner_screens
 
-import android.app.DatePickerDialog
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,15 +23,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -44,27 +39,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.campsite.Campsite
-import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
 import com.example.lambda_bbb_events.view.ui.components.calendar.DateRangeCard
 import com.example.lambda_bbb_events.view.ui.components.calendar.parseDateOrNull
-import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCampsiteCard
 import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import com.example.lambda_bbb_events.view.ui.components.common.FormTextFieldWithTitle
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_HEIGHT
 import com.example.lambda_bbb_events.view.ui.components.common.THUMBNAIL_WIDTH
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import com.example.lambda_bbb_events.view.ui.components.navigation.rememberBackAction
 import com.example.lambda_bbb_events.view.ui.components.rating.RatingSummary
 

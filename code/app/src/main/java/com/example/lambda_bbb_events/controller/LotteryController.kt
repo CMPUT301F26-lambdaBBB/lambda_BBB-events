@@ -45,6 +45,7 @@ enum class LotteryPhase(val label: String) {
  * @property lotteryRepository Repository for lottery data.
  */
 class LotteryController(
+    /** The repository used to load and persist lotteries. */
     val lotteryRepository: LotteryRepository
 ) {
     /**

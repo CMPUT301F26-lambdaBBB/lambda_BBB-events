@@ -280,6 +280,7 @@ private fun SuggestionRow(
     }
 }
 
+/** Converts a failed place lookup into a message for the search field. */
 private fun errorMessage(error: Exception): String =
     if (error is PlaceSearchLimitException) {
         "Search limit reached. Tap the map to choose a location."

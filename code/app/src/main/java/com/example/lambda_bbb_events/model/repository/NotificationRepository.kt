@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 
 /*
@@ -25,22 +24,30 @@ class NotificationRepository(
      * Creates notification channel at startup.
      */
     fun createNotificationChannel() {
-        // notification class is not in support library for api <26
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "APP_NOTIFICATIONS",
-                "Lambda Campsite Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notification for lambda_BBB campsite"
-            }
 
-            val manager = context.getSystemService(
-                Context.NOTIFICATION_SERVICE
-            ) as NotificationManager
-
-            manager.createNotificationChannel(channel)
+        val defaultChannel = NotificationChannel(
+            "APP_NOTIFICATIONS",
+            "Lambda Campsite Notifications",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "General campsite notifications"
         }
+
+        val highPriorityChannel = NotificationChannel(
+            "HIGH_PRIORITY_NOTIFICATIONS",
+            "High Priority Notifications",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Important campsite notifications"
+        }
+
+        val manager = context.getSystemService(
+            Context.NOTIFICATION_SERVICE
+        ) as NotificationManager
+
+        manager.createNotificationChannels(
+            listOf(defaultChannel, highPriorityChannel)
+        )
     }
 
     /**
@@ -50,6 +57,7 @@ class NotificationRepository(
      * @param notification The built notification from controller.
      */
     // suppress warning in repository as checks happen in controller
+    /** Posts [notification] using [id] after the caller has checked notification permissions. */
     @SuppressLint("MissingPermission")
     fun showNotification(id: Int, notification: Notification) {
         NotificationManagerCompat.from(context).notify(id, notification)

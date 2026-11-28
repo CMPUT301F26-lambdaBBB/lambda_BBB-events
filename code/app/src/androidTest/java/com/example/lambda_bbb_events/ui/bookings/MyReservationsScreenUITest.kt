@@ -22,6 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies reservation information shown in the bookings UI. */
 @RunWith(AndroidJUnit4::class)
 class MyReservationsScreenUITest {
     @get:Rule

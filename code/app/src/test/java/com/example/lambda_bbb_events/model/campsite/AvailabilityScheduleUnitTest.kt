@@ -7,6 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 
+/** Verifies the availability schedule's date and booking rules. */
 class AvailabilityScheduleUnitTest {
     private fun day(n: Int): LocalDate = LocalDate.of(2026, 1, n)
 

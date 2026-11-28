@@ -39,6 +39,7 @@ class ImageRepository(
         super.delete(id)
     }
 
+    /** Saves image metadata and the chunks that make up the encoded image. */
     suspend fun uploadImage(
         metadata: ImageMetaData,
         chunks: List<ImageChunk>
@@ -58,6 +59,7 @@ class ImageRepository(
         }
     }
 
+    /** Loads an image's chunks in priority order, returning an empty list if the read fails. */
     suspend fun getImageChunks(
         imageId: String
     ): List<ImageChunk> {
@@ -89,6 +91,7 @@ class ImageRepository(
         }
     }
 
+    /** Loads the stored metadata for [imageId], if available. */
     suspend fun getImageMetadata(
         imageId: String
     ): ImageMetaData? {
@@ -100,6 +103,7 @@ class ImageRepository(
         }
     }
 
+    /** Loads the ordered chunks for an image with stored metadata. */
     suspend fun getImage(
         imageId: String
     ): List<ImageChunk> {
@@ -115,6 +119,7 @@ class ImageRepository(
         return chunks
     }
 
+    /** Deletes the image and its chunks, returning whether the operation succeeded. */
     suspend fun deleteImage(
         imageId: String
     ): Boolean {

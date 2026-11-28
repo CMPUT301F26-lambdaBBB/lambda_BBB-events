@@ -34,7 +34,6 @@ import com.example.lambda_bbb_events.view.ui.owner_screens.MyCampsitesScreen
 import io.mockk.clearAllMocks
 import io.mockk.unmockkAll
 import io.mockk.verify
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -44,6 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies the campsite creation flow across its form steps. */
 @RunWith(AndroidJUnit4::class)
 class CreateCampsiteScreenUITest {
 

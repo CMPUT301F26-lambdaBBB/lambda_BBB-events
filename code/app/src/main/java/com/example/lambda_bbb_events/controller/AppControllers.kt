@@ -34,10 +34,13 @@ class AppControllers(
     val places: PlaceSearch = FallbackPlaceSearch(),
     val notifications: NotificationController,
     val messages: MessageController = MessageController(users),
+    /** Manages preferences for notifications from individual messaging contacts. */
     val notificationPreferences: NotificationPreferenceController =
         NotificationPreferenceController(users),
+    /** Posts Android notifications for eligible incoming messages. */
     val messageNotifications: MessageNotificationController =
         MessageNotificationController(users),
     val adminLogs: AdminLogController = AdminLogController(),
+    /** Coordinates administrator actions for running lotteries. */
     val adminLotteries: AdminLotteryController = AdminLotteryController()
 )

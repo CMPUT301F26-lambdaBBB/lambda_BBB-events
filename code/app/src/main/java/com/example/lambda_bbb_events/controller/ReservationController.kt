@@ -22,6 +22,7 @@ enum class ReservationFilter {
  * @property reservationRepository The repository for [Reservation].
  */
 class ReservationController(
+    /** The repository used to load and persist reservations. */
     val reservationRepository: ReservationRepository
 ) {
     /**

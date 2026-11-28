@@ -26,6 +26,7 @@ import org.junit.Test
  *   chats per admin".
  */
 
+/** Verifies how messaging contacts are derived from the available data. */
 class MessageContactsUnitTest {
     private val camper = Entrant(deviceId = "ed", name = "Ed")
     private val owner = CampsiteOwner(deviceId = "olive", name = "Olive", profilePictureImageId = "olive-pic")

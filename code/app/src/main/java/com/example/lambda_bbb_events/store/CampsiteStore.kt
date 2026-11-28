@@ -13,11 +13,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
+/** Maintains the observable campsite cache and coordinates persistence with the repositories. */
 class CampsiteStore(
     val campsiteRepo: CampsiteRepository = CampsiteRepository(),
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
     private val lotteryRepository: LotteryRepository
 ) {
+    /** Observable cache of listings keyed by campsite ID. */
     val campsites: MutableMap<String, Campsite> = mutableStateMapOf()
 
     init {
@@ -45,6 +47,7 @@ class CampsiteStore(
         }
     }
 
+    /** Adds a campsite to the cache and schedules its creation in the repository. */
     fun addCampsite(
         campsiteId: String = "",
         ownerId: String = "", // CampsiteOwner deviceId
@@ -95,6 +98,7 @@ class CampsiteStore(
         return true
     }
 
+    /** Deletes the campsite and its lotteries before removing it from the cache. */
     suspend fun removeCampsite(
         campsiteId: String,
         returnMessage: MutableState<String>
@@ -127,6 +131,7 @@ class CampsiteStore(
         }
     }
 
+    /** Replaces the cached listing and schedules its persistence. */
     fun updateCampsite(campsiteID: String, campsite: Campsite, returnMessage: MutableState<String>): Boolean {
         try {
             campsites.remove(campsiteID)
@@ -159,6 +164,7 @@ class CampsiteStore(
         campsites[campsiteId] = campsite.copy(imageIds = photos)
     }
 
+    /** Looks up a campsite using [ownerId] as the cache key and throws if the key is absent. */
     fun getByOwner(ownerId: String): Campsite {
         return campsites[ownerId] ?: throw IllegalArgumentException("Campsite not found")
     }

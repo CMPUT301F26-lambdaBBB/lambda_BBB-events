@@ -19,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies how the campsite controller exposes and updates cached listings. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CampsiteControllerUnitTest {
     private val store = mockk<CampsiteStore>()

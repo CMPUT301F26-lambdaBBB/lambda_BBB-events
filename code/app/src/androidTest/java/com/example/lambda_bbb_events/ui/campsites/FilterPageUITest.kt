@@ -34,6 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
 
+/** Verifies the campsite filter controls and their effects on results. */
 @RunWith(AndroidJUnit4::class)
 class FilterPageUITest {
 

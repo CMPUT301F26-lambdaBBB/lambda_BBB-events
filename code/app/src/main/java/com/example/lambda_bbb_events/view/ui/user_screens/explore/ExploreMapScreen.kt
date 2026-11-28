@@ -1,4 +1,3 @@
-
 package com.example.lambda_bbb_events.view.ui.user_screens.explore
 
 import androidx.compose.foundation.background
@@ -7,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -38,32 +39,20 @@ import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.common.SearchBar
 import com.example.lambda_bbb_events.view.ui.components.campsite.VerticalCardSection
 import com.example.lambda_bbb_events.view.ui.components.map.CampsiteMap
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.draw.clip
-
-/*
- * Provides a map-based campsite exploration screen with
- * searching and filtering.
- *
- * TODO: Filter nearby campsites based on the selected
- * map location instead of displaying all campsites.
- * TODO: Implement use of coordinate parameter.
- */
+import com.example.lambda_bbb_events.view.ui.components.navigation.navigateToSeeAll
 
 /**
  * Displays the campsite exploration screen with an interactive map.
  *
  * Allows users to search, filter, and browse campsites.
- * Map selections update the search location, while campsite
- * selections navigate to their details screens.
+ * Selecting a campsite opens its details screen.
  *
- * The map and nearby campsite listings scroll vertically,
+ * The map and campsite listings scroll vertically,
  * while the search controls and bottom navigation remain fixed.
  *
  * @param navController Handles screen navigation.
  * @param controllers Manages campsite searches and filters.
  * @param showMap Whether to display the interactive map.
- * Defaults to true.
  */
 @Composable
 fun ExploreMapScreen(
@@ -71,8 +60,17 @@ fun ExploreMapScreen(
     controllers: AppControllers,
     showMap: Boolean = true
 ) {
-    var query by remember { mutableStateOf("") }
-    var openFilter by remember { mutableStateOf(false) }
+    var query by remember {
+        mutableStateOf("")
+    }
+
+    var openFilter by remember {
+        mutableStateOf(false)
+    }
+
+    // TODO: Filter campsites based on the selected map location.
+    val nearbyCampsites = controllers.campsites
+        .activeCampsites.values.toList()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -93,6 +91,7 @@ fun ExploreMapScreen(
                 navController = navController
             )
 
+            // Search bar and QR scanner.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -127,6 +126,7 @@ fun ExploreMapScreen(
                 }
             }
 
+            // Filter button.
             AssistChip(
                 onClick = {
                     openFilter = true
@@ -146,13 +146,16 @@ fun ExploreMapScreen(
                 },
                 shape = RoundedCornerShape(100.dp),
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor =
+                        MaterialTheme.colorScheme.primaryContainer,
+                    labelColor =
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                    leadingIconContentColor =
+                        MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
 
-            // Scrollable map and campsite listings
+            // Scrollable map and campsite listings.
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -170,7 +173,7 @@ fun ExploreMapScreen(
                  */
                 if (showMap) {
                     CampsiteMap(
-                        campsites = controllers.campsites.activeCampsites.values.toList(),
+                        campsites = nearbyCampsites,
                         onCampsiteClick = { campsite ->
                             navController.navigate(
                                 "campsite_details/${campsite.campsiteId}"
@@ -184,18 +187,21 @@ fun ExploreMapScreen(
                     )
                 }
 
-                // Nearby Campsites
+                // Nearby campsite listings.
                 VerticalCardSection(
                     title = "Nearby Campsites",
-                    campsites = controllers.campsites.activeCampsites.values.toList(),
+                    campsites = nearbyCampsites,
                     onCampsiteClick = { campsite ->
                         navController.navigate(
                             "campsite_details/${campsite.campsiteId}"
                         )
                     },
                     onSeeAll = {
-                        controllers.campsites.search("")
-                        navController.navigate("explore_default")
+                        navigateToSeeAll(
+                            navController = navController,
+                            section = CampsiteSection.NEARBY,
+                            campsites = nearbyCampsites
+                        )
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -203,6 +209,7 @@ fun ExploreMapScreen(
         }
     }
 
+    // Campsite filter dialog.
     if (openFilter) {
         HomeCampsiteFilter(
             campsiteController = controllers.campsites,

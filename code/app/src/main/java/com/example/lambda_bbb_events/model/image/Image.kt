@@ -26,6 +26,7 @@ data class ImageMetaData(
     val focusY: Float = 0.5f
 )
 
+/** Stores one encoded image band and its position in the reconstructed image. */
 data class ImageChunk(
     val imageId: String = "",
     val priority: Int = 0,

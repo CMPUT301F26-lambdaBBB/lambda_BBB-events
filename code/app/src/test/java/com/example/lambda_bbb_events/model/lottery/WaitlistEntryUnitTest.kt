@@ -5,6 +5,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.util.Date
 
+/** Verifies the waitlist entry model's values and behavior. */
 class WaitlistEntryUnitTest {
     @Test
     fun defaultWaitlistEntry() {

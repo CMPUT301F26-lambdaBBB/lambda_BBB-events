@@ -37,6 +37,7 @@ import com.example.lambda_bbb_events.model.repository.ReservationRepository
 import com.example.lambda_bbb_events.model.repository.ReviewRepository
 import com.example.lambda_bbb_events.model.repository.UserRepository
 import com.example.lambda_bbb_events.model.repository.WaitlistEntryRepository
+import com.example.lambda_bbb_events.model.services.FcmTokenRegistrar
 import com.example.lambda_bbb_events.model.services.AndroidAppIdentity
 import com.example.lambda_bbb_events.model.services.FallbackPlaceSearch
 import com.example.lambda_bbb_events.model.services.GooglePlaceSearch
@@ -50,6 +51,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.lambda_bbb_events.model.services.FirebaseNotificationService
+import kotlinx.coroutines.flow.collect
+import com.example.lambda_bbb_events.model.services.SystemNotificationListener
+import kotlinx.coroutines.delay
 
 /*
  * Defines the application's main Android activity.
@@ -101,6 +108,7 @@ class MainActivity : ComponentActivity() {
         val userController = UserController(userRepository, deviceId,SharedPreferencesSessionStore(applicationContext))
         val notifications = NotificationController(applicationContext,userController)
         notifications.createNotificationChannel()
+        FcmTokenRegistrar.register(deviceId)
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             userRepository.refreshUsers()
@@ -111,11 +119,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val controllers = AppControllers(
-            users = UserController(
-                userRepository,
-                deviceId,
-                SharedPreferencesSessionStore(applicationContext)
-            ),
+            users = userController,
             campsites = CampsiteController(
                 campsiteStore,
                 SqliteRecentlyViewedStore(
@@ -140,10 +144,26 @@ class MainActivity : ComponentActivity() {
 
         syncController = controllers
         requestNotifPermission()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                FirebaseNotificationService
+                    .incomingNotifications
+                    .collect { notification ->
+
+                        controllers.notifications
+                            .showNotification(notification)
+                    }
+            }
+        }
         // Initialize the incoming message listener.
         val incomingMessageListener = IncomingMessageListener(
             messageController = controllers.messages,
             notificationController = controllers.messageNotifications
+        )
+
+        val systemNotificationListener = SystemNotificationListener(
+            notificationController = controllers.notifications
         )
 
         setContent {
@@ -151,6 +171,30 @@ class MainActivity : ComponentActivity() {
             val currentUser = controllers.users.currentUser
             val currentUserId = currentUser?.deviceId
             val isAdmin = currentUser?.role == UserRole.ADMIN
+
+            // Listen for lottery and reservation notifications.
+            LaunchedEffect(currentUserId) {
+                if (currentUserId != null) {
+                    systemNotificationListener.listen(currentUserId)
+                }
+            }
+
+            // Check for pending weekly notification summaries.
+            LaunchedEffect(currentUserId) {
+
+                if (currentUserId != null) {
+
+                    lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                        while (true) {
+
+                            controllers.notifications.showWeeklySummaries()
+
+                            delay(60_000L)
+                        }
+                    }
+                }
+            }
 
             // Restore messaging access for existing lottery enrollments.
             LaunchedEffect(currentUserId) {

@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Verifies the in-memory implementation of recently viewed campsite storage. */
 class InMemoryRecentlyViewedStoreUnitTest {
     private val store = InMemoryRecentlyViewedStore()
 

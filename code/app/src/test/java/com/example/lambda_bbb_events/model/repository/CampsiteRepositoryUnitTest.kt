@@ -14,6 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
+/** Verifies campsite repository behavior with mocked persistence. */
 class CampsiteRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private lateinit var campsites: MockCollection

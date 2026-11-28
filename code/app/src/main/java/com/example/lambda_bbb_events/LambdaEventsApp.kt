@@ -77,6 +77,8 @@ import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.rememberCoroutineScope
 import com.example.lambda_bbb_events.view.ui.owner_screens.LotteryRequestsScreen
 import kotlinx.coroutines.launch
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.CampsiteSection
+import com.example.lambda_bbb_events.view.ui.user_screens.explore.SeeAllCampsitesScreen
 
 /*
  * Displays loading and signup states before opening the
@@ -185,6 +187,42 @@ private fun MainApp(
             composable("lottery_bookings") { LotteryBookingsScreen(navController, controllers) }
             composable("explore_default") { ExploreDefaultScreen(navController, controllers) }
             composable("explore_map") { ExploreMapScreen(navController, controllers) }
+            composable(
+                "see_all_campsites/{source}/{section}"
+            ) { backStackEntry ->
+
+                val source = backStackEntry.arguments
+                    ?.getString("source")
+                    ?: return@composable
+
+                val sectionName = backStackEntry.arguments
+                    ?.getString("section")
+                    ?: return@composable
+
+                val section = CampsiteSection.entries
+                    .find { it.name == sectionName }
+                    ?: return@composable
+
+                val sourceEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(source)
+                }
+
+                val campsiteIds = sourceEntry.savedStateHandle
+                    .get<ArrayList<String>>("seeAllCampsiteIds")
+                    .orEmpty()
+
+                val activeCampsites = controllers.campsites.activeCampsites
+
+                val campsites = campsiteIds.mapNotNull { campsiteId ->
+                    activeCampsites[campsiteId]
+                }
+
+                SeeAllCampsitesScreen(
+                    navController = navController,
+                    section = section,
+                    campsites = campsites
+                )
+            }
             composable("qr_scanner") { QRScannerScreen(navController) }
             composable("campsite_details/{campsiteId}") { backStackEntry ->
                 val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
@@ -402,6 +440,7 @@ private fun MainApp(
                         profiles = profiles,
                         campsiteNames = campsiteNames,
                         isAdmin = isAdmin,
+                        notificationController = controllers.notifications,
                         campers = lotteryCampersOf(currentUserId, controllers)
                     )
                 }

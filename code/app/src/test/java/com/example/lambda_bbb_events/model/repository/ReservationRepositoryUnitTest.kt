@@ -16,6 +16,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies reservation repository behavior with mocked persistence. */
 class ReservationRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private val reservations = MockCollection(db, "reservations")

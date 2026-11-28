@@ -13,6 +13,12 @@ import com.example.lambda_bbb_events.MainActivity
 import com.example.lambda_bbb_events.R
 import com.example.lambda_bbb_events.model.notification.Notification
 import com.example.lambda_bbb_events.model.repository.NotificationRepository
+import com.example.lambda_bbb_events.model.local.NotificationHistoryStore
+import com.example.lambda_bbb_events.model.notification.NotificationHistory
+import java.util.UUID
+import com.example.lambda_bbb_events.model.local.NotificationCategoryStore
+import com.example.lambda_bbb_events.model.notification.NotificationCategory
+import com.example.lambda_bbb_events.model.notification.NotificationMode
 
 /**
  * Builds and displays notifications
@@ -25,6 +31,8 @@ class NotificationController(
     private val users: UserController
 ) {
     private val repository = NotificationRepository(context)
+    private val historyStore = NotificationHistoryStore(context)
+    private val categoryStore = NotificationCategoryStore(context)
 
     /**
      * Creates the notification channel and calls at app startup.
@@ -37,45 +45,169 @@ class NotificationController(
      * Shows a notification if the user and system both allow it.
      * @param notification The notification content.
      */
-     fun showNotification(
-        /* call notification with
-        * controllers.notifications.showNotification(
-        *    Notification(
-        *       title = "Notification main title",
-        *       message = "Notification message"
-        *    )
-        * )
-        */
+    fun showNotification(
         notification: Notification,
+        category: NotificationCategory = NotificationCategory.GENERAL
     ) {
-        // Reference:
-        // Android Developers. (n.d.).
-        // Create a notification. Android Developers.
-        // https://developer.android.com/develop/ui/compose/notifications/create-notification
+        val user = users.currentUser ?: return
 
-        // checks user notification preference in from user controller before sending
-        if (users.currentUser?.notificationsEnabled != true) return
-        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
+        historyStore.add(
+            userId = user.deviceId,
+            notification = NotificationHistory(
+                id = UUID.randomUUID().toString(),
+                title = notification.title,
+                message = notification.message
+            )
+        )
 
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        if (!user.notificationsEnabled) return
+
+        val mode = categoryStore.getMode(
+            user.deviceId,
+            category
+        )
+
+        when (mode) {
+
+            NotificationMode.MUTED -> return
+
+            NotificationMode.WEEKLY -> {
+                categoryStore.addPending(
+                    user.deviceId,
+                    category
+                )
+            }
+
+            NotificationMode.IMMEDIATE,
+            NotificationMode.HIGH_PRIORITY -> {
+                postNotification(notification, mode)
+            }
         }
+    }
+
+    private fun postNotification(
+        notification: Notification,
+        mode: NotificationMode
+    ) {
+        if (!NotificationManagerCompat.from(context)
+                .areNotificationsEnabled()
+        ) return
+
+        val highPriority =
+            mode == NotificationMode.HIGH_PRIORITY
+
+        val channelId = if (highPriority) {
+            "HIGH_PRIORITY_NOTIFICATIONS"
+        } else {
+            "APP_NOTIFICATIONS"
+        }
+
+        val intent = Intent(
+            context,
+            MainActivity::class.java
+        ).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
         val pendingIntent = PendingIntent.getActivity(
             context,
             notification.id,
             intent,
             PendingIntent.FLAG_IMMUTABLE
         )
-        val builder = NotificationCompat.Builder(context, "APP_NOTIFICATIONS")
+
+        val builder = NotificationCompat.Builder(
+            context,
+            channelId
+        )
             .setSmallIcon(R.drawable.lb_small)
-            .setContentTitle(notification.title) // only title and message to be set for now UPDATE LATER
+            .setContentTitle(notification.title)
             .setContentText(notification.message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(
+                if (highPriority) {
+                    NotificationCompat.PRIORITY_HIGH
+                } else {
+                    NotificationCompat.PRIORITY_DEFAULT
+                }
+            )
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-         // future button functions will go here such as reply or lottery related function before this line
-        repository.showNotification(notification.id, builder.build())
+        repository.showNotification(
+            notification.id,
+            builder.build()
+        )
+    }
+
+    /** Posts pending weekly summaries for the signed-in user when notifications are enabled. */
+    fun showWeeklySummaries() {
+
+        val user = users.currentUser ?: return
+
+        if (!user.notificationsEnabled) return
+
+        if (!NotificationManagerCompat.from(context)
+                .areNotificationsEnabled()
+        ) return
+
+        NotificationCategory.entries.forEach { category ->
+
+            val count = categoryStore.getDueCount(
+                user.deviceId,
+                category
+            )
+
+            if (count > 0) {
+
+                postNotification(
+                    notification = Notification(
+                        title = "Weekly ${category.title}",
+                        message = "You have $count new updates."
+                    ),
+                    mode = NotificationMode.IMMEDIATE
+                )
+
+                categoryStore.clearPending(
+                    user.deviceId,
+                    category
+                )
+            }
+        }
+    }
+
+    /** Observes changes to the saved notification history for [userId]. */
+    fun observeHistory(userId: String) =
+        historyStore.observeHistory(userId)
+
+    /** Clears the signed-in user's saved notification history. */
+    fun clearHistory() {
+
+        val userId = users.currentUser?.deviceId ?: return
+
+        historyStore.clear(userId)
+    }
+
+    /** Returns the delivery mode for the given user and notification category. */
+    fun getCategoryMode(
+        userId: String,
+        category: NotificationCategory
+    ): NotificationMode {
+        return categoryStore.getMode(userId, category)
+    }
+
+    /** Saves a category delivery preference for the signed-in user. */
+    fun setCategoryMode(
+        category: NotificationCategory,
+        mode: NotificationMode
+    ) {
+        val userId = users.currentUser?.deviceId ?: return
+
+        categoryStore.setMode(
+            userId,
+            category,
+            mode
+        )
     }
 }

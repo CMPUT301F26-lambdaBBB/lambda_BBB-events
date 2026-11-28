@@ -14,6 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies waitlist entry repository behavior with mocked persistence. */
 class WaitlistEntryRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private lateinit var entries: MockCollection

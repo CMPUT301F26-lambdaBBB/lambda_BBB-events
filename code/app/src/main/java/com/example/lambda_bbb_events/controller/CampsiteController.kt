@@ -44,6 +44,7 @@ class CampsiteController(
 
     private var _searchQuery = ""
 
+    /** The current search text after whitespace has been trimmed. */
     val searchQuery: String
         get() = _searchQuery
 
@@ -62,6 +63,7 @@ class CampsiteController(
     val activeCampsites: Map<String, Campsite>
         get() = campsites.filterValues { it.active }
 
+    /** Cached campsites that match the active filter criteria. */
     val filteredCampsites: Map<String, Campsite>
         get() = activeCampsites.filterValues { meetsAllFilters(it) }
 
@@ -120,7 +122,7 @@ class CampsiteController(
      *
      * @see Campsite.totalPoints
      */
-    val featuredCampsites: List<Campsite>
+    val allFeaturedCampsites: List<Campsite>
         get() = activeCampsites.values
             .sortedWith(
                 compareByDescending<Campsite> { hasPositiveReviews(it) }
@@ -128,16 +130,22 @@ class CampsiteController(
                     .thenByDescending { it.rating }
                     .thenByDescending { it.createdAt }
             )
-            .take(MAX_FEATURED)
+
+    /** Featured campsite preview, limited to [MAX_FEATURED] entries. */
+    val featuredCampsites: List<Campsite>
+        get() = allFeaturedCampsites.take(MAX_FEATURED)
 
     /**
      * Active campsites, newest first. Campsites created before creation times were
      * recorded come last.
      */
-    val recentlyAddedCampsites: List<Campsite>
+    val allRecentlyAddedCampsites: List<Campsite>
         get() = activeCampsites.values
             .sortedByDescending { it.createdAt }
-            .take(MAX_RECENTLY_ADDED)
+
+    /** Recently added campsite preview, limited to [MAX_RECENTLY_ADDED] entries. */
+    val recentlyAddedCampsites: List<Campsite>
+        get() = allRecentlyAddedCampsites.take(MAX_RECENTLY_ADDED)
 
     /**
      * Records that a campsite was viewed, moving it to the front of [recentlyViewed]
@@ -173,6 +181,7 @@ class CampsiteController(
         }
     }
 
+    /** Creates a campsite from the supplied listing details. */
     fun addCampsite(
         campsiteId: String = "",
         ownerId: String = "",
@@ -214,6 +223,7 @@ class CampsiteController(
         )
     }
 
+    /** Deletes the campsite and its associated lotteries, reporting a failure through [returnMessage]. */
     suspend fun removeCampsite(
         campsiteId: String,
         returnMessage: MutableState<String>
@@ -231,6 +241,7 @@ class CampsiteController(
         campsiteStore.archiveCampsitesByOwner(ownerId)
     }
 
+    /** Replaces the cached campsite and schedules the update for persistence. */
     fun updateCampsite(
         campsiteId: String,
         campsite: Campsite,
@@ -301,6 +312,7 @@ class CampsiteController(
         campsiteStore.setPhotos(campsiteId, photos)
     }
 
+    /** Returns the cached campsite for [campsiteId], if present. */
     fun getCampsite(
         campsiteId: String
     ): Campsite? {
@@ -308,6 +320,7 @@ class CampsiteController(
         return campsiteStore.campsites[campsiteId]
     }
 
+    /** Returns the cached campsites whose owner matches [ownerId]. */
     fun getCampsitesByOwner(
         ownerId: String
     ): List<Campsite> {
@@ -317,6 +330,7 @@ class CampsiteController(
         }
     }
 
+    /** Replaces the active filter criteria and returns the matching campsites. */
     fun applyFilters(
         startDate: LocalDate? = null,
         endDate: LocalDate? = null,
@@ -335,20 +349,24 @@ class CampsiteController(
         return filteredCampsites
     }
 
+    /** Resets the active campsite filters to their defaults. */
     fun clearFilters() {
         applyFilters()
     }
 
+    /** Updates the search query after trimming surrounding whitespace. */
     fun search(
         query: String
     ) {
         _searchQuery = query.trim()
     }
 
+    /** Returns a snapshot of all cached campsites. */
     fun getAllCampsites(): List<Campsite> {
         return campsiteStore.campsites.values.toList()
     }
 
+    /** Returns the campsites that match both the active filters and the search query. */
     fun getSearchResults(): List<Campsite> {
 
         return filteredCampsites.values.filter { matchesSearch(it) }

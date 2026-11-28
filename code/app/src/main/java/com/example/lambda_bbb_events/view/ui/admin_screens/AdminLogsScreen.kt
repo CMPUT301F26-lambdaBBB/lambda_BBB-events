@@ -10,14 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
 import com.example.lambda_bbb_events.model.AdminLog
 import com.example.lambda_bbb_events.model.LogType
 import com.example.lambda_bbb_events.model.user.UserRole
-import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
 import com.example.lambda_bbb_events.view.ui.components.logs.AdminLogCard
 import com.example.lambda_bbb_events.view.ui.components.logs.AdminLogDialog

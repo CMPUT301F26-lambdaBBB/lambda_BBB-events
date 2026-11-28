@@ -18,6 +18,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies image repository behavior with mocked persistence. */
 class ImageRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private lateinit var images: MockCollection

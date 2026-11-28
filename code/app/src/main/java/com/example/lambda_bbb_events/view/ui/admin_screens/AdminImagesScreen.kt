@@ -37,8 +37,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.AppControllers
-import com.example.lambda_bbb_events.model.campsite.Campsite
-import com.example.lambda_bbb_events.model.repository.ImageRepository
 import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.ui.theme.TypeTabBar
@@ -69,6 +67,7 @@ private data class GalleryImage(
     val focusY: Float = 0.5f
 )
 
+/** Displays campsite images for administrator review and moderation. */
 @Composable
 fun AdminImagesScreen(
     navController: NavController,

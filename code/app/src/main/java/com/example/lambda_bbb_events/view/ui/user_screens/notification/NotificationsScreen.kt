@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lambda_bbb_events.controller.MessageController
 import com.example.lambda_bbb_events.controller.NotificationPreferenceController
@@ -20,6 +19,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import com.example.lambda_bbb_events.controller.NotificationController
 
 /**
  * Displays the user's conversations and notification settings.
@@ -57,6 +57,7 @@ fun NotificationsScreen(
     profiles: Map<String, User> = emptyMap(),
     campsiteNames: Map<String, String> = emptyMap(),
     isAdmin: Boolean = false,
+    notificationController: NotificationController,
     campers: Map<String, Set<String>> = emptyMap()
 ) {
 
@@ -64,7 +65,11 @@ fun NotificationsScreen(
         mutableIntStateOf(0)
     }
 
-    val tabs = listOf("Messages", "Settings")
+    val tabs = listOf(
+        "Messages",
+        "Settings",
+        "Updates"
+    )
 
     var conversations by remember(currentUserId, isAdmin) {
         mutableStateOf<List<Conversation>>(emptyList())
@@ -268,11 +273,21 @@ fun NotificationsScreen(
 
                 // Notification settings tab.
                 1 -> {
-
                     NotificationSettingsTab(
                         contacts = (conversationContacts + availableContacts)
                             .distinctBy { it.contactId },
                         preferenceController = preferenceController,
+                        currentUserId = currentUserId,
+                        notificationController = notificationController,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // System notification history tab.
+                2 -> {
+                    NotificationUpdatesTab(
+                        currentUserId = currentUserId,
+                        notificationController = notificationController,
                         modifier = Modifier.weight(1f)
                     )
                 }

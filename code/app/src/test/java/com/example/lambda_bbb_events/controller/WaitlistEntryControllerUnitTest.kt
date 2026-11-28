@@ -17,6 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Date
 
+/** Verifies waitlist controller behavior in isolation. */
 class WaitlistEntryControllerUnitTest {
     private val repository = mockk<WaitlistEntryRepository>()
     private lateinit var controller: WaitlistEntryController

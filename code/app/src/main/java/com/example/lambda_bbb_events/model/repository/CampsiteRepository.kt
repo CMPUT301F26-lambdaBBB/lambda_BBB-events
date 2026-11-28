@@ -57,6 +57,7 @@ data class FirestoreCampsite(
     val createdAt: Long = 0L
 )
 
+/** Represents campsite availability with string date keys for Firestore serialization. */
 data class FirestoreAvailabilitySchedule(
     var dates: MutableMap<String, Int> = mutableMapOf()
 )
@@ -147,6 +148,7 @@ class CampsiteRepository(
      */
     suspend fun deleteCampsite(campsiteID: String) = delete(campsiteID)
 
+    /** Deletes a campsite and queues deletion of its lotteries in the same Firestore batch. */
     suspend fun deleteCampsiteWithLotteries(
         campsiteId: String,
         lotteryRepository: LotteryRepository

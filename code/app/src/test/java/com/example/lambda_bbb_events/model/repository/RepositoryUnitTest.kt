@@ -19,6 +19,7 @@ import org.junit.Test
  */
 class RepositoryUnitTest {
 
+    /** Represents a minimal record for exercising the generic repository. */
     data class Item(val id: String = "", val name: String = "")
 
     /** Stores [Item]s as `{name}` documents. Documents named "bad" fail to convert. */

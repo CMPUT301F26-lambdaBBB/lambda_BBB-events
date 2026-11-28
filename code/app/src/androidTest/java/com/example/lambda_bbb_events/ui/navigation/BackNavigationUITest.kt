@@ -1,6 +1,5 @@
 package com.example.lambda_bbb_events.ui.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription

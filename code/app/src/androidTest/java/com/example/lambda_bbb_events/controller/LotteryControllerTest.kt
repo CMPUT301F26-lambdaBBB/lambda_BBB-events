@@ -18,6 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Date
 
+/** Verifies lottery controller workflows against their Android dependencies. */
 class LotteryControllerTest {
 
     private lateinit var lotteryRepository: LotteryRepository

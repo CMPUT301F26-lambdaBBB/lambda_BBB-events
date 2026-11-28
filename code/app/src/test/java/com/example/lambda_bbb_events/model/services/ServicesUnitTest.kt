@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Verifies application service helpers. */
 class ServicesUnitTest {
 
     // draw_winners

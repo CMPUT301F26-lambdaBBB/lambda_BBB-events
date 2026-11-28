@@ -9,6 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 
+/** Verifies the lottery model's values and behavior. */
 class LotteryUnitTest {
     @Test
     fun lotteryIsFull() {

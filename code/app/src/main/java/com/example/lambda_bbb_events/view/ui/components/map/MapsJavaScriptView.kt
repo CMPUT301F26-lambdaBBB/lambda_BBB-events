@@ -42,6 +42,7 @@ private class MapBridge(
     /** Set on the main thread once the page is gone, after which its late events are ignored. */
     var isClosed = false
 
+    /** Receives a named map event and its JSON payload from the WebView. */
     @JavascriptInterface
     fun post(name: String, json: String) {
         var data = JSONObject()
