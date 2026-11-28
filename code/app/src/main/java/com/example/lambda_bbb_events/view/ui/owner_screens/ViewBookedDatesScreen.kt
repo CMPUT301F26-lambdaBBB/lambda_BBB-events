@@ -24,8 +24,11 @@ import com.example.lambda_bbb_events.view.ui.components.common.CampsiteThumbnail
 import androidx.compose.ui.draw.clip
 import com.example.lambda_bbb_events.controller.ReservationFilter
 import com.example.lambda_bbb_events.model.reservation.Reservation
+import com.example.lambda_bbb_events.model.reservation.ReservationStatus
 import com.example.lambda_bbb_events.model.user.User
 import com.example.lambda_bbb_events.view.ui.components.reservation.BookedEntrantCard
+import kotlinx.coroutines.launch
+
 
 /*
  * Allows users to select campsite reservation dates
@@ -58,6 +61,8 @@ fun ViewBookedDatesScreen(
     var upcomingReservations by remember(campsiteId) { mutableStateOf<List<Reservation>>(emptyList()) }
     var entrants by remember(campsiteId) { mutableStateOf<Map<String, User>>(emptyMap()) }
     var isLoading by remember(campsiteId) { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(campsiteId) {
         val loadedAll = controllers.reservations.getReservationsForCampsite(
@@ -237,7 +242,16 @@ fun ViewBookedDatesScreen(
                 BookedEntrantCard(
                     name = entrant?.name ?: "Unknown guest",
                     profilePictureImageId = entrant?.profilePictureImageId ?: "",
-                    reservation = reservation
+                    reservation = reservation,
+                    isRejected = reservation.status == ReservationStatus.REJECTED,
+                    onReject = {
+                        scope.launch {
+                            controllers.reservations.rejectReservation(reservation)
+
+                        }
+                    }
+
+
                 )
             }
         }

@@ -46,6 +46,16 @@ class ReservationController(
     }
 
     /**
+     * Cancels a reservation by updating its status to REJECTED.
+     *
+     * @param reservation The reservation to cancel.
+     */
+    suspend fun rejectReservation(reservation: Reservation) {
+        val updated = reservation.copy(status = ReservationStatus.REJECTED)
+        reservationRepository.updateReservation(updated)
+    }
+
+    /**
      * Confirms a reservation for an entrant who has won a lottery.
      *
      * Creates a confirmed reservation and updates the associated

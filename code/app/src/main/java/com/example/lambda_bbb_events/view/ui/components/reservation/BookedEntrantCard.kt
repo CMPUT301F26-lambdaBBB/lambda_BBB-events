@@ -27,6 +27,10 @@ import androidx.compose.ui.unit.sp
 import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.example.lambda_bbb_events.view.ui.components.common.ProfilePicture
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+
 
 /**
  * A card to display to the owner that has information of an entrant who booked a campsite.
@@ -43,10 +47,11 @@ fun BookedEntrantCard(
     name: String,
     profilePictureImageId: String,
     reservation: Reservation,
+    isRejected: Boolean,
+    onReject:() -> Unit,
     modifier: Modifier = Modifier
 ) {
     val cardShape = RoundedCornerShape(16.dp)
-
     val startDate = parseDateOrNull(reservation.startDate)
     val endDate = parseDateOrNull(reservation.endDate)
     val dates = if (startDate != null && endDate != null) {
@@ -71,7 +76,10 @@ fun BookedEntrantCard(
             size = 56.dp
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
                 text = name,
                 fontSize = 16.sp,
@@ -104,5 +112,23 @@ fun BookedEntrantCard(
                 Text(text = "${reservation.guests} people", fontSize = 13.sp)
             }
         }
+
+
+
+        Button(
+            onClick =  onReject,
+            enabled = !isRejected,
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.outlineVariant,
+                disabledContentColor = MaterialTheme.colorScheme.surface
+            ),
+            modifier = Modifier.testTag("cancelReservationButton")
+        ) {
+            Text(if (isRejected) "Cancelled" else "Cancel")
+        }
     }
+
 }
