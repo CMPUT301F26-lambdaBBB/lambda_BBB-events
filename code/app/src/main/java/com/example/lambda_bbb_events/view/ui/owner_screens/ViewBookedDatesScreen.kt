@@ -61,10 +61,11 @@ fun ViewBookedDatesScreen(
     var upcomingReservations by remember(campsiteId) { mutableStateOf<List<Reservation>>(emptyList()) }
     var entrants by remember(campsiteId) { mutableStateOf<Map<String, User>>(emptyMap()) }
     var isLoading by remember(campsiteId) { mutableStateOf(true) }
+    var reload by remember(campsiteId) { mutableStateOf(0) } // to refresh page
     val scope = rememberCoroutineScope()
 
 
-    LaunchedEffect(campsiteId) {
+    LaunchedEffect(campsiteId, reload) {
         val loadedAll = controllers.reservations.getReservationsForCampsite(
             campsiteId,
             ReservationFilter.ALL
@@ -247,11 +248,9 @@ fun ViewBookedDatesScreen(
                     onReject = {
                         scope.launch {
                             controllers.reservations.rejectReservation(reservation)
-
+                            reload++
                         }
                     }
-
-
                 )
             }
         }
