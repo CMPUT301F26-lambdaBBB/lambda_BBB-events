@@ -47,7 +47,10 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-
-        Log.d("FCM", "Token refreshed")
+        val deviceId = android.provider.Settings.Secure.getString(
+            applicationContext.contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID
+        )
+        FcmTokenRegistrar.save(deviceId, token)
     }
 }

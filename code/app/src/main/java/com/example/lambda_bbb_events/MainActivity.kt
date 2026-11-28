@@ -55,7 +55,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.lambda_bbb_events.model.services.FirebaseNotificationService
 import kotlinx.coroutines.flow.collect
-import com.example.lambda_bbb_events.model.services.SystemNotificationListener
 import kotlinx.coroutines.delay
 
 /*
@@ -162,22 +161,11 @@ class MainActivity : ComponentActivity() {
             notificationController = controllers.messageNotifications
         )
 
-        val systemNotificationListener = SystemNotificationListener(
-            notificationController = controllers.notifications
-        )
-
         setContent {
 
             val currentUser = controllers.users.currentUser
             val currentUserId = currentUser?.deviceId
             val isAdmin = currentUser?.role == UserRole.ADMIN
-
-            // Listen for lottery and reservation notifications.
-            LaunchedEffect(currentUserId) {
-                if (currentUserId != null) {
-                    systemNotificationListener.listen(currentUserId)
-                }
-            }
 
             // Check for pending weekly notification summaries.
             LaunchedEffect(currentUserId) {
