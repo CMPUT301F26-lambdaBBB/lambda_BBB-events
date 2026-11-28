@@ -440,7 +440,7 @@ private fun MainApp(
                         profiles = profiles,
                         campsiteNames = campsiteNames,
                         isAdmin = isAdmin,
-                        notificationController = controllers.notifications
+                        notificationController = controllers.notifications,
                         campers = lotteryCampersOf(currentUserId, controllers)
                     )
                 }

@@ -58,7 +58,7 @@ fun NotificationsScreen(
     profiles: Map<String, User> = emptyMap(),
     campsiteNames: Map<String, String> = emptyMap(),
     isAdmin: Boolean = false,
-    notificationController: NotificationController
+    notificationController: NotificationController,
     campers: Map<String, Set<String>> = emptyMap()
 ) {
 
