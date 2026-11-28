@@ -98,6 +98,7 @@ private val DarkColorScheme = darkColorScheme(
 // Booking Status Theme
 // ========================================
 
+/** Groups the foreground and background colors used to indicate booking status. */
 data class BookingStatusColors(
     val available: Color,
     val availableBackground: Color,

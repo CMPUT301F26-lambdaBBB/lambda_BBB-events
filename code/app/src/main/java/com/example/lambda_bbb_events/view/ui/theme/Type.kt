@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/*
+/**
  * Defines the application's Material 3 typography styles.
  *
  * Provides consistent font sizes, weights, and spacing

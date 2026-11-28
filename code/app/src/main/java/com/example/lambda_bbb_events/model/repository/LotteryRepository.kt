@@ -8,7 +8,6 @@ import com.example.lambda_bbb_events.model.lottery.WaitlistStatus
 import com.example.lambda_bbb_events.model.Message
 import com.example.lambda_bbb_events.model.reservation.Reservation
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -160,6 +159,7 @@ class LotteryRepository(
         return notified
     }
 
+    /** Adds deletion operations for the campsite's lotteries to the caller's Firestore batch. */
     internal suspend fun queueCampsiteLotteryDeletions(
         batch: WriteBatch,
         campsiteId: String

@@ -15,7 +15,6 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,7 +29,6 @@ import com.example.lambda_bbb_events.model.user.UserRole
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminScreenTitleWithRoleSwitcher
 import com.example.lambda_bbb_events.view.ui.components.admin.AdminToolTile
 import com.example.lambda_bbb_events.view.ui.components.admin.NoAccessMessage
-import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
 
 /**
  * Displays the home screen for admins. Contains admin tools and recent activity sections.

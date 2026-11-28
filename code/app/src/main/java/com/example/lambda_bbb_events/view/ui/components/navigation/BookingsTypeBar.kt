@@ -25,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
  * Uses Material 3 theme colors for selected and unselected tabs.
  */
 
+/** Displays tabs with a selected index and reports the index the user selects. */
 @Composable
 fun TypeTabBar(
     tabs: List<String>,

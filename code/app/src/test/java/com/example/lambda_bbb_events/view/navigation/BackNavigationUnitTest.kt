@@ -10,6 +10,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Verifies how back navigation selects an action. */
 class BackNavigationUnitTest {
     private val navController = mockk<NavController>()
 

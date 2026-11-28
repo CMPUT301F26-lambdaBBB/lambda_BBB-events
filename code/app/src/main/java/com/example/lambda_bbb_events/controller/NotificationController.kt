@@ -141,6 +141,7 @@ class NotificationController(
         )
     }
 
+    /** Posts pending weekly summaries for the signed-in user when notifications are enabled. */
     fun showWeeklySummaries() {
 
         val user = users.currentUser ?: return
@@ -176,9 +177,11 @@ class NotificationController(
         }
     }
 
+    /** Observes changes to the saved notification history for [userId]. */
     fun observeHistory(userId: String) =
         historyStore.observeHistory(userId)
 
+    /** Clears the signed-in user's saved notification history. */
     fun clearHistory() {
 
         val userId = users.currentUser?.deviceId ?: return
@@ -186,6 +189,7 @@ class NotificationController(
         historyStore.clear(userId)
     }
 
+    /** Returns the delivery mode for the given user and notification category. */
     fun getCategoryMode(
         userId: String,
         category: NotificationCategory
@@ -193,6 +197,7 @@ class NotificationController(
         return categoryStore.getMode(userId, category)
     }
 
+    /** Saves a category delivery preference for the signed-in user. */
     fun setCategoryMode(
         category: NotificationCategory,
         mode: NotificationMode

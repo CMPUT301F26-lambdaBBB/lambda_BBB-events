@@ -23,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
 
+/** Verifies the rules confirmation screen and its user interactions. */
 @RunWith(AndroidJUnit4::class)
 class RuleConfirmScreenTest {
 

@@ -62,6 +62,7 @@ import com.example.lambda_bbb_events.view.ui.components.common.PhotoFocusDialog
 /** Most digits the max occupancy can have, so the value always fits in an Int. */
 internal const val MAX_OCCUPANCY_DIGITS = 4
 
+/** Edits the campsite's basic listing information and validates the form before advancing. */
 @Composable
 internal fun CreateBasicInfoStep(
     form: CreateCampsiteFormState,

@@ -2,16 +2,21 @@ package com.example.lambda_bbb_events.model.campsite
 
 import java.time.LocalDate
 
+/** Tracks campsite availability by date alongside the date ranges of current bookings. */
 data class AvailabilitySchedule (
     var dates: MutableMap<LocalDate, Int> = mutableMapOf<LocalDate, Int>(),
 ) {
+    /** Booked date ranges indexed by the identifier supplied when booking. */
     var currentBookings: MutableMap<String, ClosedRange<LocalDate>> = mutableMapOf()
+    /** The earliest date tracked by the schedule, if any. */
     val minDate: LocalDate?
         get() = dates.keys.minOrNull()
 
+    /** The latest date tracked by the schedule, if any. */
     val maxDate: LocalDate?
         get() = dates.keys.maxOrNull()
 
+    /** Adds availability for [startDate] through [endDate], inclusive. A missing end date selects one day. */
     fun addAvailableDates(startDate: LocalDate, endDate: LocalDate? = null) {
         val newEndDate = endDate ?: startDate
         var newDate = startDate
@@ -51,6 +56,9 @@ data class AvailabilitySchedule (
         return true
     }
 
+    /**
+     * Removes availability for [startDate] through [endDate], inclusive. A missing end date selects one day.
+     */
     fun removeAvailableDate(startDate: LocalDate, endDate: LocalDate? = null) {
         val newEndDate = endDate ?: startDate
         var newDate = startDate

@@ -29,6 +29,7 @@ import com.example.lambda_bbb_events.view.ui.components.calendar.DatePickerField
 /** Most digits the number of spots can have, so the value always fits in an Int. */
 internal const val MAX_SPOTS_DIGITS = 4
 
+/** Displays the lottery setup step and reflects the current save state. */
 @Composable
 internal fun CreateLotteryStep(
     form: CreateCampsiteFormState,

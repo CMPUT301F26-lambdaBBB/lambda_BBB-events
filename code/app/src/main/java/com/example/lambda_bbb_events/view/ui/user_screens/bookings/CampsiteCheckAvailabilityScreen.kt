@@ -2,7 +2,6 @@
 package com.example.lambda_bbb_events.view.ui.user_screens.bookings
 
 import com.example.lambda_bbb_events.model.formatting.parseDateOrNull
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

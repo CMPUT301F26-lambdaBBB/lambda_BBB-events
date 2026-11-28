@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Verifies phone-number parsing and formatting. */
 class PhoneNumberUnitTest {
     private fun country(iso: String) = COUNTRY_CODES.first { it.isoCode == iso }
 

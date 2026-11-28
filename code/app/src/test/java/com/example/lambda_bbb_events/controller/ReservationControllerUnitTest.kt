@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
+/** Verifies reservation controller behavior in isolation. */
 class ReservationControllerUnitTest {
     private val repository = mockk<ReservationRepository>()
     private lateinit var controller: ReservationController

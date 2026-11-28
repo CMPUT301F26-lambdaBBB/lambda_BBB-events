@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies campsite content and user interactions on the home screen. */
 @RunWith(AndroidJUnit4::class)
 class HomeScreenUITest {
     @get:Rule

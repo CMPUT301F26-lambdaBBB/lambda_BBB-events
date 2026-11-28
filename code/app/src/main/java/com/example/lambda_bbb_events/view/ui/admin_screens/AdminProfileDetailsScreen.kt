@@ -22,7 +22,6 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -449,6 +448,7 @@ private fun MessageUserButton(
     }
 }
 
+/** Displays the selected user's role as a chip. */
 @Composable
 private fun RoleChip(
     role: UserRole,
@@ -482,6 +482,7 @@ private fun RoleChip(
     }
 }
 
+/** Displays a profile field label and its value. */
 @Composable
 private fun ProfileDetailRow(
     icon: ImageVector,
@@ -520,6 +521,7 @@ private fun ProfileDetailRow(
     }
 }
 
+/** Formats the phone number for display in the administrator profile. */
 private fun formatPhone(phone: String): String {
     if (phone.isBlank()) {
         return "Not provided"

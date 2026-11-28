@@ -25,6 +25,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 
+/** Verifies lottery controller behavior in isolation. */
 class LotteryControllerUnitTest {
     private val repository = mockk<LotteryRepository>()
     private lateinit var controller: LotteryController

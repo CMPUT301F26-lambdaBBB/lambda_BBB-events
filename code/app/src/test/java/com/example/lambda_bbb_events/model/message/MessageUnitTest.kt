@@ -17,6 +17,7 @@ import org.junit.Test
  * - "So to clarify I want to allow users and admins to remove messages."
  */
 
+/** Verifies the message model's values and behavior. */
 class MessageUnitTest {
     private val message = Message(messageId = "m1", content = "Hi", senderId = "ed", recipientId = "ada")
 

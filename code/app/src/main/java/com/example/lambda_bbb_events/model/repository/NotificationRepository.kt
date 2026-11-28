@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 
 /*
@@ -58,6 +57,7 @@ class NotificationRepository(
      * @param notification The built notification from controller.
      */
     // suppress warning in repository as checks happen in controller
+    /** Posts [notification] using [id] after the caller has checked notification permissions. */
     @SuppressLint("MissingPermission")
     fun showNotification(id: Int, notification: Notification) {
         NotificationManagerCompat.from(context).notify(id, notification)

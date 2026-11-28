@@ -24,6 +24,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Date
 
+/** Verifies review controller behavior in isolation. */
 class ReviewControllerUnitTest {
     private val repository = mockk<ReviewRepository>()
     private val controller = ReviewController(repository)

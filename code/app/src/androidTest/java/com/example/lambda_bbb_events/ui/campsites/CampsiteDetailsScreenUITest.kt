@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies the campsite details screen and its user interactions. */
 @RunWith(AndroidJUnit4::class)
 class CampsiteDetailsScreenUITest {
 

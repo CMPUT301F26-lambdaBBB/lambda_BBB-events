@@ -4,6 +4,7 @@ import com.example.lambda_bbb_events.model.services.ImageProcessor.Companion.sam
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/** Verifies image processing helpers. */
 class ImageProcessorUnitTest {
 
     @Test

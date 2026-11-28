@@ -12,6 +12,7 @@ import com.example.lambda_bbb_events.model.user.UserRole
  * @property reviewRepository The repository for [Review].
  */
 class ReviewController(
+    /** The repository used to load and persist reviews. */
     val reviewRepository: ReviewRepository
 ) {
     /**

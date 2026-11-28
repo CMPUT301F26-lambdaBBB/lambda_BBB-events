@@ -12,17 +12,15 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertTrue
 
+/** Verifies how campsite store operations affect its cached listings. */
 class CampsiteStoreUnitTest {
     private val repo = mockk<CampsiteRepository>()
     private val lotteries = mockk<LotteryRepository>()

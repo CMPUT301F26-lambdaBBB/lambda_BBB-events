@@ -16,6 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies review repository behavior with mocked persistence. */
 class ReviewRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private val transaction = mockk<Transaction>()

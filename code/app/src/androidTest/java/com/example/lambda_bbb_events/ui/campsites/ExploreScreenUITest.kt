@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies campsite browsing through the Explore screen. */
 @RunWith(AndroidJUnit4::class)
 class ExploreScreenUITest {
 

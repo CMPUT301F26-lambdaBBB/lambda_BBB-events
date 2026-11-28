@@ -16,4 +16,5 @@ import kotlin.math.abs
 fun closestStops(range: IntRange, stops: List<Int>): IntRange =
     closestStop(range.first, stops)..closestStop(range.last, stops)
 
+/** Returns the selectable stop with the smallest distance from [value]. */
 private fun closestStop(value: Int, stops: List<Int>): Int = stops.minBy { abs(it - value) }

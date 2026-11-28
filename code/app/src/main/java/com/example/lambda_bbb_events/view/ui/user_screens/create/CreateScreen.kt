@@ -27,7 +27,6 @@ import com.example.lambda_bbb_events.model.campsite.Campsite
 import com.example.lambda_bbb_events.model.image.ImageMetaData
 import com.example.lambda_bbb_events.view.ui.components.navigation.BottomNavigationBar
 import com.example.lambda_bbb_events.view.ui.components.common.ScreenTitle
-import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.launch
 import com.example.lambda_bbb_events.view.ui.components.navigation.StepStageIndicator

@@ -28,6 +28,7 @@ import org.junit.runner.RunWith
 import androidx.navigation.NavHostController
 import com.example.lambda_bbb_events.view.ui.user_screens.explore.ExploreMapScreen
 
+/** Verifies navigation between the app's main destinations. */
 @RunWith(AndroidJUnit4::class)
 class NavigationScreenUITest {
     @get:Rule

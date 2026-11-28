@@ -28,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Verifies how the profile screen displays and edits account information. */
 @RunWith(AndroidJUnit4::class)
 class ProfileScreenUITest {
 

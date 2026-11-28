@@ -21,6 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Verifies user repository behavior with mocked persistence. */
 class UserRepositoryUnitTest {
     private val db = mockk<FirebaseFirestore>()
     private lateinit var users: MockCollection
